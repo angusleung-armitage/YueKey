@@ -250,7 +250,10 @@ def self_test(report: Path, models: Path | None):
         root = tk.Tk()
         root.title('YueKey isolated Windows smoke test')
         root.update()
-        backend = WindowsInput()
+        app = Application(root)
+        backend = app.backend
+        root.update()
+        assert root.winfo_height() >= root.winfo_reqheight(), 'Setup controls do not fit in the window'
         assert backend.thread.is_alive()
         assert backend.automation is not None
         assert sounddevice.get_portaudio_version()
@@ -292,6 +295,10 @@ def self_test(report: Path, models: Path | None):
         result['snapshot_age'] = time.monotonic() - backend.snapshot[1]
         result['activity'] = backend.activity
         assert target is not None, 'UI Automation did not identify the isolated Edit control'
+        app.show('YueKey test · No microphone is open')
+        settle()
+        assert user.GetForegroundWindow() == parent, 'Dictation overlay stole focus'
+        assert backend.target() == target, 'Dictation overlay invalidated the input field'
         assert backend.insert('我，𨋢', target), 'Unicode SendInput failed'
         settle()
         value = ctypes.create_unicode_buffer(100)
