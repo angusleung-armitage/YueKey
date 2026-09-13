@@ -61,10 +61,11 @@ def main():
                 (app / 'user-notes.txt').write_bytes(b'user notes')
 
         report = logs / 'installed-runtime.json'
-        subprocess.run([str(app / 'YueKey.exe'), '--self-test', str(report),
-                        '--models', str(ROOT / 'build/speech-models')], check=True, timeout=600)
+        process = subprocess.run([str(app / 'YueKey.exe'), '--self-test', str(report),
+                                  '--models', str(ROOT / 'build/speech-models')], timeout=600)
         result = json.loads(report.read_text(encoding='utf-8'))
         print(json.dumps(result, indent=2))
+        process.check_returncode()
         assert result['ok']
         assert result['architecture'] == architecture
         # Simulate a companion in use: setup must reject repair instead of

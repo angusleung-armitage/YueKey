@@ -26,6 +26,12 @@ def main():
     architecture = subprocess.check_output(['dpkg', '--print-architecture'], text=True).strip()
     packages = [ROOT / f'dist/yuekey_{version}-1_{architecture}.deb']
     assert packages[0].is_file(), 'Build the all-in-one DEB first'
+    profiles = [Path.home() / ".config/ibus/rime", Path.home() / ".local/share/fcitx5/rime"]
+    original = b"# Existing user preference; retain on uninstall.\npatch:\n  menu/page_size: 7\n"
+    for profile in profiles:
+        assert not profile.exists(), "Use a fresh container for package tests"
+        profile.mkdir(parents=True)
+        (profile / "default.custom.yaml").write_bytes(original)
     # Model the old five-package ownership/dependency graph. apt must replace
     # them in one transaction without conflicting files or leftover packages.
     legacy = ['quick-hk-' + name for name in ('predict', 'core', 'gnome', 'kde', 'dictation')]
@@ -54,18 +60,16 @@ def main():
     else:
         run('dpkg-deb', '--extract', str(packages[0]), '/')
 
+    for profile in profiles:
+        assert (profile / 'default.custom.yaml').read_bytes() == original, 'Package upgrade changed user settings'
+
     # The installed speech worker and weights run with the container network
     # unavailable too; this command never opens an audio device.
     run('/usr/lib/yuekey/speech/yuekey-speech', '--models', '/usr/share/yuekey/models', '--check')
+    run('runuser', '-u', 'nobody', '--', 'quick-hk', 'dictation', 'setup')
     speech = json.loads(subprocess.check_output(['quick-hk', 'dictation', 'status', '--json']))
     assert speech['ready'] and speech['bundled'] and speech['provider'] == 'cpu'
 
-    profiles = [Path.home() / ".config/ibus/rime", Path.home() / ".local/share/fcitx5/rime"]
-    original = b"# Existing user preference; retain on uninstall.\npatch:\n  menu/page_size: 7\n"
-    for profile in profiles:
-        assert not profile.exists(), "Use a fresh container for package tests"
-        profile.mkdir(parents=True)
-        (profile / "default.custom.yaml").write_bytes(original)
     run("quick-hk", "setup", "--frontend", "both")
     run("quick-hk", "deploy", "--frontend", "both")
     status = json.loads(subprocess.check_output(["quick-hk", "doctor", "--frontend", "both", "--json"]))

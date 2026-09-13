@@ -19,6 +19,7 @@ def build():
         '--name', 'yuekey-speech', '--distpath', str(ROOT / 'build/linux-dist'),
         '--workpath', str(ROOT / 'build/linux-pyinstaller'), '--specpath', str(ROOT / 'build'),
         '--collect-all', 'sherpa_onnx', '--collect-all', 'opencc',
+        '--exclude-module', 'readline',
         str(ROOT / 'src/quick_hk/dictation_worker.py'),
     ], check=True)
     bundle = ROOT / 'build/linux-dist/yuekey-speech'

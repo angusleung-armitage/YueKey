@@ -65,6 +65,10 @@ def finish(path: Path, architecture: str) -> None:
         if file.is_file():
             md5.append(f"{hashlib.md5(file.read_bytes()).hexdigest()}  {file.relative_to(path)}")
     (path / "DEBIAN/md5sums").write_text("\n".join(md5) + "\n")
+    installed_size = sum((file.stat().st_size + 1023) // 1024
+                         for file in (path / 'usr').rglob('*') if file.is_file())
+    with (path / 'DEBIAN/control').open('a') as metadata:
+        metadata.write(f'Installed-Size: {installed_size}\n')
     destination = DIST / f"{path.name}_{VERSION}_{architecture}.deb"
     env = dict(os.environ, SOURCE_DATE_EPOCH="1789171200")
     subprocess.run(["dpkg-deb", "--root-owner-group", "--build", str(path), str(destination)], check=True, env=env)
@@ -142,7 +146,7 @@ def build() -> None:
     overrides.parent.mkdir(parents=True)
     overrides.write_text(
         '# Frozen, private CPU worker runtime; never installed as system libraries.\n'
-        '# Bundled dependencies are hash locked; updates require a new YueKey build.\n'
+        '# Python wheels are hash locked; system-library versions and licenses accompany the bundle.\n'
         'yuekey: embedded-library * [usr/lib/yuekey/speech/_internal/*]\n')
     copy(ROOT / 'desktop/linux/requirements.txt', docs / 'speech-requirements.txt')
     for name in model_hashes():

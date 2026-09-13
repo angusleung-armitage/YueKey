@@ -128,9 +128,11 @@ def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
             key_hint = Gtk.Label(xalign=0, wrap=True, label="如左 Ctrl 用作中英切換，語音輸入會使用右 Ctrl。\nIf Left Ctrl switches language, dictation uses Right Ctrl.")
             key_hint.add_css_class("dim-label")
             self.form.append(key_hint)
-            setup_button = Gtk.Button(label="準備語音模型 · Set up speech models")
+            setup_button = Gtk.Button(label=("驗證語音模型 · Verify speech models" if speech.get('bundled')
+                                              else "準備語音模型 · Set up speech models"))
             setup_button.connect("clicked", lambda *_: self._start_command(
-                ["dictation", "setup"], "正在下載及準備語音模型… · Preparing speech models…"))
+                ["dictation", "setup"], "正在檢查語音模型… · Checking speech models…" if speech.get('bundled')
+                else "正在下載及準備語音模型… · Preparing speech models…"))
             self.form.append(setup_button)
             local = Gtk.Label(
                 label="所有學習資料保存在這部電腦。\nLearning stays on this computer.",

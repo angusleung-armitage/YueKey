@@ -30,7 +30,7 @@ docker run --rm --init --user "$(id -u):$(id -g)" \
   python3 -m venv build/linux-venv &&
   build/linux-venv/bin/python -m pip install --require-hashes --only-binary=:all: -r desktop/linux/requirements.txt &&
   build/linux-venv/bin/python tools/package_linux_speech.py &&
-  make all test packages' 
+  make all test packages'
 ```
 
 首次建置需要網絡。若 Docker 的 bridge 網絡無法連接套件來源，可按網絡環境嘗試在 `docker build` 及 `docker run` 加上 `--network host`。這不是所有網絡問題的通用修復。

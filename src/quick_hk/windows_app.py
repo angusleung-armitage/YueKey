@@ -388,19 +388,38 @@ def self_test(report: Path, models: Path | None):
                 root.update()
                 time.sleep(0.025)
 
-        user.SetForegroundWindow(parent)
-        user.SetFocus(normal)
+        def activate_test_field():
+            # Only the opt-in integration test activates a window. Windows 11
+            # can deny activation to a process launched by a background runner.
+            # Temporarily share the foreground thread's input queue, then detach.
+            foreground = user.GetWindowThreadProcessId(user.GetForegroundWindow(), None)
+            current = backend.kernel.GetCurrentThreadId()
+            user.AttachThreadInput.argtypes = [W.DWORD, W.DWORD, W.BOOL]
+            user.AttachThreadInput.restype = W.BOOL
+            attached = foreground != current and foreground and user.AttachThreadInput(current, foreground, True)
+            try:
+                user.ShowWindow(parent, 9)
+                user.SetForegroundWindow(parent)
+                user.SetFocus(normal)
+            finally:
+                if attached:
+                    user.AttachThreadInput(current, foreground, False)
+
+        activate_test_field()
         target = None
         deadline = time.monotonic() + 5
         while target is None and time.monotonic() < deadline:
             root.update()
             time.sleep(0.01)
+            if user.GetForegroundWindow() != parent:
+                activate_test_field()
             target = backend.target()
         result['focus_diagnostic'] = backend.focus_diagnostic
         result['foreground_matches_test_window'] = user.GetForegroundWindow() == parent
         result['snapshot_age'] = time.monotonic() - backend.snapshot[1]
         result['activity'] = backend.activity
         assert target is not None, 'UI Automation did not identify the isolated Edit control'
+        assert target.window == parent, 'Accessibility target is not the isolated test window'
         app.show('YueKey test · No microphone is open')
         settle()
         assert user.GetForegroundWindow() == parent, 'Dictation overlay stole focus'

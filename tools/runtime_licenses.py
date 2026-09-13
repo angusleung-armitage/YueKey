@@ -39,10 +39,14 @@ def collect_licenses(target: Path) -> None:
             query = subprocess.run(['dpkg-query', '-S', original], capture_output=True, text=True)
             if query.returncode == 0:
                 packages.update(line.rsplit(': ', 1)[0].split(':')[0] for line in query.stdout.splitlines())
-        for package in packages:
+        versions = []
+        for package in sorted(packages):
+            versions.append(subprocess.check_output(
+                ['dpkg-query', '-W', '-f=${binary:Package} ${Version}', package], text=True).strip() + '\n')
             notice = Path('/usr/share/doc') / package / 'copyright'
             if notice.is_file():
                 destination = target / 'system' / package / 'copyright'
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(notice, destination)
+        (target / 'SYSTEM-PACKAGES.txt').write_text(''.join(versions))
         shutil.copytree('/usr/share/common-licenses', target / 'common-licenses', dirs_exist_ok=True)

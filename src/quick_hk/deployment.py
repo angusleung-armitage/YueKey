@@ -109,7 +109,7 @@ def _deployer_command() -> list[str]:
         command = shutil.which(name)
         if command:
             return [command]
-    raise DeploymentError("Rime deployer missing. Install quick-hk-core (or librime-bin).")
+    raise DeploymentError("Rime deployer missing. Install yuekey (or librime-bin).")
 
 
 def _compile(stage: Path) -> None:
@@ -349,16 +349,16 @@ def deploy(frontend: str = "auto", settings: Settings | None = None) -> list[str
     source = payload_directory()
     missing = [name for name in REQUIRED_DATA if not (source / name).is_file()]
     if missing:
-        raise DeploymentError(f"Incomplete Rime data in {source}: {', '.join(missing)}. Build or install quick-hk-core first.")
+        raise DeploymentError(f"Incomplete Rime data in {source}: {', '.join(missing)}. Build or install yuekey first.")
     targets = resolve_frontends(frontend)
     if settings.dictation_enabled:
         from .dictation_setup import status as dictation_status
         if not dictation_status()["ready"]:
             raise DeploymentError("Run quick-hk dictation setup before enabling dictation.")
         if "ibus" in targets and not list(Path("/usr/lib").glob("*/rime-plugins/librime-quick-hk-dictation.so")):
-            raise DeploymentError("Install quick-hk-dictation before enabling dictation.")
+            raise DeploymentError("Install yuekey before enabling dictation.")
         if "fcitx5" in targets and not list(Path("/usr/lib").glob("*/fcitx5/yuekey-dictation.so")):
-            raise DeploymentError("Install quick-hk-kde before enabling dictation.")
+            raise DeploymentError("Install yuekey before enabling dictation.")
     with _state_lock(), tempfile.TemporaryDirectory(prefix="quick-hk-deploy-") as temporary:
         plans = {}
         for name in targets:
@@ -524,13 +524,13 @@ def doctor(frontend: str = "auto") -> dict:
     except DeploymentError:
         command, deployer = [], False
     checks = {
-        "deployer": {"ok": deployer, "detail": " ".join(command) or "Install quick-hk-core"},
+        "deployer": {"ok": deployer, "detail": " ".join(command) or "Install yuekey"},
         "rime_data": {"ok": all((source / name).is_file() for name in REQUIRED_DATA), "detail": str(source)},
         "shared_data": {
             "ok": (Path(os.environ.get("QUICK_HK_RIME_SHARED_DIR", "/usr/share/rime-data")) / "default.yaml").is_file(),
             "detail": os.environ.get("QUICK_HK_RIME_SHARED_DIR", "/usr/share/rime-data"),
         },
-        "prediction_plugin": {"ok": bool(plugin_locations), "detail": ", ".join(map(str, plugin_locations)) or "Install quick-hk-predict"},
+        "prediction_plugin": {"ok": bool(plugin_locations), "detail": ", ".join(map(str, plugin_locations)) or "Install yuekey"},
     }
     settings = None
     try:
@@ -545,7 +545,7 @@ def doctor(frontend: str = "auto") -> dict:
                          (["*/rime-plugins/librime-quick-hk-dictation.so"] if "ibus" in targets else []) +
                          (["*/fcitx5/yuekey-dictation.so"] if "fcitx5" in targets else [])
                          for path in Path("/usr/lib").glob(pattern)]
-            checks["dictation_bridge"] = {"ok": bool(locations), "detail": ", ".join(map(str, locations)) or "Install quick-hk-dictation"}
+            checks["dictation_bridge"] = {"ok": bool(locations), "detail": ", ".join(map(str, locations)) or "Install yuekey"}
     except (ValueError, OSError) as error:
         checks["preferences"] = {"ok": False, "detail": str(error)}
     status = {}
