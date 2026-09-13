@@ -9,8 +9,8 @@ Pushes to `main` and pull requests build/test Ubuntu packages and the Windows se
 3. Commit and push the release version. Create its matching tag, for example:
 
    ```bash
-   git tag -a v0.3.0 -m 'YueKey 0.3.0'
-   git push origin v0.3.0
+   git tag -a v0.4.0 -m 'YueKey 0.4.0'
+   git push origin v0.4.0
    ```
 
 The release job verifies that the tag matches `VERSION`, merges tested artifacts, generates SHA-256 checksums and uploads the five Ubuntu packages, Windows setup EXE and ZIP and corresponding source archive. Only that job has `contents: write`. Pull requests cannot publish releases.

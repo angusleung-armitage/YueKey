@@ -59,7 +59,7 @@ class Api(C.Structure):
         'select_schema')]
 
 
-def exercise(library: Path):
+def exercise(library: Path, preferences=False):
     handles = []
     if sys.platform == 'win32':
         handles.append(os.add_dll_directory(str(library.parent)))
@@ -78,6 +78,19 @@ def exercise(library: Path):
     with tempfile.TemporaryDirectory(prefix='yuekey-weasel-') as temp:
         user, shared = Path(temp) / 'user', Path(temp) / 'shared'
         shutil.copytree(ROOT / 'build/windows-data', user)
+        if preferences:
+            custom = user / 'quick_hk.windows.custom.yaml'
+            text = custom.read_text(encoding='utf-8')
+            for old, new in [('menu/page_size: 9', 'menu/page_size: 5'),
+                             ('translator/enable_user_dict: true', 'translator/enable_user_dict: false'),
+                             ('quick_hk/show_candidates: true', 'quick_hk/show_candidates: false'),
+                             ('switches/@1/reset: 1', 'switches/@1/reset: 0'),
+                             ('switches/@2/reset: 0', 'switches/@2/reset: 1'),
+                             ('Shift_L: commit_code', 'Shift_L: noop'),
+                             ('Shift_R: noop', 'Shift_R: commit_code')]:
+                assert old in text, old
+                text = text.replace(old, new)
+            custom.write_text(text, encoding='utf-8')
         shared.mkdir()
         (shared / 'default.yaml').write_text("config_version: '1'\nschema_list:\n  - schema: quick_hk\n", encoding='utf-8')
         traits = Traits(data_size=C.sizeof(Traits) - C.sizeof(C.c_int),
@@ -96,6 +109,8 @@ def exercise(library: Path):
                 context = Context(data_size=C.sizeof(Context) - C.sizeof(C.c_int))
                 assert call('get_context', C.c_int, [C.c_size_t, C.POINTER(Context)], current, C.byref(context))
                 values = [context.menu.candidates[n].text.decode() for n in range(context.menu.num_candidates)]
+                if values:
+                    assert context.menu.page_size == (5 if preferences else 9), context.menu.page_size
                 call('free_context', C.c_int, [C.POINTER(Context)], C.byref(context))
                 return values
 
@@ -108,6 +123,27 @@ def exercise(library: Path):
                     text = commit.text.decode()
                     call('free_commit', C.c_int, [C.POINTER(Commit)], C.byref(commit))
                 return text
+            if preferences:
+                def option(name):
+                    return bool(call('get_option', C.c_int, [C.c_size_t, C.c_char_p], session, name.encode()))
+                assert not option('prediction') and option('ascii_punct')
+                key('h'); key('i')
+                assert not snapshot(), 'Hidden candidates appeared before Space'
+                assert key(' ') == ''
+                assert snapshot()[0] == '我', snapshot()
+                assert key('1') == '我' and not snapshot()
+                assert not (user / 'quick_hk.userdb').exists(), 'Disabled learning opened a user database'
+                key(0xffe1); key(0xffe1, 1 << 30)
+                assert not option('ascii_mode'), 'Disabled Left Shift changed language'
+                key(0xffe2); key(0xffe2, 1 << 30)
+                assert option('ascii_mode'), 'Configured Right Shift did not change language'
+                key(0xffe2); key(0xffe2, 1 << 30)
+                assert not option('ascii_mode')
+                assert not call('process_key', C.c_int, [C.c_size_t, C.c_int, C.c_int],
+                                session, ord(','), 0), 'English punctuation was not passed to the application'
+                call('destroy_session', C.c_int, [C.c_size_t], session)
+                print('PASS actual Rime preferences: page size, hidden candidates, learning/prediction off, language key, English punctuation')
+                return
             for keys, expected in [('hi1', '我'), ('zb1', '，'), ('zd1', '。'), ('hio', '我'), ('zz ', '')]:
                 committed = ''
                 for letter in keys:
@@ -142,11 +178,12 @@ def exercise(library: Path):
         finally:
             call('finalize', None, [])
     print('PASS actual Rime runtime: hi1, zb1, zd1, continuations, reset, cancellation, settings and session isolation')
+    subprocess.run([sys.executable, str(Path(__file__).resolve()), str(library), '--preferences'], check=True)
 
 
 def main():
-    if len(sys.argv) == 2:
-        exercise(Path(sys.argv[1]))
+    if len(sys.argv) in (2, 3):
+        exercise(Path(sys.argv[1]), len(sys.argv) == 3 and sys.argv[2] == '--preferences')
         return
     installer = ROOT / 'build/weasel-installer.exe'
     urllib.request.urlretrieve(URL, installer)

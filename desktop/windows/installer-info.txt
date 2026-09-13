@@ -4,8 +4,8 @@ Cantonese Quick input and local dictation
 這個安裝程式會為目前使用者安裝粵鍵，並加入開始功能表及解除安裝項目。無需系統管理員權限。
 This setup installs YueKey for the current user, with a Start Menu shortcut and an uninstaller. Administrator rights are not required.
 
-速成輸入需要另行安裝官方小狼毫 Weasel 0.17.4。安裝完成後，開啟粵鍵，按「安裝速成」，再於小狼毫選單按「重新部署」。
-Typing requires official Weasel 0.17.4, installed separately. After setup, open YueKey, click Install typing, then choose Deploy in the Weasel menu.
+速成輸入需要另行安裝官方小狼毫 Weasel 0.17.4。安裝完成後，開啟粵鍵，按「安裝／更新速成」，再於小狼毫選單按「重新部署」。
+Typing requires official Weasel 0.17.4, installed separately. After setup, open YueKey, click Install / Update typing, then choose Deploy in the Weasel menu.
 
 語音輸入為選配，使用 SenseVoice Small Yue INT8，完全以 CPU 執行。首次啟用會下載約 302 MB 模型。之後可離線使用。
 Optional dictation uses SenseVoice Small Yue INT8 on the CPU. Enabling it for the first time downloads about 302 MB of models; recognition then works offline.

@@ -80,7 +80,9 @@ def _safe_path(directory: Path, name: str) -> Path:
 
 def _update(destination: Path, payloads: dict[str, bytes], record: dict) -> Path:
     """Preflight everything; preserve the first install's backups across upgrades."""
-    backup = Path(record['backup'])
+    backup = Path(record['backup']).resolve()
+    if not backup.is_relative_to(destination / 'yuekey-backups'):
+        raise ValueError('Invalid backup location')
     previous = {}
     marker = destination / 'yuekey-install.json'
     old_marker = marker.read_bytes() if marker.exists() else None

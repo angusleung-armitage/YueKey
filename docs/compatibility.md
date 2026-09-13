@@ -160,3 +160,13 @@ Shared service files passed single-frontend and combined uninstall preservation.
 Windows release CI additionally exercises the actual Weasel 32/64-bit libraries,
 Windows file locking and the installed companion/runtime. Results are available
 with the 0.4.0 GitHub Actions release run.
+
+The full Linux and Windows workflows passed at `efaf38d` in
+[run 34743641409](https://github.com/angusleung-armitage/YueKey/actions/runs/34743641409).
+Windows passed 15 tests and 6 subtests, actual Weasel 0.17.4 in both architectures,
+exclusive learning-lock/reset checks, and the installed EXE's settings controls,
+nonactivating indicator, Unicode/password guards and public Cantonese CPU fixture.
+Setup, repair, optional login startup, running-app protection and uninstall
+preservation also passed. The release workflow repeats these checks and adds a
+second real-Rime run with changed page size, candidate visibility, learning,
+prediction, punctuation and language-switch preferences.
