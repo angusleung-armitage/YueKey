@@ -281,10 +281,16 @@ def self_test(report: Path, models: Path | None):
 
         user.SetForegroundWindow(parent)
         user.SetFocus(normal)
-        settle()
-        target = backend.target()
+        target = None
+        deadline = time.monotonic() + 5
+        while target is None and time.monotonic() < deadline:
+            root.update()
+            time.sleep(0.01)
+            target = backend.target()
         result['focus_diagnostic'] = backend.focus_diagnostic
         result['foreground_matches_test_window'] = user.GetForegroundWindow() == parent
+        result['snapshot_age'] = time.monotonic() - backend.snapshot[1]
+        result['activity'] = backend.activity
         assert target is not None, 'UI Automation did not identify the isolated Edit control'
         assert backend.insert('我，𨋢', target), 'Unicode SendInput failed'
         settle()

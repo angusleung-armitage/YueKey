@@ -173,10 +173,16 @@ class WindowsInput:
             # from the foreground window's process (for example a browser).
             process = int(element.CurrentProcessId)
             if process <= 0:
+                self.focus_diagnostic = 'provider returned no process ID'
                 return None
             identifier = tuple(element.GetRuntimeId())
-            if not identifier or self.activity != generation:
+            if not identifier:
+                self.focus_diagnostic = 'provider returned no runtime ID'
                 return None
+            if self.activity != generation:
+                self.focus_diagnostic = 'activity changed during accessibility query'
+                return None
+            self.focus_diagnostic = 'allowed'
             return Target(int(window), process, identifier, generation)
         except Exception as error:
             self.focus_diagnostic = type(error).__name__ + ': ' + str(error)
