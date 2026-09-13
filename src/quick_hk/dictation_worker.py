@@ -208,6 +208,7 @@ class WindowsRecording(Recording):
         self.recognizer, self.request, self.emit = recognizer, request, emit
         self.cancelled = threading.Event()
         self.stopped = threading.Event()
+        self.stream_lock = threading.Lock()
         self.frames = queue.Queue(maxsize=4096)
         device = request.get('microphone', 'default')
         self.stream = sd.RawInputStream(
@@ -224,12 +225,22 @@ class WindowsRecording(Recording):
         self.thread.start()
         self.reader.start()
 
+    def capture_error(self):
+        self.message('error', message='Could not capture microphone audio. Check Windows microphone access.')
+        self.cancelled.set()
+
     def stop(self, cancel: bool = False):
         if cancel:
             self.cancelled.set()
-        if not self.stopped.is_set():
-            self.stopped.set()
-            self.stream.abort()
+        with self.stream_lock:
+            if not self.stopped.is_set():
+                self.stopped.set()
+                try:
+                    self.stream.abort()
+                except Exception:
+                    # A disconnected device can fail during shutdown as well
+                    # as read. Do not break the UI or strand the decoder.
+                    self.capture_error()
 
     def capture(self):
         total, last_level = 0, 0.0
@@ -249,11 +260,14 @@ class WindowsRecording(Recording):
                     last_level = now
         except Exception:
             if not self.stopped.is_set():
-                self.message('error', message='Could not capture microphone audio. Check Windows microphone access.')
-                self.cancelled.set()
+                self.capture_error()
         finally:
             self.stop()
-            self.stream.close()
+            try:
+                with self.stream_lock:
+                    self.stream.close()
+            except Exception:
+                self.capture_error()
             if not self.cancelled.is_set():
                 self.message('finishing')
             # Keep draining possible even after cancellation/recognizer errors.
@@ -289,7 +303,7 @@ def serve(models: Path):
             request = json.loads(line)
             action = request.get('action')
             if action == 'start':
-                if job and job.thread.is_alive():
+                if job and (job.thread.is_alive() or job.reader.is_alive()):
                     emit({'event': 'error', 'id': request['id'], 'message': 'Previous dictation is still stopping. Try again.'})
                     continue
                 try:

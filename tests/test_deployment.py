@@ -162,6 +162,22 @@ class DeploymentTests(unittest.TestCase):
         self.assertEqual(path.read_bytes(), edited)
         self.assertIn(str(path), json.loads((d.state_home() / "ibus.json").read_text())["files"])
 
+    def test_missing_backup_prevents_partial_removal_of_either_frontend(self):
+        default = d.frontend_directory('fcitx5') / 'default.custom.yaml'
+        self.write(default, b'# existing KDE preferences\npatch: {}\n')
+        d.deploy('both')
+        manifest = json.loads((d.state_home() / 'fcitx5.json').read_text())
+        Path(manifest['files'][str(default)]['backup']).unlink()
+        before = {}
+        for frontend in ('ibus', 'fcitx5'):
+            marker = d.state_home() / f'{frontend}.json'
+            before[marker] = marker.read_bytes()
+            for filename in json.loads(before[marker])['files']:
+                before[Path(filename)] = Path(filename).read_bytes()
+        with self.assertRaisesRegex(d.DeploymentError, 'backup missing'):
+            d.uninstall('both')
+        self.assertEqual({path: path.read_bytes() for path in before}, before)
+
     def test_shared_default_edited_by_user_survives_repeat_and_uninstall(self):
         d.deploy("ibus")
         path = d.frontend_directory("ibus") / "default.custom.yaml"

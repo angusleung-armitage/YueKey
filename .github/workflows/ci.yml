@@ -114,22 +114,23 @@ jobs:
           & "${{ steps.python32.outputs.python-path }}" tools/smoke_weasel.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & "${{ steps.python64.outputs.python-path }}" tools/smoke_weasel.py
-      - name: Package portable application
+      - name: Package setup EXE and portable application
         run: '& "${{ steps.python64.outputs.python-path }}" tools/package_windows.py'
-      - name: Exercise packaged runtime and CPU models without a microphone
-        shell: pwsh
-        run: |
-          $report = Join-Path $PWD 'build/windows-smoke.json'
-          $models = Join-Path $PWD 'build/speech-models'
-          $process = Start-Process -FilePath 'build/windows-dist/YueKey/YueKey.exe' -ArgumentList @('--self-test', $report, '--models', $models) -PassThru
-          if (-not $process.WaitForExit(600000)) { $process.Kill(); throw 'Packaged application smoke test timed out' }
-          if (Test-Path $report) { Get-Content $report }
-          if ($process.ExitCode -ne 0 -or -not (Test-Path $report)) { throw 'Packaged application smoke test failed' }
-          if (-not (Get-Content $report | ConvertFrom-Json).ok) { throw 'Packaged application reported failure' }
+      - name: Test installer, repair, CPU runtime and uninstall without a microphone
+        run: '& "${{ steps.python64.outputs.python-path }}" tools/test_windows_installer.py'
+      - name: Keep installer diagnostics
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: windows-installer-diagnostics
+          path: build/windows-installer/
+          if-no-files-found: ignore
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-windows
-          path: dist/YueKey-*-windows-x64.zip
+          path: |
+            dist/YueKey-*-windows-x64.zip
+            dist/YueKey-*-windows-x64-setup.exe
           if-no-files-found: error
 
   release:

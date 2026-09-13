@@ -116,9 +116,9 @@ class Application:
         self.status.set('準備語音模型 · Preparing speech models…')
 
         def load():
-            from .speech_assets import prepare_models
-            from .dictation_worker import Recognizer
             try:
+                from .speech_assets import prepare_models
+                from .dictation_worker import Recognizer
                 prepare_models(self.models, lambda text: self.queue.put({'event': 'setup', 'message': text}))
                 recognizer = Recognizer(self.models)
                 if recognizer.transcribe_pcm(bytes(32000)):

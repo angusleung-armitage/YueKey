@@ -1,12 +1,14 @@
-粵鍵 YueKey 0.2.0：Ubuntu 26.04 速成輸入與純 CPU 廣東話語音，新增 Windows x64 初期支援。
+粵鍵 YueKey 0.3.0：新增 Windows 安裝程式，修正設定及語音停止問題，專案正式改名為 YueKey。
 
-YueKey 0.2.0 brings Cantonese Quick input and CPU-only dictation to Ubuntu 26.04, with initial Windows x64 support.
+YueKey 0.3.0 adds a Windows setup installer, fixes configuration and microphone shutdown errors, and moves the repository to `angusleung-armitage/YueKey`.
 
-- **Windows:** download `YueKey-0.2.0-windows-x64.zip`, extract it, install official Weasel 0.17.4, then open `YueKey.exe`. See `docs/WINDOWS.md` inside the ZIP for bilingual setup.
-- **Ubuntu GNOME:** download the `core`, `predict`, and `gnome` `.deb` files; add `dictation` for speech. Use the installation guide in the source archive or repository.
+- **Windows 安裝 · Setup:** download `YueKey-0.3.0-windows-x64-setup.exe`, run it, then open YueKey from the Start Menu. Install official Weasel 0.17.4 separately for typing. [中英安裝指南 · Bilingual guide](https://github.com/angusleung-armitage/YueKey/blob/v0.3.0/docs/WINDOWS.md).
+- **Windows 免安裝 · Portable:** `YueKey-0.3.0-windows-x64.zip` contains the same program and CPU runtime.
+- **Ubuntu GNOME:** download the `core`, `predict`, and `gnome` `.deb` files; add `dictation` for speech. [安裝指令 · Install commands](https://github.com/angusleung-armitage/YueKey/blob/v0.3.0/docs/INSTALL.md).
 - **Kubuntu KDE:** use `core`, `predict`, and `kde`; dictation is currently unavailable on KDE.
-- **原始碼 · Source:** `YueKey-0.2.0-source.tar.gz` includes build scripts and checksum-pinned dictionary inputs.
-- **檢查碼 · Integrity:** `SHA256SUMS` covers all attached packages and source.
+- **修正 · Fixes:** Windows setup rejects duplicate/ambiguous YAML before writing. Removal checks backups and the complete manifest before deleting files. Microphone shutdown failures release capture/decoding without leaving dictation stuck.
+- **資料保留 · Preservation:** setup updates the companion; app removal retains Rime configuration, learning, backups and downloaded models. There is no typing-data change requiring redeployment for this release.
+- **原始碼 · Source:** `YueKey-0.3.0-source.tar.gz` includes build scripts and checksum-pinned dictionary inputs. `SHA256SUMS` covers every package and source archive.
 
 原創程式採 MIT 授權。字典、第三方程式及模型保留原有授權，詳見 `THIRD_PARTY.md` 及各下載內的授權檔案。所有下載免費。
 

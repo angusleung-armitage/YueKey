@@ -71,7 +71,7 @@ The script refuses to run outside a root Docker container. It is intended for
 fresh disposable containers with no personal home or desktop bus mounted.
 The GitHub Actions workflow performs the full build and these checks. Both
 Ubuntu and Windows jobs passed on 2026-09-13 in
-[run 34740387882](https://github.com/angusleung-armitage/ubuntu-quick-input-method/actions/runs/34740387882).
+[run 34740387882](https://github.com/angusleung-armitage/YueKey/actions/runs/34740387882).
 
 ## Live release matrix — must be recorded separately
 

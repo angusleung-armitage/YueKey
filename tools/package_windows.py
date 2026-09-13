@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Build the portable Windows x64 ZIP on a Windows runner."""
+"""Build the Windows x64 setup EXE and portable ZIP on a Windows runner."""
 from importlib import metadata
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -13,6 +14,10 @@ VERSION = (ROOT / 'VERSION').read_text().strip()
 def build():
     if sys.platform != 'win32' or sys.maxsize <= 2**32:
         raise SystemExit('Build this package on Windows with Python 3.12 x64.')
+    compiler = shutil.which('ISCC.exe') or str(
+        Path(os.environ.get('ProgramFiles(x86)', r'C:\Program Files (x86)')) / 'Inno Setup 6/ISCC.exe')
+    if not Path(compiler).is_file():
+        raise SystemExit('Install Inno Setup 6.7+ from https://jrsoftware.org/isdl.php and add ISCC.exe to PATH.')
     subprocess.run([
         sys.executable, '-m', 'PyInstaller', '--noconfirm', '--clean', '--windowed',
         '--name', 'YueKey', '--paths', str(ROOT / 'src'),
@@ -51,6 +56,10 @@ def build():
         shutil.copyfile(python_license, licenses / 'PYTHON-LICENSE.txt')
     (ROOT / 'dist').mkdir(exist_ok=True)
     shutil.make_archive(str(ROOT / 'dist' / f'YueKey-{VERSION}-windows-x64'), 'zip', bundle.parent, bundle.name)
+    subprocess.run([
+        compiler, '/Qp', f'/DAppVersion={VERSION}', f'/DRepoRoot={ROOT}',
+        str(ROOT / 'desktop/windows/yuekey.iss'),
+    ], check=True)
 
 
 if __name__ == '__main__':

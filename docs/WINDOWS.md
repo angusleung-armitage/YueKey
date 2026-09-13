@@ -8,16 +8,20 @@ Initial support targets Windows 11 x64: Cantonese Quick typing, punctuation, loc
 
 ## 1. 免費下載 · Free download
 
-到 [GitHub Releases](https://github.com/angusleung-armitage/ubuntu-quick-input-method/releases) 下載 **`YueKey-0.2.0-windows-x64.zip`** 及 `SHA256SUMS`。解壓整個資料夾到固定位置，例如 `%LOCALAPPDATA%\Programs\YueKey`。請保留 `_internal` 資料夾；不能只移動 EXE。
+到 [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases) 下載 **`YueKey-0.3.0-windows-x64-setup.exe`** 及 `SHA256SUMS`。開啟安裝程式，按步驟完成；之後可從開始功能表開啟 **YueKey**。程式安裝於目前使用者的 `%LOCALAPPDATA%\Programs\YueKey`，無需系統管理員權限。
 
-Download **`YueKey-0.2.0-windows-x64.zip`** and `SHA256SUMS` from [GitHub Releases](https://github.com/angusleung-armitage/ubuntu-quick-input-method/releases). Extract the entire folder to a permanent location, such as `%LOCALAPPDATA%\Programs\YueKey`. Keep `_internal` beside the executable.
+Download **`YueKey-0.3.0-windows-x64-setup.exe`** and `SHA256SUMS` from [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases). Run setup, then open **YueKey** from the Start Menu. Installation is per user, under `%LOCALAPPDATA%\Programs\YueKey`, without an administrator prompt.
 
-在 PowerShell 檢查 ZIP 的 SHA-256，與下載頁的 `SHA256SUMS` 比對：  
-Compare the ZIP's SHA-256 with `SHA256SUMS` in PowerShell:
+在 PowerShell 檢查安裝檔的 SHA-256，與下載頁的 `SHA256SUMS` 比對：  
+Compare the installer's SHA-256 with `SHA256SUMS` in PowerShell:
 
 ```powershell
-Get-FileHash .\YueKey-0.2.0-windows-x64.zip -Algorithm SHA256
+Get-FileHash .\YueKey-0.3.0-windows-x64-setup.exe -Algorithm SHA256
 ```
+
+亦提供 **`YueKey-0.3.0-windows-x64.zip`** 免安裝版本。解壓整個資料夾後開啟 `YueKey.exe`，保留旁邊的 `_internal` 資料夾。ZIP 與安裝版包含相同程式及 CPU 執行環境。
+
+The optional **`YueKey-0.3.0-windows-x64.zip`** is a portable edition. Extract the entire folder, keep `_internal` beside `YueKey.exe`, and open the executable. Both editions include the same application and CPU runtime.
 
 此版本未有 Windows 程式碼簽署憑證，系統可能顯示發行者未經驗證。請只使用本專案 Release 的檔案及檢查碼。
 
@@ -42,9 +46,9 @@ Candidate order can change with local learning. Windows uses the same Quick dict
 
 ## 3. 廣東話語音 · Cantonese dictation
 
-在粵鍵視窗按 **啟用語音／下載模型**。首次需要下載約 302 MB 的模型；每個檔案均會核對 SHA-256。Python 與 CPU 語音執行環境已包含在 ZIP，無需另裝 Python、GPU 驅動或語音雲端帳戶。模型下載後會在本機初始化，通過檢查才會顯示「Dictation ready」。
+在粵鍵視窗按 **啟用語音／下載模型**。首次需要下載約 302 MB 的模型；每個檔案均會核對 SHA-256。Python 與 CPU 語音執行環境已包含在安裝檔及 ZIP，無需另裝 Python、GPU 驅動或語音雲端帳戶。模型下載後會在本機初始化，通過檢查才會顯示「Dictation ready」。
 
-Click **Enable dictation / Get models**. First use downloads about 302 MB of models and verifies every SHA-256. Python and the CPU speech runtime are included in the ZIP. No separate Python installation, GPU driver or speech cloud account is needed. The models are initialized locally before the app reports **Dictation ready**.
+Click **Enable dictation / Get models**. First use downloads about 302 MB of models and verifies every SHA-256. Python and the CPU speech runtime are included in both downloads. No separate Python installation, GPU driver or speech cloud account is needed. The models are initialized locally before the app reports **Dictation ready**.
 
 1. 在 Windows 音效設定選好預設麥克風，並允許桌面應用程式使用麥克風。  
    Select your default microphone in Windows sound settings and allow desktop apps to access it.
@@ -69,14 +73,24 @@ Windows dictation is a separate companion that can work alongside different inpu
   **Download failure:** click Enable again later; verified files are reused and partial downloads resume.
 - **移除速成：** 在粵鍵按「移除」，再於小狼毫重新部署。未修改的安裝檔案會還原；使用者後來修改的檔案及學習資料會保留。  
   **Remove typing:** click Remove in YueKey and redeploy Weasel. Unmodified installation files are restored; later user edits and learning are retained.
-- **移除程式與模型：** 關閉粵鍵並刪除解壓的程式資料夾。模型另存於 `%LOCALAPPDATA%\YueKey\dictation\models`，可自行刪除。備份存於小狼毫資料夾內的 `yuekey-backups`。  
-  **Remove the app/models:** close YueKey and delete its extracted folder. Models live separately at `%LOCALAPPDATA%\YueKey\dictation\models`; backups are in `yuekey-backups` inside the Weasel user folder.
+- **移除程式與模型：** 關閉粵鍵，在 Windows「設定 → 應用程式 → 已安裝的應用程式」解除安裝 YueKey。免安裝版本則刪除解壓資料夾。解除安裝會保留小狼毫設定、學習資料及模型。模型另存於 `%LOCALAPPDATA%\YueKey\dictation\models`，可自行刪除。備份存於小狼毫資料夾內的 `yuekey-backups`。  
+  **Remove the app/models:** close YueKey, then uninstall it from Windows Settings → Apps → Installed apps. For the portable edition, delete its extracted folder. The uninstaller preserves Weasel settings, learned data and models. Models live separately at `%LOCALAPPDATA%\YueKey\dictation\models`; backups are in `yuekey-backups` inside the Weasel user folder.
+
+## 升級 · Upgrading
+
+先關閉粵鍵，再執行新版 setup EXE。使用同一安裝位置即可更新程式；如有程式仍在執行，安裝程式會要求先關閉。模型、學習資料及小狼毫設定會保留。若發行說明指示更新速成字典，先在粵鍵按「移除」，再按「安裝速成」及於小狼毫重新部署；使用者修改的檔案及原始備份仍會保留。
+
+Close YueKey and run the newer setup EXE to update the application in its existing location. Setup asks you to close a running companion first. Models, learning and Weasel settings are retained. If release notes call for a typing-dictionary update, use Remove, then Install typing, and redeploy Weasel; user edits and original backups are retained.
+
+從舊 ZIP 版本轉用安裝版時，先關閉舊程式，在另一個空資料夾安裝，確認可用後再自行移除舊解壓資料夾。
+
+When moving from the older ZIP edition, close it and install into a separate empty folder. After verifying the installed app works, remove the old extracted folder yourself.
 
 ## 從原始碼建置 · Build from source
 
-先在 Ubuntu 按[建置指南](INSTALL.md#build)產生字典，執行 `python3 tools/prepare_windows_data.py`，把 `build/windows-data` 複製到 Windows checkout 的相同位置。然後在 Windows x64／Python 3.12 執行：
+先在 Ubuntu 按[建置指南](INSTALL.md#build)產生字典，執行 `python3 tools/prepare_windows_data.py`，把 `build/windows-data` 複製到 Windows checkout 的相同位置。安裝官方 [Inno Setup 6.7 或更新版本](https://jrsoftware.org/isdl.php)，然後在 Windows x64／Python 3.12 執行：
 
-Generate the dictionary on Ubuntu using the [build guide](INSTALL.md#build), run `python3 tools/prepare_windows_data.py`, and copy `build/windows-data` to the same location in a Windows checkout. On Windows x64 with Python 3.12:
+Generate the dictionary on Ubuntu using the [build guide](INSTALL.md#build), run `python3 tools/prepare_windows_data.py`, and copy `build/windows-data` to the same location in a Windows checkout. Install official [Inno Setup 6.7 or newer](https://jrsoftware.org/isdl.php). On Windows x64 with Python 3.12:
 
 ```powershell
 py -3.12 -m venv .venv
@@ -86,6 +100,6 @@ $env:PYTHONPATH = 'src'
 .\.venv\Scripts\python.exe tools/package_windows.py
 ```
 
-CI 在 Windows runner 建置並檢查封裝後的程式、Win32 介面及 CPU 模型。真實 Windows 11 麥克風及各應用程式的完整使用測試仍須持續收集，不能將 CI 通過視為所有應用程式已驗證。
+建置會產生 setup EXE 及 ZIP。CI 在 Windows runner 檢查安裝、修復、執行中程式保護、解除安裝及資料保留，並以安裝後的程式測試 Win32 介面及 CPU 模型。真實 Windows 11 麥克風及各應用程式的完整使用測試仍須持續收集，不能將 CI 通過視為所有應用程式已驗證。
 
-CI builds on a Windows runner and checks the packaged app, Win32 interfaces and CPU models. Real Windows 11 microphone and application compatibility testing remains ongoing; passing CI does not validate every application.
+The build produces a setup EXE and ZIP. CI checks installation, repair, running-app protection, removal and data preservation, then tests Win32 interfaces and CPU models through the installed executable. Real Windows 11 microphone and application compatibility testing remains ongoing; passing CI does not validate every application.

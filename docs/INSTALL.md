@@ -15,9 +15,9 @@ The product is **YueKey**; this version keeps the `quick-hk` package/command nam
 <a id="build"></a>
 ## 1. 準備安裝套件 · Prepare the packages
 
-可先到 [GitHub Releases](https://github.com/angusleung-armitage/ubuntu-quick-input-method/releases) 免費下載本平台所需的 `.deb` 及 `SHA256SUMS`，放入 `dist/` 資料夾，然後跳到 GNOME／KDE 安裝步驟。只核對已下載的檔案時可用 `sha256sum --check --ignore-missing SHA256SUMS`。
+可先到 [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases) 免費下載本平台所需的 `.deb` 及 `SHA256SUMS`，放入 `dist/` 資料夾，然後跳到 GNOME／KDE 安裝步驟。只核對已下載的檔案時可用 `sha256sum --check --ignore-missing SHA256SUMS`。
 
-Download the required `.deb` files and `SHA256SUMS` for free from [GitHub Releases](https://github.com/angusleung-armitage/ubuntu-quick-input-method/releases), place them in a `dist/` folder, then continue to GNOME/KDE installation. To verify only the files you downloaded, use `sha256sum --check --ignore-missing SHA256SUMS`.
+Download the required `.deb` files and `SHA256SUMS` for free from [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases), place them in a `dist/` folder, then continue to GNOME/KDE installation. To verify only the files you downloaded, use `sha256sum --check --ignore-missing SHA256SUMS`.
 
 以下由原始碼建置本機 `.deb`。先安裝 [Docker Engine](https://docs.docker.com/engine/install/ubuntu/)，確認 `docker version` 能連接 Docker，再在包含 `Dockerfile.dev` 的專案根目錄執行：
 
@@ -38,11 +38,11 @@ After the build, `dist/` should contain these files for this version:
 
 | 套件 · Package | 用途 · Purpose |
 | --- | --- |
-| `quick-hk-core_0.2.0-1_all.deb` | 速成資料、設定及部署工具／Scheme data, settings and deployment |
-| `quick-hk-predict_0.2.0-1_amd64.deb` | 關聯字插件及編譯工具／Prediction plugin and deployer |
-| `quick-hk-gnome_0.2.0-1_all.deb` | GNOME／IBus 整合／integration |
-| `quick-hk-kde_0.2.0-1_all.deb` | KDE／Fcitx5 整合／integration |
-| `quick-hk-dictation_0.2.0-1_amd64.deb` | GNOME 選配語音輸入／Optional GNOME dictation |
+| `quick-hk-core_0.3.0-1_all.deb` | 速成資料、設定及部署工具／Scheme data, settings and deployment |
+| `quick-hk-predict_0.3.0-1_amd64.deb` | 關聯字插件及編譯工具／Prediction plugin and deployer |
+| `quick-hk-gnome_0.3.0-1_all.deb` | GNOME／IBus 整合／integration |
+| `quick-hk-kde_0.3.0-1_all.deb` | KDE／Fcitx5 整合／integration |
+| `quick-hk-dictation_0.3.0-1_amd64.deb` | GNOME 選配語音輸入／Optional GNOME dictation |
 | `SHA256SUMS` | 套件檢查碼／Package checksums |
 
 可在 `dist/` 核對檔案完整性：  
@@ -62,9 +62,9 @@ If you already have these packages, continue below. Docker is used for building;
 Run from the project root:
 
 ```bash
-sudo apt install ./dist/quick-hk-core_0.2.0-1_all.deb \
-  ./dist/quick-hk-predict_0.2.0-1_amd64.deb \
-  ./dist/quick-hk-gnome_0.2.0-1_all.deb
+sudo apt install ./dist/quick-hk-core_0.3.0-1_all.deb \
+  ./dist/quick-hk-predict_0.3.0-1_amd64.deb \
+  ./dist/quick-hk-gnome_0.3.0-1_all.deb
 quick-hk setup --frontend ibus
 ```
 
@@ -99,7 +99,7 @@ Older packages may show the previous settings-window name; the command is the sa
 After installing the GNOME typing packages, install the optional speech package:
 
 ```bash
-sudo apt install ./dist/quick-hk-dictation_0.2.0-1_amd64.deb
+sudo apt install ./dist/quick-hk-dictation_0.3.0-1_amd64.deb
 ```
 
 語音設定需要 `uv` 建立獨立 Python 3.12 執行環境。如尚未安裝，可使用 [uv 官方 Linux 安裝方式](https://docs.astral.sh/uv/getting-started/installation/)，無需 `sudo`：
@@ -168,9 +168,9 @@ This method cannot replace JavaScript already imported during the current sessio
 ## 5. Kubuntu KDE：安裝速成 · Install Quick input
 
 ```bash
-sudo apt install ./dist/quick-hk-core_0.2.0-1_all.deb \
-  ./dist/quick-hk-predict_0.2.0-1_amd64.deb \
-  ./dist/quick-hk-kde_0.2.0-1_all.deb
+sudo apt install ./dist/quick-hk-core_0.3.0-1_all.deb \
+  ./dist/quick-hk-predict_0.3.0-1_amd64.deb \
+  ./dist/quick-hk-kde_0.3.0-1_all.deb
 quick-hk setup --frontend fcitx5
 ```
 

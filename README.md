@@ -7,7 +7,7 @@
 
 YueKey is an open-source input tool for Hong Kong Chinese and everyday Cantonese. Type with first-and-last Cangjie codes, or double-tap Ctrl and dictate. Both typing and speech recognition run locally on your computer.
 
-[免費下載 · Free downloads](https://github.com/angusleung-armitage/ubuntu-quick-input-method/releases) · [Ubuntu 安裝](docs/INSTALL.md) · [Windows installation](docs/WINDOWS.md) · [開始使用 · Get started](#get-started) · [語音輸入 · Dictation](#dictation) · [常見問題 · Troubleshooting](docs/INSTALL.md#troubleshooting)
+[免費下載 · Free downloads](https://github.com/angusleung-armitage/YueKey/releases) · [Ubuntu 安裝](docs/INSTALL.md) · [Windows installation](docs/WINDOWS.md) · [開始使用 · Get started](#get-started) · [語音輸入 · Dictation](#dictation) · [常見問題 · Troubleshooting](docs/INSTALL.md#troubleshooting)
 
 ## 為甚麼用粵鍵？ · Why YueKey?
 
@@ -41,16 +41,16 @@ Quick codes can match several characters; frequency data and personal learning a
 | Kubuntu 26.04 amd64 · KDE · Fcitx5 | ✓ | 尚未提供／Not available yet |
 | Windows 11 x64 · Weasel 0.17.4 | 速成及學習；暫無關聯字／Typing and learning; no continuations yet | 初期支援 · Initial support |
 
-目前為 **0.2.0 開發版本**。語音辨識、專有名詞及中英夾雜內容可能出錯；其他系統版本及個別應用程式仍需驗證。詳見[相容性紀錄](docs/compatibility.md)及[語音測試紀錄](docs/dictation-validation.md)。
+目前為 **0.3.0 開發版本**。語音辨識、專有名詞及中英夾雜內容可能出錯；其他系統版本及個別應用程式仍需驗證。詳見[相容性紀錄](docs/compatibility.md)及[語音測試紀錄](docs/dictation-validation.md)。
 
-This is the **0.2.0 development release**. Recognition may make mistakes, especially with names and mixed Cantonese/English speech. Other OS versions and individual applications need further validation. See the [compatibility record](docs/compatibility.md) and [dictation validation](docs/dictation-validation.md).
+This is the **0.3.0 development release**. Recognition may make mistakes, especially with names and mixed Cantonese/English speech. Other OS versions and individual applications need further validation. See the [compatibility record](docs/compatibility.md) and [dictation validation](docs/dictation-validation.md).
 
 <a id="get-started"></a>
 ## 開始使用 · Get started
 
-Windows：下載 ZIP、解壓並開啟 `YueKey.exe`，按照 **[Windows 雙語指南](docs/WINDOWS.md)** 安裝小狼毫及啟用語音。
+Windows：下載並執行 `YueKey-0.3.0-windows-x64-setup.exe`，從開始功能表開啟 YueKey，按照 **[Windows 雙語指南](docs/WINDOWS.md)** 安裝小狼毫及啟用語音。
 
-Windows: download and extract the ZIP, open `YueKey.exe`, and follow the **[Windows guide](docs/WINDOWS.md)** for Weasel and dictation setup. No separate Python installation is needed.
+Windows: run `YueKey-0.3.0-windows-x64-setup.exe`, open YueKey from the Start Menu, and follow the **[Windows guide](docs/WINDOWS.md)** for Weasel and dictation setup. No separate Python installation is needed. A portable ZIP is also available.
 
 Ubuntu 完整步驟見 **[中英雙語安裝指南](docs/INSTALL.md)**，包括從原始碼建置、GNOME／KDE 安裝、語音設定及首次免登出啟用。
 
@@ -61,9 +61,9 @@ Follow the **[bilingual installation guide](docs/INSTALL.md)** for source builds
 Download the required `.deb` files from Releases into a `dist/` folder, or build them from source, then run:
 
 ```bash
-sudo apt install ./dist/quick-hk-core_0.2.0-1_all.deb \
-  ./dist/quick-hk-predict_0.2.0-1_amd64.deb \
-  ./dist/quick-hk-gnome_0.2.0-1_all.deb
+sudo apt install ./dist/quick-hk-core_0.3.0-1_all.deb \
+  ./dist/quick-hk-predict_0.3.0-1_amd64.deb \
+  ./dist/quick-hk-gnome_0.3.0-1_all.deb
 quick-hk setup --frontend ibus
 ```
 

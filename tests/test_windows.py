@@ -2,11 +2,16 @@
 import json
 from pathlib import Path
 import tempfile
+import threading
+from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 
 import yaml
 from quick_hk.windows_setup import FILES, install, uninstall
 from quick_hk.windows_state import DoubleControl, Request, Target, editable
+from quick_hk.rime_config import DeploymentError
+from quick_hk.dictation_worker import WindowsRecording
 
 
 class WindowsTests(unittest.TestCase):
@@ -88,6 +93,99 @@ class WindowsTests(unittest.TestCase):
             config.write_text('user edited this', encoding='utf-8')
             self.assertIn('default.custom.yaml', uninstall(target))
             self.assertEqual(config.read_text(), 'user edited this')
+
+    def test_ambiguous_or_duplicate_config_fails_without_changes(self):
+        configurations = [
+            'patch:\n  menu/page_size: 5\n  menu/page_size: 7\n',
+            'patch:\n  schema_list: []\n  schema_list/+: []\n',
+            'patch:\n  schema_list/@0: {schema: other}\n',
+            'patch:\n  schema_list: [invalid]\n',
+        ]
+        with tempfile.TemporaryDirectory() as temporary:
+            target = Path(temporary)
+            config = target / 'default.custom.yaml'
+            for original in configurations:
+                with self.subTest(original=original):
+                    config.write_text(original, encoding='utf-8')
+                    with self.assertRaises(DeploymentError):
+                        install(target, target / 'nonexistent-source')
+                    self.assertEqual(config.read_text(encoding='utf-8'), original)
+                    self.assertEqual(list(target.iterdir()), [config])
+
+    def test_missing_backup_does_not_partially_remove_typing(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            source, target = Path(temporary) / 'source', Path(temporary) / 'user'
+            target.mkdir()
+            for name in FILES:
+                (source / name).parent.mkdir(parents=True, exist_ok=True)
+                (source / name).write_text(name, encoding='utf-8')
+            (target / 'default.custom.yaml').write_text('patch: {}', encoding='utf-8')
+            backup = install(target, source)
+            (backup / 'default.custom.yaml').unlink()
+            with self.assertRaises(FileNotFoundError):
+                uninstall(target)
+            for name in (*FILES, 'default.custom.yaml', 'yuekey-install.json'):
+                self.assertTrue((target / name).is_file(), name)
+
+    def test_invalid_late_manifest_entry_does_not_remove_typing(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            source, target = Path(temporary) / 'source', Path(temporary) / 'user'
+            target.mkdir()
+            for name in FILES:
+                (source / name).parent.mkdir(parents=True, exist_ok=True)
+                (source / name).write_text(name, encoding='utf-8')
+            install(target, source)
+            marker = target / 'yuekey-install.json'
+            manifest = json.loads(marker.read_text())
+            manifest['files']['unmanaged'] = {'existed': False, 'installed': 'invalid'}
+            marker.write_text(json.dumps(manifest), encoding='utf-8')
+            with self.assertRaises(ValueError):
+                uninstall(target)
+            self.assertTrue(marker.is_file())
+            for name in FILES:
+                self.assertTrue((target / name).is_file(), name)
+
+    def test_device_shutdown_errors_release_decoder_and_do_not_escape_to_ui(self):
+        for failure in ('abort', 'close'):
+            with self.subTest(failure=failure):
+                stopped, reading = threading.Event(), threading.Event()
+
+                class Stream:
+                    closed = False
+
+                    def start(self):
+                        pass
+
+                    def read(self, _):
+                        reading.set()
+                        if not stopped.wait(2):
+                            raise RuntimeError('Test capture did not stop')
+                        raise RuntimeError('Device disconnected')
+
+                    def abort(self):
+                        stopped.set()
+                        if failure == 'abort':
+                            raise RuntimeError('Abort failed')
+
+                    def close(self):
+                        self.closed = True
+                        if failure == 'close':
+                            raise RuntimeError('Close failed')
+
+                stream = Stream()
+                recognizer = SimpleNamespace(vad=SimpleNamespace(reset=lambda: None))
+                events = []
+                with patch.dict('sys.modules', {'sounddevice': SimpleNamespace(RawInputStream=lambda **_: stream)}):
+                    recording = WindowsRecording(recognizer, {'id': 'request'}, events.append)
+                    self.assertTrue(reading.wait(1))
+                    recording.stop()
+                    recording.reader.join(3)
+                    recording.thread.join(3)
+                self.assertTrue(stream.closed)
+                self.assertFalse(recording.reader.is_alive())
+                self.assertFalse(recording.thread.is_alive())
+                self.assertTrue(any(event['event'] == 'error' for event in events))
+                self.assertFalse(any(event['event'] == 'result' for event in events))
 
 
 if __name__ == '__main__':
