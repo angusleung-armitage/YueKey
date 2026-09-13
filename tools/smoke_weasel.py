@@ -11,7 +11,6 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src'))
 from quick_hk.windows_weasel import fetch_installer, installer_path
-from quick_hk.rime_config import configure_schema_list
 
 
 class Traits(C.Structure):
@@ -92,9 +91,6 @@ def exercise(library: Path, preferences=False):
             custom.write_text(text, encoding='utf-8')
         shared.mkdir()
         (shared / 'default.yaml').write_text("config_version: '1'\nschema_list:\n  - schema: luna_pinyin\n", encoding='utf-8')
-        default = user / 'default.custom.yaml'
-        default.write_bytes(configure_schema_list(
-            b'patch:\n  schema_list/+: [{schema: quick_hk}]\n', default))
         (user / 'user.yaml').write_text('var:\n  previously_selected_schema: luna_pinyin\n', encoding='utf-8')
         traits = Traits(data_size=C.sizeof(Traits) - C.sizeof(C.c_int),
                         shared_data_dir=str(shared).encode(), user_data_dir=str(user).encode(),

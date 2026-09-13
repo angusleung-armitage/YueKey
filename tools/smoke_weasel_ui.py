@@ -43,35 +43,46 @@ class Client:
                 raise C.WinError(C.get_last_error())
             time.sleep(.1)
         mode = W.DWORD(2)  # PIPE_READMODE_MESSAGE
-        assert k.SetNamedPipeHandleState(self.handle, C.byref(mode), None, None)
-        pid = W.DWORD()
-        assert k.GetNamedPipeServerProcessId(self.handle, C.byref(pid))
-        self.pid = pid.value
-        self.session, response = self.send(2, body=(
-            f'action=session\nsession.client_app=yuekey-ci.exe\nsession.client_type={client_type}\n.\n'))
-        assert self.session and response.get('status.schema_id') == 'quick_hk', response
-        assert response.get('config.inline_preedit') == '1', response
-        self.send(6)  # FocusIn
-        self.send(8, (22 << 24) | (160 << 12) | 180)  # Input position
+        try:
+            if not k.SetNamedPipeHandleState(self.handle, C.byref(mode), None, None):
+                raise C.WinError(C.get_last_error())
+            pid = W.DWORD()
+            if not k.GetNamedPipeServerProcessId(self.handle, C.byref(pid)):
+                raise C.WinError(C.get_last_error())
+            self.pid = pid.value
+            self.session, response = self.send(2, body=(
+                f'action=session\nsession.client_app=yuekey-ci.exe\nsession.client_type={client_type}\n.\n'))
+            assert self.session and response.get('status.schema_id') == 'quick_hk', response
+            assert response.get('config.inline_preedit') == '1', response
+            self.send(6)  # FocusIn
+            self.send(8, (22 << 24) | (160 << 12) | 180)  # Input position
+        except BaseException:
+            k.CloseHandle(self.handle)
+            raise
 
     def send(self, command, value=0, body=''):
         request = struct.pack('<III', 0x8000 + command, value, self.session)
         if body:
             request = (request + body.encode('utf-16-le') + b'\0\0').ljust(65536, b'\0')
         count = W.DWORD()
-        assert self.kernel.WriteFile(self.handle, request, len(request), C.byref(count), None)
+        if not self.kernel.WriteFile(self.handle, request, len(request), C.byref(count), None):
+            raise C.WinError(C.get_last_error())
         assert count.value == len(request)
         available = W.DWORD()
         deadline = time.monotonic() + 15
         while True:
-            assert self.kernel.PeekNamedPipe(self.handle, None, 0, None, C.byref(available), None)
+            if not self.kernel.PeekNamedPipe(self.handle, None, 0, None, C.byref(available), None):
+                error = C.WinError(C.get_last_error())
+                error.add_note(f'Waiting for Weasel command {command}, session {self.session}, server {self.pid}')
+                raise error
             if available.value:
                 break
             if time.monotonic() >= deadline:
                 raise TimeoutError('Weasel did not answer the isolated test session')
             time.sleep(.02)
         buffer = C.create_string_buffer(65536)
-        assert self.kernel.ReadFile(self.handle, buffer, len(buffer), C.byref(count), None)
+        if not self.kernel.ReadFile(self.handle, buffer, len(buffer), C.byref(count), None):
+            raise C.WinError(C.get_last_error())
         assert count.value >= 4
         result = struct.unpack_from('<I', buffer.raw)[0]
         text = buffer.raw[4:count.value].decode('utf-16-le').split('\0', 1)[0]

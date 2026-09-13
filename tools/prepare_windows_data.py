@@ -8,7 +8,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src'))
-from quick_hk.rime_config import schema_custom
+from quick_hk.rime_config import configure_schema_list, schema_custom
 from quick_hk.settings import Settings
 
 
@@ -27,6 +27,8 @@ def prepare():
     (target / 'quick_hk.schema.yaml').write_text(
         yaml.safe_dump(schema, allow_unicode=True, sort_keys=False), encoding='utf-8')
     (target / 'quick_hk.windows.custom.yaml').write_bytes(schema_custom(Settings(), 'windows'))
+    default = target / 'default.custom.yaml'
+    default.write_bytes(configure_schema_list(None, default))
     shutil.copyfile(ROOT / 'build/data/quick_hk.dict.yaml', target / 'quick_hk.dict.yaml')
     (target / 'lua').mkdir(exist_ok=True)
     shutil.copyfile(ROOT / 'rime/lua/quick_hk.lua', target / 'lua/quick_hk.lua')
