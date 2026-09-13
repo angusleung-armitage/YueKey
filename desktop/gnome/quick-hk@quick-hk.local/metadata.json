@@ -1,0 +1,7 @@
+{
+  "uuid": "quick-hk@quick-hk.local",
+  "name": "粵鍵 YueKey · Candidates",
+  "description": "Style GNOME’s native IBus candidate window while 港式速成 is selected.",
+  "shell-version": ["50"],
+  "version": 1
+}

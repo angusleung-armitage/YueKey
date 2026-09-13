@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=YueKey Settings
+Name[zh_HK]=粵鍵設定
+Name[zh_TW]=粵鍵設定
+Comment=Configure the YueKey scheme used by Rime
+Exec=quick-hk configure --frontend ibus
+Icon=input-keyboard
+Terminal=false
+NoDisplay=true
+Categories=Settings;
+StartupNotify=true

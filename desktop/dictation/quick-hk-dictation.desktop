@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=YueKey Dictation
+Name[zh_HK]=粵鍵語音輸入
+Name[zh_TW]=粵鍵語音輸入
+Exec=/usr/bin/quick-hk dictation serve
+TryExec=/usr/bin/quick-hk
+NoDisplay=true
+OnlyShowIn=GNOME;

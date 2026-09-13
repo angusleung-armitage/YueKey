@@ -1,0 +1,90 @@
+#!/usr/bin/python3
+"""Exercise the installed IBus frontend on a disposable private D-Bus session."""
+import os
+from pathlib import Path
+import subprocess
+import time
+
+import gi
+
+gi.require_version("IBus", "1.0")
+from gi.repository import GLib, IBus
+
+
+def drain(seconds=0.1):
+    deadline = time.monotonic() + seconds
+    context = GLib.MainContext.default()
+    while time.monotonic() < deadline:
+        while context.pending():
+            context.iteration(False)
+        time.sleep(0.005)
+
+
+def main():
+    if not Path("/.dockerenv").exists() or not os.environ.get("DBUS_SESSION_BUS_ADDRESS"):
+        raise SystemExit("Run only in a disposable Docker container with dbus-run-session")
+    IBus.init()
+    daemon = subprocess.Popen(["ibus-daemon", "--replace", "--xim", "--panel=disable", "--config=disable"])
+    try:
+        for _ in range(100):
+            bus = IBus.Bus.new()
+            if bus.is_connected():
+                break
+            drain(0.1)
+        assert bus.is_connected(), "IBus daemon did not become available"
+        assert bus.set_global_engine("rime"), "Could not activate Rime"
+        context = bus.create_input_context("quick-hk-package-smoke")
+        commits = []
+        menus = []
+        context.connect("commit-text", lambda _, text: commits.append(text.get_text()))
+        context.connect("update-lookup-table", lambda _, table, visible: menus.append(
+            [table.get_candidate(i).get_text() for i in range(table.get_number_of_candidates())] if visible else []))
+        context.connect("hide-lookup-table", lambda _: menus.append([]))
+        context.set_capabilities(int(IBus.Capabilite.PREEDIT_TEXT | IBus.Capabilite.LOOKUP_TABLE | IBus.Capabilite.FOCUS))
+        context.focus_in()
+        context.set_engine("rime")
+        for _ in range(100):
+            drain(0.1)
+            engine = context.get_engine()
+            if engine and engine.get_name() == "rime":
+                break
+        assert engine and engine.get_name() == "rime", "Rime frontend did not load"
+        # Fresh package profile has only Quick HK selected in user.yaml below.
+        for code in "of":
+            assert context.process_key_event(ord(code), 0, 0)
+            drain()
+        assert menus and "你" in menus[-1], menus
+        choice = menus[-1].index("你") + 1
+        assert context.process_key_event(ord(str(choice)), 0, 0)
+        drain()
+        assert commits == ["你"], commits
+        assert menus[-1] and "好" in menus[-1], "Native plugin failed to provide suggestions"
+        context.reset()
+        drain()
+        assert not menus[-1], "Reset resurrected suggestions"
+        context.focus_out()
+        drain()
+        context.focus_in()
+        for code in "vd":
+            context.process_key_event(ord(code), 0, 0)
+            drain()
+        choice = menus[-1].index("好") + 1
+        context.process_key_event(ord(str(choice)), 0, 0)
+        drain()
+        assert commits == ["你", "好"], commits
+        for code, punctuation in (("zb", "，"), ("zd", "。")):
+            context.reset()
+            drain()
+            for character in code + "1":
+                context.process_key_event(ord(character), 0, 0)
+                drain()
+            assert commits[-1] == punctuation, commits
+        print("PASS IBus: 你好, native prediction, reset, focus out/in, zb1/zd1 punctuation")
+        context.destroy()
+    finally:
+        daemon.terminate()
+        daemon.wait(timeout=10)
+
+
+if __name__ == "__main__":
+    main()

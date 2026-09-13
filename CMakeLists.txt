@@ -1,0 +1,38 @@
+cmake_minimum_required(VERSION 3.16)
+project(quick_hk VERSION 0.2.0 LANGUAGES CXX)
+include(GNUInstallDirs)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(RIME REQUIRED IMPORTED_TARGET rime>=1.16)
+pkg_check_modules(GIO REQUIRED IMPORTED_TARGET gio-2.0)
+find_package(glog REQUIRED)
+find_library(MARISA_LIBRARY marisa REQUIRED)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(PREDICT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/vendor/librime-predict)
+file(GLOB PREDICT_SOURCES CONFIGURE_DEPENDS ${PREDICT_DIR}/src/*.cc)
+add_library(rime-quick-hk-predict MODULE ${PREDICT_SOURCES})
+target_include_directories(rime-quick-hk-predict PRIVATE ${PREDICT_DIR}/src)
+target_link_libraries(rime-quick-hk-predict PRIVATE PkgConfig::RIME glog::glog ${MARISA_LIBRARY})
+set_target_properties(rime-quick-hk-predict PROPERTIES CXX_VISIBILITY_PRESET hidden)
+install(TARGETS rime-quick-hk-predict LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/rime-plugins)
+
+add_library(rime-quick-hk-dictation MODULE native/dictation.cc)
+target_link_libraries(rime-quick-hk-dictation PRIVATE PkgConfig::RIME PkgConfig::GIO)
+set_target_properties(rime-quick-hk-dictation PROPERTIES CXX_VISIBILITY_PRESET hidden)
+install(TARGETS rime-quick-hk-dictation LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/rime-plugins)
+
+enable_testing()
+add_executable(quick-hk-gesture-test native/gesture_test.cc)
+add_test(NAME dictation-gesture COMMAND quick-hk-gesture-test)
+
+add_executable(quick-hk-build-predict ${PREDICT_DIR}/tools/build_predict.cc ${PREDICT_DIR}/src/predict_db.cc)
+target_include_directories(quick-hk-build-predict PRIVATE ${PREDICT_DIR}/src)
+target_link_libraries(quick-hk-build-predict PRIVATE PkgConfig::RIME glog::glog ${MARISA_LIBRARY})
+
+add_executable(quick-hk-deployer native/deployer.cc)
+target_link_libraries(quick-hk-deployer PRIVATE PkgConfig::RIME)
+install(TARGETS quick-hk-deployer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+add_executable(quick-hk-probe native/probe.cc)
+target_link_libraries(quick-hk-probe PRIVATE PkgConfig::RIME PkgConfig::GIO ${CMAKE_DL_LIBS})

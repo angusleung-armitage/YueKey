@@ -1,0 +1,308 @@
+"""YueKey Windows setup and local dictation companion. SPDX-License-Identifier: MIT."""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+from pathlib import Path
+import queue
+import sys
+import threading
+import time
+import uuid
+import webbrowser
+
+from .windows_state import DoubleControl, Request
+
+
+class Application:
+    def __init__(self, root):
+        import tkinter as tk
+        from tkinter import filedialog, messagebox, ttk
+        from .windows_input import WindowsInput
+        from .windows_setup import data_directory, install, rime_directory, uninstall
+
+        self.root, self.messagebox = root, messagebox
+        self.backend = WindowsInput()
+        self.queue = queue.SimpleQueue()
+        self.gesture = DoubleControl()
+        self.recognizer = self.recording = self.request = None
+        self.enabled = False
+        self.loading = False
+        self.closed = False
+        self.models = data_directory() / 'dictation/models'
+        self.status = tk.StringVar(value='準備就緒 · Ready')
+        self.punctuation = tk.BooleanVar(value=True)
+        self.key = tk.StringVar(value='Left Ctrl · 左 Ctrl')
+        root.title('粵鍵 YueKey')
+        root.geometry('650x500')
+        frame = ttk.Frame(root, padding=24)
+        frame.pack(fill='both', expand=True)
+        ttk.Label(frame, text='粵鍵 YueKey', font=('Segoe UI', 22, 'bold')).pack(anchor='w')
+        ttk.Label(frame, text='速成輸入 · 廣東話語音 · CPU only', font=('Segoe UI', 11)).pack(anchor='w', pady=(0, 14))
+        self.folder = tk.StringVar(value=str(rime_directory()))
+        ttk.Label(frame, text='小狼毫使用者資料夾 · Weasel user folder').pack(anchor='w')
+        ttk.Entry(frame, textvariable=self.folder).pack(fill='x', pady=4)
+        row = ttk.Frame(frame)
+        row.pack(fill='x')
+        ttk.Button(row, text='選擇 · Browse', command=lambda: self.folder.set(
+            filedialog.askdirectory() or self.folder.get())).pack(side='left')
+        ttk.Button(row, text='安裝速成 · Install typing', command=lambda: self.action(
+            lambda: install(Path(self.folder.get())),
+            '已備份並安裝。請在小狼毫選單按「重新部署」，再按 F4 選港式速成。\n'
+            'Installed with backup. Choose Weasel → Deploy, then F4 → 港式速成.')).pack(side='left', padx=6)
+        ttk.Button(row, text='移除 · Remove', command=lambda: self.remove(uninstall)).pack(side='left')
+        ttk.Button(frame, text='下載小狼毫 · Get Weasel', command=lambda: webbrowser.open(
+            'https://github.com/rime/weasel/releases/tag/0.17.4')).pack(anchor='w', pady=6)
+        ttk.Separator(frame).pack(fill='x', pady=12)
+        self.enable_button = ttk.Button(frame, text='啟用語音／下載模型 · Enable dictation / Get models', command=self.enable)
+        self.enable_button.pack(anchor='w')
+        ttk.Label(frame, text='首次下載約 302 MB；之後離線使用。\nFirst use downloads about 302 MB; recognition then works offline.').pack(anchor='w', pady=4)
+        options = ttk.Frame(frame)
+        options.pack(fill='x', pady=4)
+        combo = ttk.Combobox(options, textvariable=self.key, values=['Left Ctrl · 左 Ctrl', 'Right Ctrl · 右 Ctrl'], state='readonly', width=22)
+        combo.pack(side='left')
+        combo.bind('<<ComboboxSelected>>', self.change_key)
+        ttk.Checkbutton(options, text='自動標點 · Punctuation', variable=self.punctuation).pack(side='left', padx=8)
+        ttk.Label(frame, text='使用 Windows 預設麥克風。連按兩次 Ctrl 開始／停止；Esc 取消。\n'
+                  'Uses the Windows default microphone. Double Ctrl starts/stops; Esc cancels.\n'
+                  '保持此程式開啟，可縮小視窗。關閉視窗會停止語音。\nKeep this app running; minimizing is fine. Closing stops dictation.').pack(anchor='w', pady=8)
+        ttk.Label(frame, textvariable=self.status, wraplength=590).pack(anchor='w', pady=4)
+        root.protocol('WM_DELETE_WINDOW', self.close)
+        # A non-activating status window: showing it must not steal the target field.
+        self.overlay = tk.Toplevel(root)
+        self.overlay.withdraw()
+        self.overlay.overrideredirect(True)
+        self.overlay.attributes('-topmost', True)
+        self.overlay.geometry(f'400x60+{max(0, root.winfo_screenwidth() // 2 - 200)}+40')
+        tk.Label(self.overlay, textvariable=self.status, bg='#173f3a', fg='white',
+                 font=('Segoe UI', 11), wraplength=380).pack(fill='both', expand=True)
+        self.overlay.update_idletasks()
+        self.overlay_id = self.backend.user.GetParent(self.overlay.winfo_id()) or self.overlay.winfo_id()
+        root.after(20, self.tick)
+
+    def action(self, function, message):
+        try:
+            function()
+            self.messagebox.showinfo('YueKey', message)
+        except Exception as error:
+            self.messagebox.showerror('YueKey', str(error))
+
+    def remove(self, function):
+        def work():
+            preserved = function(Path(self.folder.get()))
+            self.status.set('保留已修改檔案 · Preserved edits: ' + ', '.join(preserved) if preserved else '已移除；學習資料保留 · Removed; learned data retained')
+        self.action(work, '請在小狼毫選單按「重新部署」。\nChoose Weasel → Deploy to apply the change.')
+
+    def change_key(self, _=None):
+        self.cancel()
+        self.gesture = DoubleControl(0xA2 if self.key.get().startswith('Left') else 0xA3)
+
+    def enable(self):
+        if self.enabled:
+            self.enabled = False
+            self.cancel()
+            self.enable_button.configure(text='啟用語音 · Enable dictation')
+            self.status.set('語音已停用 · Dictation disabled')
+            return
+        if self.loading:
+            return
+        if self.recognizer:
+            self.activate()
+            return
+        self.loading = True
+        self.enable_button.configure(state='disabled')
+        self.status.set('準備語音模型 · Preparing speech models…')
+
+        def load():
+            from .speech_assets import prepare_models
+            from .dictation_worker import Recognizer
+            try:
+                prepare_models(self.models, lambda text: self.queue.put({'event': 'setup', 'message': text}))
+                recognizer = Recognizer(self.models)
+                if recognizer.transcribe_pcm(bytes(32000)):
+                    raise RuntimeError('Speech model silence check failed')
+                self.queue.put({'event': 'ready', 'recognizer': recognizer})
+            except Exception as error:
+                self.queue.put({'event': 'setup-error', 'message': str(error)})
+        threading.Thread(target=load, daemon=True).start()
+
+    def activate(self):
+        self.enabled = True
+        self.loading = False
+        self.enable_button.configure(state='normal', text='停用語音 · Disable dictation')
+        self.status.set('語音已啟用 · Dictation ready · CPU')
+
+    def show(self, text):
+        self.status.set(text)
+        self.backend.user.ShowWindow(self.overlay_id, 4)  # SW_SHOWNOACTIVATE
+
+    def cancel(self):
+        if self.recording:
+            self.recording.stop(cancel=True)
+        self.request = None
+        self.backend.user.ShowWindow(self.overlay_id, 0)
+
+    def toggle(self):
+        if not self.enabled or self.backend.modifiers_down():
+            return
+        if self.request:
+            if self.request.state == 'recording':
+                self.request.state = 'finishing'
+                self.recording.stop()
+                self.show('正在辨識 · Recognizing…')
+            return
+        target = self.backend.target()
+        if target is None:
+            self.status.set('請選擇一般文字欄 · Focus a supported, non-password text field')
+            return
+        if self.recording and (self.recording.thread.is_alive() or self.recording.reader.is_alive()):
+            self.status.set('正在停止上一段錄音 · Previous recording is still stopping')
+            return
+        from .dictation_worker import WindowsRecording
+        identifier = str(uuid.uuid4())
+        try:
+            self.request = Request(identifier, target)
+            self.recording = WindowsRecording(self.recognizer, {
+                'id': identifier, 'punctuation': self.punctuation.get(),
+            }, self.queue.put)
+            self.show('正在收音 · Listening…  Ctrl × 2 / Esc')
+        except Exception as error:
+            self.request = None
+            self.status.set('麥克風錯誤 · Microphone error: ' + str(error))
+
+    def tick(self):
+        if self.closed:
+            return
+        try:
+            while True:
+                key, down, stamp = self.backend.events.get_nowait()
+                if time.monotonic() - stamp > 1:
+                    self.gesture.reset()
+                elif self.gesture.feed(key, down, stamp):
+                    self.toggle()
+        except queue.Empty:
+            pass
+        if self.request and self.backend.target() != self.request.target:
+            self.cancel()
+            self.status.set('已取消 · Cancelled')
+        try:
+            while True:
+                message = self.queue.get_nowait()
+                kind = message['event']
+                if kind == 'setup':
+                    self.status.set(message['message'])
+                elif kind == 'ready':
+                    self.recognizer = message['recognizer']
+                    self.activate()
+                elif kind == 'setup-error':
+                    self.loading = False
+                    self.enable_button.configure(state='normal')
+                    self.status.set('設定失敗 · Setup failed: ' + message['message'])
+                elif self.request and message.get('id') == self.request.identifier:
+                    if kind == 'finishing':
+                        self.request.state = 'finishing'
+                        self.show('正在辨識 · Recognizing…')
+                    elif kind == 'level':
+                        self.show(f'正在收音 · Listening… {message["elapsed"]:.0f}s')
+                    elif kind == 'error':
+                        self.cancel()
+                        self.status.set(message['message'])
+                    elif kind == 'result':
+                        target = self.backend.target()
+                        allowed = self.request.consume(message['id'], target)
+                        text = message.get('text', '')
+                        inserted = allowed and self.backend.insert(text, target)
+                        self.request = None
+                        self.backend.user.ShowWindow(self.overlay_id, 0)
+                        self.status.set('已輸入 · Inserted' if inserted else '沒有插入文字 · No text inserted')
+        except queue.Empty:
+            pass
+        if self.backend.error:
+            self.enabled = False
+            self.cancel()
+            self.status.set('鍵盤監聽已停止；請重新開啟 · Keyboard listener stopped; restart YueKey')
+        self.root.after(50, self.tick)
+
+    def close(self):
+        self.closed = True
+        self.cancel()
+        self.backend.close()
+        self.root.destroy()
+
+
+def self_test(report: Path, models: Path | None):
+    """Opt-in disposable-runner checks; no microphone is opened."""
+    from .windows_input import WindowsInput, Input
+    from .dictation_worker import Recognizer
+    import ctypes
+    import comtypes.client
+    import sounddevice
+    import sherpa_onnx
+    import tkinter as tk
+
+    result = {'ok': False}
+    root = backend = None
+    try:
+        assert ctypes.sizeof(Input) == 40
+        root = tk.Tk()
+        root.title('YueKey isolated Windows smoke test')
+        root.update()
+        backend = WindowsInput()
+        assert backend.thread.is_alive()
+        assert backend.automation is not None
+        assert sounddevice.get_portaudio_version()
+        if models:
+            from .speech_assets import prepare_models
+            prepare_models(models)
+            recognizer = Recognizer(models)
+            assert recognizer.transcribe_pcm(bytes(32000)) == ''
+            result['cpu_models'] = True
+        result.update(ok=True, input_size=ctypes.sizeof(Input), rime_payload=True)
+        from .windows_setup import resources, FILES
+        assert all((resources() / name).is_file() for name in FILES)
+    except Exception as error:
+        result.update(ok=False, error=str(error))
+    finally:
+        if backend:
+            backend.close()
+        if root:
+            root.destroy()
+        report.write_text(json.dumps(result, indent=2), encoding='utf-8')
+    return 0 if result['ok'] else 1
+
+
+def main():
+    os.environ['CUDA_VISIBLE_DEVICES'] = ''
+    os.environ['OMP_NUM_THREADS'] = '4'
+    parser = argparse.ArgumentParser(description='粵鍵 YueKey for Windows')
+    parser.add_argument('--self-test', type=Path, metavar='REPORT')
+    parser.add_argument('--models', type=Path)
+    args = parser.parse_args()
+    if args.self_test:
+        return self_test(args.self_test, args.models)
+    if sys.platform != 'win32':
+        raise SystemExit('Use quick-hk on Ubuntu. This companion is for Windows.')
+    import ctypes
+    from ctypes import wintypes
+    import tkinter as tk
+    from tkinter import messagebox
+    kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+    kernel.CreateMutexW.argtypes = [ctypes.c_void_p, wintypes.BOOL, wintypes.LPCWSTR]
+    kernel.CreateMutexW.restype = wintypes.HANDLE
+    handle = kernel.CreateMutexW(None, False, r'Local\YueKey.Companion')
+    root = tk.Tk()
+    if not handle or ctypes.get_last_error() == 183:
+        messagebox.showinfo('YueKey', '粵鍵已在執行 · YueKey is already running')
+        root.destroy()
+        return 1
+    try:
+        Application(root)
+        root.mainloop()
+    except Exception as error:
+        messagebox.showerror('YueKey', str(error))
+        return 1
+    finally:
+        kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+        kernel.CloseHandle(handle)
+    return 0

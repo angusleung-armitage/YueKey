@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "quick-hk"
+version = "0.2.0"
+description = "YueKey: Cantonese Quick input and offline CPU dictation for Ubuntu and Windows"
+license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY.md", "LICENSES/*"]
+requires-python = ">=3.11"
+dependencies = ["PyYAML>=6"]
+
+[project.scripts]
+quick-hk = "quick_hk.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+quick_hk = ["dictation-requirements.txt"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

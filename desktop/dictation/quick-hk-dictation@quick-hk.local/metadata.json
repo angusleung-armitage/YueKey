@@ -1,0 +1,7 @@
+{
+  "uuid": "quick-hk-dictation@quick-hk.local",
+  "name": "粵鍵 YueKey · Dictation",
+  "description": "CPU-only offline Cantonese dictation with double Ctrl, for YueKey and IBus.",
+  "shell-version": ["50"],
+  "version": 1
+}

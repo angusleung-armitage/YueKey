@@ -1,0 +1,50 @@
+{
+  "format": 1,
+  "sources": {
+    "cangjie/cangjie5.base.dict.yaml": {
+      "url": "https://raw.githubusercontent.com/rime/rime-cangjie/52d90a1b1312e74042b38c1cbc8142defbc53171/cangjie5.base.dict.yaml",
+      "sha256": "8690f2ad8aafd38780846881aa916b5779e6d9247a351a1da426d3f3257afca4",
+      "revision": "52d90a1b1312e74042b38c1cbc8142defbc53171"
+    },
+    "cangjie/LICENSE": {
+      "url": "https://raw.githubusercontent.com/rime/rime-cangjie/52d90a1b1312e74042b38c1cbc8142defbc53171/LICENSE",
+      "sha256": "da7eabb7bafdf7d3ae5e9f223aa5bdc1eece45ac569dc21b3b037520b4464768",
+      "revision": "52d90a1b1312e74042b38c1cbc8142defbc53171"
+    },
+    "quick/quick5.supplement.dict.yaml": {
+      "url": "https://raw.githubusercontent.com/rime/rime-quick/5dcdb9e353d314239e9c8cddc0f42d52da4837bb/quick5.supplement.dict.yaml",
+      "sha256": "c7e38622084f4be1c64a240f64e41ec5571da22563e60ea14028945e3f76a4b7",
+      "revision": "5dcdb9e353d314239e9c8cddc0f42d52da4837bb"
+    },
+    "quick/LICENSE": {
+      "url": "https://raw.githubusercontent.com/rime/rime-quick/5dcdb9e353d314239e9c8cddc0f42d52da4837bb/LICENSE",
+      "sha256": "da7eabb7bafdf7d3ae5e9f223aa5bdc1eece45ac569dc21b3b037520b4464768",
+      "revision": "5dcdb9e353d314239e9c8cddc0f42d52da4837bb"
+    },
+    "cantonese/essay-cantonese.txt": {
+      "url": "https://raw.githubusercontent.com/rime/rime-cantonese/259f0e48bba840c3a2e0d117539e96937f3d89bc/essay-cantonese.txt",
+      "sha256": "d08836175f598219f43c2f2f9e12e12711212dbefe08d57b2eddb7a9d9f22a5d",
+      "revision": "259f0e48bba840c3a2e0d117539e96937f3d89bc"
+    },
+    "cantonese/jyut6ping3.words.dict.yaml": {
+      "url": "https://raw.githubusercontent.com/rime/rime-cantonese/259f0e48bba840c3a2e0d117539e96937f3d89bc/jyut6ping3.words.dict.yaml",
+      "sha256": "54d174ad2bb997e4a678b7b076b84e4dc5914481b32467cdea3b43e88b7d5474",
+      "revision": "259f0e48bba840c3a2e0d117539e96937f3d89bc"
+    },
+    "cantonese/jyut6ping3.phrase.dict.yaml": {
+      "url": "https://raw.githubusercontent.com/rime/rime-cantonese/259f0e48bba840c3a2e0d117539e96937f3d89bc/jyut6ping3.phrase.dict.yaml",
+      "sha256": "3071d1ca43d6861aefcaa14e1b72780b21537b4e58b86ffce27ae0577c94e2ed",
+      "revision": "259f0e48bba840c3a2e0d117539e96937f3d89bc"
+    },
+    "cantonese/LICENSE-CC-BY": {
+      "url": "https://raw.githubusercontent.com/rime/rime-cantonese/259f0e48bba840c3a2e0d117539e96937f3d89bc/LICENSE-CC-BY",
+      "sha256": "97d24386ff776d7160b87031b259a942bd03c9939796cab6724ad5d17d2cf785",
+      "revision": "259f0e48bba840c3a2e0d117539e96937f3d89bc"
+    },
+    "libcangjie.deb": {
+      "url": "https://archive.ubuntu.com/ubuntu/pool/universe/libc/libcangjie/libcangjie3-data_1.4.0.really.1.4.0-5build1_all.deb",
+      "sha256": "9740c09116ed965ca364a9b3c0618c73d6242d96371a7b41dfcb0f9714a864eb",
+      "version": "1.4.0.really.1.4.0-5build1"
+    }
+  }
+}

@@ -1,0 +1,57 @@
+.TH QUICK-HK 1 "September 2026" "YueKey 0.2.0"
+.SH NAME
+quick-hk \- configure and deploy Cantonese Quick input
+.SH SYNOPSIS
+.B quick-hk
+.I command
+.RI [ options ]
+.SH DESCRIPTION
+YueKey supplies an offline Cantonese Quick Rime scheme for IBus and Fcitx5.
+Commands modify the invoking user's profile, without restarting input daemons.
+.SH COMMANDS
+.TP
+.B setup, deploy
+Stage and compile the scheme, then deploy with backups.
+.TP
+.B configure
+Open the settings window. Use --set KEY=VALUE to edit from the command line,
+--no-deploy with --set to save only, or --show to print preferences.
+.TP
+.B doctor
+Check packages and profile status. Use --json for structured output.
+.TP
+.B uninstall
+Restore unchanged managed files. Preserve user edits and learning databases.
+.TP
+.B reset-learning
+Back up and remove YueKey learning. Stop the selected frontend first.
+.TP
+.B dictation setup
+Download and verify SenseVoice Small Yue INT8, punctuation and VAD models;
+prepare an isolated Python 3.12 CPU runtime using uv. Run as the desktop user.
+.TP
+.B dictation status [--json]
+Show model readiness and the local dictation service state.
+.TP
+.B dictation serve
+Run the session D-Bus controller. Normally started by desktop autostart or D-Bus.
+.SH OPTIONS
+.TP
+.B --frontend auto|ibus|fcitx5|both
+Select profiles. Auto uses managed profiles, then the desktop environment.
+.TP
+.B --config PATH
+Use an explicit preferences file.
+.TP
+.B --help
+Show command help.
+.SH FILES
+.TP
+.I ~/.config/quick-hk/settings.toml
+Preferences (honors XDG_CONFIG_HOME).
+.TP
+.I ~/.local/state/quick-hk/
+Backups and manifests (honors XDG_STATE_HOME).
+.SH NOTES
+Run as your desktop user. Activate Chinese (Rime) and choose the YueKey scheme
+after setup. Desktop instructions are in /usr/share/doc/quick-hk-core/README.md.

@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=YueKey Settings
+Name[zh_HK]=粵鍵設定
+Name[zh_TW]=粵鍵設定
+Comment=Configure YueKey typing, Cantonese dictation and candidate appearance
+Comment[zh_HK]=設定粵鍵速成、廣東話語音輸入及候選字外觀
+Exec=quick-hk configure
+Icon=input-keyboard
+Terminal=false
+Categories=Settings;
+Keywords=YueKey;粵鍵;Quick;Rime;Cantonese;速成;港式速成;
+StartupNotify=true
