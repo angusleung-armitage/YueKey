@@ -20,7 +20,8 @@ def main():
     args = parser.parse_args()
     if not Path("/.dockerenv").exists() or os.geteuid() != 0:
         raise SystemExit("Run as root only inside a disposable Docker container; see docs/compatibility.md")
-    packages = sorted((ROOT / "dist").glob("*.deb"))
+    version = (ROOT / 'VERSION').read_text().strip()
+    packages = sorted((ROOT / "dist").glob(f"*_{version}-1_*.deb"))
     assert len(packages) == 5, "Build the five Debian packages first"
     if args.with_desktops:
         run("apt-get", "-o", "Acquire::ForceIPv4=true", "update")

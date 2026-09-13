@@ -5,8 +5,15 @@ from pathlib import Path
 import sys
 
 root = Path(sys.argv[1] if len(sys.argv) > 1 else 'dist')
+version = (Path(__file__).resolve().parents[1] / 'VERSION').read_text().strip()
+expected = {f'YueKey-{version}-windows-x64.zip', f'YueKey-{version}-source.tar.gz'}
+expected.update(f'quick-hk-{name}_{version}-1_{architecture}.deb' for name, architecture in (
+    ('core', 'all'), ('gnome', 'all'), ('kde', 'all'), ('dictation', 'amd64'), ('predict', 'amd64')))
 assets = sorted(p for p in root.iterdir() if p.is_file() and p.suffix in ('.deb', '.zip', '.gz'))
-if not assets:
-    raise SystemExit('No release assets found')
-(root / 'SHA256SUMS').write_text(''.join(
-    f'{hashlib.file_digest(path.open("rb"), "sha256").hexdigest()}  {path.name}\n' for path in assets))
+if {p.name for p in assets} != expected:
+    raise SystemExit('Release needs exactly the current five DEBs, Windows ZIP and source archive')
+lines = []
+for path in assets:
+    with path.open('rb') as stream:
+        lines.append(f'{hashlib.file_digest(stream, "sha256").hexdigest()}  {path.name}\n')
+(root / 'SHA256SUMS').write_text(''.join(lines), encoding='utf-8')

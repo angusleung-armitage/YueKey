@@ -102,10 +102,11 @@ def main():
     for file in extracted.rglob('rime.dll'):
         data = file.read_bytes()
         pe = int.from_bytes(data[0x3c:0x40], 'little')
-        if int.from_bytes(data[pe + 4:pe + 6], 'little') == 0x8664:
+        machine = 0x8664 if C.sizeof(C.c_void_p) == 8 else 0x14c
+        if int.from_bytes(data[pe + 4:pe + 6], 'little') == machine:
             exercise(file)
             return
-    raise RuntimeError('The official Weasel installer did not contain an x64 rime.dll')
+    raise RuntimeError('No rime.dll matches this Python architecture; Weasel uses a 32-bit server')
 
 
 if __name__ == '__main__':

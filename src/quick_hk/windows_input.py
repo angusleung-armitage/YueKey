@@ -163,14 +163,15 @@ class WindowsInput:
                 enabled=element.GetCurrentPropertyValueEx(30010, True),
             ):
                 return None
-            process = W.DWORD()
-            self.user.GetWindowThreadProcessId(window, C.byref(process))
-            if element.CurrentProcessId != process.value:
+            # A focused provider can belong to a renderer process different
+            # from the foreground window's process (for example a browser).
+            process = int(element.CurrentProcessId)
+            if process <= 0:
                 return None
             identifier = tuple(element.GetRuntimeId())
             if not identifier or self.activity != generation:
                 return None
-            return Target(int(window), process.value, identifier, generation)
+            return Target(int(window), process, identifier, generation)
         except Exception:
             return None
 
