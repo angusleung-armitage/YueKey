@@ -188,6 +188,29 @@ def deploy(engine: Installation, destination: Path, *, require_yuekey=True) -> N
         if not path.is_file() or path.stat().st_size == 0:
             raise RuntimeError('速成尚未完成部署，請按「設定速成」再試。\n'
                                f'Typing deployment is incomplete ({name}). Choose Set up typing to retry.')
+    # Cached binaries alone do not prove that newly saved preferences deployed.
+    # Windows customizations use map paths and numeric list selectors only.
+    import yaml
+    from .windows_setup import CUSTOM
+    compiled = yaml.safe_load((destination / 'build/quick_hk.schema.yaml').read_text(encoding='utf-8'))
+    custom = yaml.safe_load((destination / CUSTOM).read_text(encoding='utf-8'))
+
+    def contains(actual, expected):
+        if isinstance(expected, dict):
+            return isinstance(actual, dict) and all(key in actual and contains(actual[key], value)
+                                                   for key, value in expected.items())
+        return actual == expected
+
+    for key, expected in custom['patch'].items():
+        actual = compiled
+        try:
+            for part in key.split('/'):
+                actual = actual[int(part[1:])] if part.startswith('@') else actual[part]
+        except (KeyError, IndexError, TypeError, ValueError):
+            actual = None
+        if not contains(actual, expected):
+            raise RuntimeError('新設定尚未完成部署，請稍後再按「儲存並套用」。\n'
+                               f'Weasel has not applied the new settings ({key}). Try Save changes again.')
 
 
 def configure_typing(settings=None, progress=lambda message: None, *, install_missing=True) -> dict:

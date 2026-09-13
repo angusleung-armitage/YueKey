@@ -251,6 +251,12 @@ class WindowsTests(unittest.TestCase):
                 (root / 'build').mkdir()
                 for name in ('quick_hk.schema.yaml', 'quick_hk.table.bin', 'quick_hk.prism.bin'):
                     (root / 'build' / name).write_bytes(b'compiled')
+                (root / 'quick_hk.windows.custom.yaml').write_text('patch: {menu/page_size: 5}', encoding='utf-8')
+                schema = root / 'build/quick_hk.schema.yaml'
+                schema.write_text('menu: {page_size: 9}', encoding='utf-8')
+                with self.assertRaisesRegex(RuntimeError, 'not applied the new settings'):
+                    windows_weasel.deploy(engine, root)
+                schema.write_text('menu: {page_size: 5}', encoding='utf-8')
                 windows_weasel.deploy(engine, root)
 
     def test_install_remove_restores_exact_config_and_preserves_learning(self):

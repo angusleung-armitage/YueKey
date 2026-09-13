@@ -410,8 +410,8 @@ def self_test(report: Path, models: Path | None):
         # Exercise every page at the default and minimum window sizes. Capture
         # only this owned window on the disposable CI desktop for visual review.
         result['pages'] = []
-        for geometry in ('1000x760', '860x620'):
-            root.geometry(geometry)
+        for geometry in (root.geometry().split('+')[0], '860x620'):
+            root.geometry(geometry + '+0+0')
             for page, button in app.navigation.items():
                 button.invoke()
                 root.after(150, root.quit)
@@ -434,8 +434,32 @@ def self_test(report: Path, models: Path | None):
         app.variables['theme'].set('dark')
         chosen = app.read_settings()
         assert chosen.effective_dictation_key == 'Control_R' and chosen.page_size == 5 and chosen.theme == 'dark'
+        if os.environ.get('GITHUB_ACTIONS') == 'true':
+            from types import SimpleNamespace
+            import yaml
+            from .windows_setup import rime_directory
+            failures = []
+            app.messagebox = SimpleNamespace(showerror=lambda title, message: failures.append(message))
+
+            def save_and_check(expected):
+                app.apply_button.invoke()
+                assert app.busy, 'Saving did not start a background action'
+                deadline = time.monotonic() + 200
+                while app.busy and time.monotonic() < deadline:
+                    root.after(100, root.quit)
+                    root.mainloop()
+                assert not app.busy and not failures, f'Saving failed: {failures}'
+                assert load_settings() == expected, 'Preferences were not persisted'
+                compiled = yaml.safe_load((rime_directory() / 'build/quick_hk.schema.yaml').read_text(encoding='utf-8'))
+                assert compiled['menu']['page_size'] == expected.page_size
+                assert compiled['style']['color_scheme'] == f'yuekey_{expected.theme}'
+
+            save_and_check(chosen)
         for name, variable in app.variables.items():
             variable.set(getattr(original, name))
+        if os.environ.get('GITHUB_ACTIONS') == 'true':
+            save_and_check(original)
+            result['background_save_and_deployment'] = True
         result['settings_controls'] = True
         assert backend.thread.is_alive()
         assert backend.automation is not None
