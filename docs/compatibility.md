@@ -179,3 +179,37 @@ capturing mono 16 kHz audio. This supports system mixers configured at 44.1/48 k
 without requesting exclusive access. MME and other backends keep their normal
 stream settings. A regression check covers backend selection and conversion
 parameters; real microphone hardware checks remain necessary.
+
+## YueKey 0.5.0 all-in-one and architecture validation
+
+Verified on 2026-09-13 at commit `1adac1a57759e87e4444e89fccc95a23ea289eb1`,
+[Actions run 34746384659](https://github.com/angusleung-armitage/YueKey/actions/runs/34746384659).
+Every required architecture job passed:
+
+| Target | Checks |
+| --- | --- |
+| Ubuntu 26.04 amd64 and arm64 | 92 tests, 1 Windows-only skip, 21 subtests per architecture; native gesture/Rime bridge, GNOME extension lifecycle, DEB metadata, IBus/Fcitx5 input and KDE controller |
+| Windows x64, x86 and ARM64 | 16 tests and 6 subtests per architecture; official Weasel runtime, setup/repair/startup/uninstall, packaged settings window, Unicode insertion and password/focus guards |
+| All five CPU runtimes | Verified public Cantonese WAV and silence; CPU execution; no microphone opened |
+
+The all-in-one DEBs contain the isolated recognizer and all four pinned model
+files. Installed offline setup ran as an unprivileged user. APT migration tests
+replaced fixtures for the five old package ownership/dependency relationships,
+including an overlapping command path; pre-existing Rime preferences survived.
+Both input profiles were deployed repeatedly, exercised and removed while
+preserving user configuration and learning. Frozen workers restore the system
+library path before starting PipeWire.
+
+GTK startup now uses `Gtk.Application` initialization rather than cached legacy
+import-time initialization. Windows ARM64 tests dismiss a known first-login
+account prompt on the disposable runner and, if required, activate only the
+verified, unobscured test Edit control. This setup is restricted to CI; production
+focus and secure-field guards remain in effect. The x86 executable uses the
+28-byte Win32 INPUT layout; x64 and ARM64 use 40 bytes.
+
+此版本已在原生 Linux x64／ARM64 及 Windows x64／x86／ARM64 執行上述自動測試。Linux 語音模型及執行環境已包含在 DEB，普通使用者可離線完成設定。Windows x86 測試使用 WOW64；完整 32-bit Windows 10、不同實機麥克風及完整 Wayland 桌面仍需另外驗證。詳見[架構與限制](ARCHITECTURES.md)。
+
+These checks do not establish support for Linux i386/ARM32, older Ubuntu/Debian
+versions, every desktop/application, or every physical microphone. Windows x86
+was tested under WOW64, not a complete 32-bit Windows installation. See
+[ARCHITECTURES.md](ARCHITECTURES.md) for the exact boundaries.
