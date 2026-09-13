@@ -35,7 +35,7 @@ jobs:
       - name: Check dictation gesture and Rime bridge
         run: |
           docker run --rm --init --user "$(id -u):$(id -g)" -v "$PWD:/work" quick-hk-dev:26.04 ctest --test-dir build/native --output-on-failure
-          docker run --rm --init --user "$(id -u):$(id -g)" -e QUICK_HK_ISOLATED_BUS=1 -v "$PWD:/work" quick-hk-dev:26.04 dbus-run-session -- python3 tools/smoke_dictation_bridge.py
+          docker run --rm --init -e QUICK_HK_ISOLATED_BUS=1 -v "$PWD:/work:ro" quick-hk-dev:26.04 dbus-run-session -- python3 tools/smoke_dictation_bridge.py
       - name: Validate Debian metadata
         run: >-
           docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/work:ro"
@@ -91,6 +91,8 @@ jobs:
           python -m pip install --require-hashes --only-binary=:all: -r desktop/windows/requirements.txt
       - name: Test Windows deployment, gesture and focus guards
         run: python -m pytest tests/test_windows.py -q
+      - name: Test typing in the official Weasel runtime
+        run: python tools/smoke_weasel.py
       - name: Package portable application
         run: python tools/package_windows.py
       - name: Exercise packaged runtime and CPU models without a microphone

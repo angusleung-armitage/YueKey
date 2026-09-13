@@ -39,11 +39,8 @@ class Input(C.Structure):
 
 class WindowsInput:
     def __init__(self):
-        import comtypes.client
-
-        module = comtypes.client.GetModule('UIAutomationCore.dll')
-        self.automation = comtypes.client.CreateObject(
-            '{ff48dba4-60ef-4201-aa87-54103eef594e}', interface=module.IUIAutomation)
+        import comtypes.client  # import on the UI thread; create UIA objects in the MTA worker
+        self.automation = None
         self.user = C.WinDLL('user32', use_last_error=True)
         self.kernel = C.WinDLL('kernel32', use_last_error=True)
         self.user.GetForegroundWindow.restype = W.HWND
@@ -72,6 +69,14 @@ class WindowsInput:
         self.thread.start()
         if not self.ready.wait(5) or self.error:
             raise RuntimeError(self.error or 'Windows keyboard listener did not start')
+        self.snapshot = (None, 0.0)
+        self.stopping = threading.Event()
+        self.focus_ready = threading.Event()
+        self.focus_thread = threading.Thread(target=self._watch_focus, daemon=True)
+        self.focus_thread.start()
+        if not self.focus_ready.wait(10) or self.error:
+            self.close()
+            raise RuntimeError(self.error or 'Windows accessibility service did not start')
 
     def _listen(self):
         hook_type = C.WINFUNCTYPE(LRESULT, C.c_int, W.WPARAM, W.LPARAM)
@@ -126,7 +131,27 @@ class WindowsInput:
                 if hook:
                     self.user.UnhookWinEvent(hook)
 
-    def target(self) -> Target | None:
+    def _watch_focus(self):
+        # UI Automation must run off the UI thread in an MTA apartment. A stuck
+        # provider cannot freeze our controls; stale snapshots fail closed.
+        import comtypes.client
+        comtypes.CoInitializeEx(0)
+        try:
+            module = comtypes.client.GetModule('UIAutomationCore.dll')
+            self.automation = comtypes.client.CreateObject(
+                '{ff48dba4-60ef-4201-aa87-54103eef594e}', interface=module.IUIAutomation)
+            self.focus_ready.set()
+            while not self.stopping.is_set():
+                self.snapshot = (self._read_target(), time.monotonic())
+                self.stopping.wait(0.05)
+        except Exception as error:
+            self.error = str(error)
+            self.focus_ready.set()
+        finally:
+            self.automation = None
+            comtypes.CoUninitialize()
+
+    def _read_target(self) -> Target | None:
         try:
             generation = self.activity
             window = self.user.GetForegroundWindow()
@@ -149,6 +174,14 @@ class WindowsInput:
         except Exception:
             return None
 
+    def target(self) -> Target | None:
+        target, checked = self.snapshot
+        if (target is None or time.monotonic() - checked > 0.3
+                or target.activity != self.activity
+                or target.window != self.user.GetForegroundWindow()):
+            return None
+        return target
+
     def modifiers_down(self) -> bool:
         return any(self.user.GetAsyncKeyState(key) & 0x8000
                    for key in (0x10, 0x11, 0x12, 0x5B, 0x5C))
@@ -166,6 +199,8 @@ class WindowsInput:
         return self.user.SendInput(len(inputs), inputs, C.sizeof(Input)) == len(inputs)
 
     def close(self):
+        self.stopping.set()
         if self.thread_id:
             self.user.PostThreadMessageW(self.thread_id, 0x12, 0, 0)
             self.thread.join(timeout=2)
+        self.focus_thread.join(timeout=1)
