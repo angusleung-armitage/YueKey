@@ -241,6 +241,18 @@ def test_typing_dismisses_prediction(probe):
     assert result["commit"] == "" and result["input"] == "v"
 
 
+def test_browsing_continuations_keeps_the_text_field_unchanged(probe):
+    probe.send("option prediction 1")
+    result = probe.type("of")
+    predicted = probe.key(str(result["candidates"].index("你") + 1))
+    assert predicted["commit"] == "你" and predicted["candidates"]
+    moved = probe.key(0xff53)  # Right selects the next candidate in either layout.
+    assert moved["selected"] == 1 and moved["candidates"] == predicted["candidates"]
+    assert not moved["commit"] and not moved["preedit"]
+    accepted = probe.key(" ")
+    assert accepted["commit"] == moved["candidates"][1]
+
+
 @pytest.mark.parametrize("cancel", ["clear", "key 65307 0", "key 65288 0"])
 def test_cancel_does_not_recreate_predictions(probe, cancel):
     probe.send("option prediction 1")

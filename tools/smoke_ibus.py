@@ -64,9 +64,13 @@ def main():
         assert menus[-1] and "好" in menus[-1], "Native plugin failed to provide suggestions"
         assert not preedits or not preedits[-1], (preedits, menus[-1])
         assert ''.join(commits) + (preedits[-1] if preedits else '') == '你'
-        context.process_key_event(0xff54, 0, 0)  # Browse without previewing in the field.
+        context.process_key_event(0xff53, 0, 0)  # Browse without previewing in the field.
         drain()
         assert commits == ['你'] and (not preedits or not preedits[-1])
+        context.process_key_event(0xff51, 0, 0)  # IBus may page horizontally; return first.
+        drain()
+        assert commits == ['你'] and (not preedits or not preedits[-1])
+        assert '好' in menus[-1], (menus[-3:], commits, preedits)
         choice = menus[-1].index('好') + 1
         context.process_key_event(ord(str(choice)), 0, 0)
         drain()

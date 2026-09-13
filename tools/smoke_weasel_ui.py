@@ -169,7 +169,7 @@ def exercise(engine, directory: Path, output: Path):
                 assert predicted.get('status.composing') == '1', predicted
                 assert not predicted.get('ctx.preedit'), predicted
                 assert predicted.get('ctx.cand'), predicted
-                moved = client.key(0xff54)  # Down changes the highlight, not the text field.
+                moved = client.key(0xff53)  # Right changes the highlight, not the text field.
                 assert not moved.get('ctx.preedit') and not moved.get('commit'), moved
                 cancelled = client.key(0xff1b)
                 assert not cancelled.get('commit') and cancelled.get('status.composing') == '0', cancelled

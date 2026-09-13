@@ -85,7 +85,9 @@ def main():
         assert "好" in menus[-1], "Native prediction plugin did not load"
         assert not preedits or not preedits[-1], (preedits, menus[-1])
         assert ''.join(commits) + (preedits[-1] if preedits else '') == '你'
-        context('ProcessKeyEvent', '(uuubu)', (0xff54, 0, 0, False, 0))
+        context('ProcessKeyEvent', '(uuubu)', (0xff53, 0, 0, False, 0))
+        assert commits == ['你'] and (not preedits or not preedits[-1])
+        context('ProcessKeyEvent', '(uuubu)', (0xff51, 0, 0, False, 0))
         assert commits == ['你'] and (not preedits or not preedits[-1])
         key(str(menus[-1].index('好') + 1))
         assert commits == ['你', '好'], commits
