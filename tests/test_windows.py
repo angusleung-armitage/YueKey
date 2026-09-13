@@ -235,7 +235,9 @@ class WindowsTests(unittest.TestCase):
                 self.assertTrue((user / 'yuekey-install.json').is_file())
                 second = windows_weasel.configure_typing(Settings(page_size=5))
                 self.assertEqual(first['backup'], second['backup'])
-                deploy.assert_called_with(engine, user)
+                # Windows TEMP can contain an 8.3 alias such as RUNNER~1;
+                # deployment deliberately receives the canonical folder.
+                deploy.assert_called_with(engine, user.resolve())
                 self.assertEqual(uninstall(user), [])
                 self.assertFalse((user / 'default.custom.yaml').exists())
 
