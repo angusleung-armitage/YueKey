@@ -23,6 +23,7 @@ class Client:
         k.CreateFileW.argtypes = [W.LPCWSTR, W.DWORD, W.DWORD, C.c_void_p, W.DWORD, W.DWORD, W.HANDLE]
         k.CreateFileW.restype = W.HANDLE
         k.CloseHandle.argtypes = [W.HANDLE]
+        k.FlushFileBuffers.argtypes = [W.HANDLE]
         k.SetNamedPipeHandleState.argtypes = [W.HANDLE, C.POINTER(W.DWORD), C.c_void_p, C.c_void_p]
         k.GetNamedPipeServerProcessId.argtypes = [W.HANDLE, C.POINTER(W.DWORD)]
         k.PeekNamedPipe.argtypes = [W.HANDLE, C.c_void_p, W.DWORD, C.c_void_p, C.POINTER(W.DWORD), C.c_void_p]
@@ -68,6 +69,8 @@ class Client:
         if not self.kernel.WriteFile(self.handle, request, len(request), C.byref(count), None):
             raise C.WinError(C.get_last_error())
         assert count.value == len(request)
+        if not self.kernel.FlushFileBuffers(self.handle):
+            raise C.WinError(C.get_last_error())
         available = W.DWORD()
         deadline = time.monotonic() + 15
         while True:
@@ -80,14 +83,20 @@ class Client:
             if time.monotonic() >= deadline:
                 raise TimeoutError('Weasel did not answer the isolated test session')
             time.sleep(.02)
-        buffer = C.create_string_buffer(65536)
-        if not self.kernel.ReadFile(self.handle, buffer, len(buffer), C.byref(count), None):
-            raise C.WinError(C.get_last_error())
-        assert count.value >= 4
-        result = struct.unpack_from('<I', buffer.raw)[0]
-        text = buffer.raw[4:count.value].decode('utf-16-le').split('\0', 1)[0]
+        # Match PipeChannel::_ReceiveResponse: consume the DWORD response
+        # first, then the optional message body after ERROR_MORE_DATA.
+        result = W.DWORD()
+        text = ''
+        if not self.kernel.ReadFile(self.handle, C.byref(result), 4, C.byref(count), None):
+            error = C.get_last_error()
+            if error != 234:  # ERROR_MORE_DATA
+                raise C.WinError(error)
+            buffer = C.create_string_buffer(65536)
+            if not self.kernel.ReadFile(self.handle, buffer, len(buffer), C.byref(count), None):
+                raise C.WinError(C.get_last_error())
+            text = buffer.raw[:count.value].decode('utf-16-le').split('\0', 1)[0]
         response = dict(line.split('=', 1) for line in text.splitlines() if '=' in line)
-        return result, response
+        return result.value, response
 
     def key(self, value):
         return self.send(4, ord(value) if isinstance(value, str) else value)[1]
