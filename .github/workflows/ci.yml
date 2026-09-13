@@ -87,7 +87,8 @@ jobs:
           name: windows-data
           path: build/windows-data
       - name: Install hash-locked build and CPU runtime dependencies
-        run: python -m pip install --require-hashes --only-binary=:all: -r desktop/windows/requirements.txt
+        run: >-
+          python -m pip install --require-hashes --only-binary=:all: -r desktop/windows/requirements.txt
       - name: Test Windows deployment, gesture and focus guards
         run: python -m pytest tests/test_windows.py -q
       - name: Package portable application
