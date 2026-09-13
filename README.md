@@ -47,9 +47,9 @@ Windows 安裝檔已包含小狼毫引擎並自動部署速成。全新介面分
 
 Windows setup includes the Weasel engine and deploys Cantonese Quick automatically. The redesigned app has Overview, Typing, Voice and Advanced pages, automatic deployment when saving, and a practice field.
 
-![Windows 安裝後的粵鍵總覽，包含速成狀態、試打欄及中英導覽。YueKey Overview after installation, with typing status, practice field and bilingual navigation.](docs/images/windows-overview.png)
+![Windows 安裝後的粵鍵總覽，包含速成狀態、試打欄及中英導覽。YueKey Overview after installation, with typing status, practice field and bilingual navigation.](docs/images/windows-overview-v0.6.1.png)
 
-*實際 Windows 11 ARM64 測試截圖；視窗邊框依系統主題而異。Actual Windows 11 ARM64 test capture; window borders follow the system theme.*
+*實際 Windows x64 安裝後截圖；視窗邊框依系統主題而異。Actual installed Windows x64 app; window borders follow the system theme.*
 
 ## 支援平台 · Supported platforms
 

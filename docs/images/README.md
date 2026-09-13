@@ -54,3 +54,12 @@ The final background refinement uses an opaque tile:
 ```text
 Edit this final 粵 icon. Keep the exact Traditional Chinese glyph 粵, every stroke, its ivory color, size and position unchanged. Keep the jade key and speech-bubble outline unchanged. Replace ALL of the gray checkerboard exterior with a completely smooth solid deep ink-teal color #102F37, extending to all four edges of the square canvas. This is intentionally an OPAQUE full-bleed square app tile, NOT a transparent image. No checkerboard, no grid, no white margin, no transparency simulation, no extra text or objects. The result must be the same jade key bearing the exact 粵 glyph on an entirely solid deep-teal square background. Output one polished PNG app icon.
 ```
+
+
+## Windows 0.6.1 icon capture
+
+`windows-overview-v0.6.1.png` is the unedited installed application captured on the
+Windows Server 2025 x64 disposable runner at `69ef2b4` in
+[release run 34753111328](https://github.com/angusleung-armitage/YueKey/actions/runs/34753111328).
+It shows the final Traditional 粵 icon in the sidebar and title bar. The older
+`windows-overview.png` remains an archived 0.6.0 capture.
