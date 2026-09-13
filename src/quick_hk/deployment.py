@@ -18,7 +18,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
 
-from .rime_config import DeploymentError, _yaml, _dump_yaml, merge_schema_list
+from .rime_config import DeploymentError, _yaml, _dump_yaml, configure_schema_list
 
 from .settings import Settings, config_home, load_settings
 
@@ -372,7 +372,7 @@ def deploy(frontend: str = "auto", settings: Settings | None = None) -> list[str
             _copy_config_to_stage(directory, stage)
             changes = {directory / item: (source / item).read_bytes() for item in REQUIRED_DATA}
             changes[directory / "quick_hk.custom.yaml"] = _schema_custom(settings, name)
-            changes[directory / "default.custom.yaml"] = merge_schema_list(
+            changes[directory / "default.custom.yaml"] = configure_schema_list(
                 _read(directory / "default.custom.yaml"), directory / "default.custom.yaml"
             )
             changes.update(_managed_assets(name, settings))
@@ -398,15 +398,15 @@ def activation_instructions(frontends: list[str], settings: Settings | None = No
     messages = ["Input daemons were not restarted. Finish current composition, then reload Rime or sign out and back in."]
     if "ibus" in frontends:
         messages += [
-            "GNOME: add Chinese (Rime) in Settings → Keyboard → Input Sources. Switch to Rime, focus a text field, press F4, and choose 港式速成 (Page Down for more schemes).",
-            "Rime also contains Pinyin and other schemes. Configure YueKey with quick-hk configure or Rime's Preferences in GNOME Settings.",
+            "GNOME: add Chinese (Rime) in Settings → Keyboard → Input Sources. Switch to Rime to type with 港式速成, the default and only scheme.",
+            "Configure YueKey with quick-hk configure or Rime's Preferences in GNOME Settings.",
             f"GNOME 50 appearance: enable {EXTENSION_UUID} in Extensions after signing in again.",
         ]
         if settings and settings.dictation_enabled:
             messages.append(f"Dictation: sign out and back in after first installation, then enable {DICTATION_EXTENSION_UUID} in Extensions. Double Ctrl starts/stops recording.")
     if "fcitx5" in frontends:
         messages += [
-            "KDE: open Fcitx 5 Configuration, add Rime, then choose 港式速成 in Rime's F4 menu.",
+            "KDE: open Fcitx 5 Configuration, add Rime; 港式速成 is the default and only scheme.",
             "For the supplied appearance, use Fcitx5 Classic User Interface and select a quick-hk theme; disable Kimpanel if it owns your candidate window.",
         ]
         if settings and settings.dictation_enabled:

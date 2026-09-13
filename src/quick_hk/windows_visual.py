@@ -1,4 +1,4 @@
-"""Capture only YueKey's own window for disposable-runner visual diagnostics.
+"""Capture YueKey or its verified typing server on disposable CI runners.
 
 SPDX-License-Identifier: MIT
 """
@@ -9,7 +9,7 @@ import struct
 import zlib
 
 
-def capture_window(hwnd, destination):
+def capture_window(hwnd, destination, *, expected_pid=None):
     if os.environ.get('GITHUB_ACTIONS') != 'true':
         raise RuntimeError('Visual diagnostics are restricted to disposable CI runners')
     user = C.WinDLL('user32', use_last_error=True)
@@ -31,7 +31,7 @@ def capture_window(hwnd, destination):
     gdi.GetDIBits.argtypes = [W.HDC, W.HBITMAP, W.UINT, W.UINT, C.c_void_p, C.c_void_p, W.UINT]
     process = W.DWORD()
     user.GetWindowThreadProcessId(hwnd, C.byref(process))
-    assert process.value == os.getpid(), 'Refusing to capture another application'
+    assert process.value == (os.getpid() if expected_pid is None else expected_pid), 'Unexpected window owner'
     rect = W.RECT()
     assert user.GetWindowRect(hwnd, C.byref(rect))
     width, height = rect.right - rect.left, rect.bottom - rect.top

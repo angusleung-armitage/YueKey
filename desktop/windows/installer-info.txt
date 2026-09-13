@@ -4,8 +4,8 @@ Cantonese Quick input and local dictation
 一次安裝，即可使用速成。此安裝檔已包含官方小狼毫 0.17.4；如尚未安裝，Windows 會要求管理員權限。已安裝的相容版本會沿用。粵鍵本身為每使用者安裝，並加入開始功能表及解除安裝項目。
 One setup prepares Cantonese Quick typing. Official Weasel 0.17.4 is included; Windows requests administrator approval if the engine is missing. Compatible existing installations are reused. YueKey itself installs for the current user with a Start Menu shortcut and an uninstaller.
 
-安裝程式會備份原有設定，保留其他輸入方案及學習資料，然後自動部署速成。完成後按 Win + Space 選小狼毫，在文字欄按 F4 選「港式速成」。
-Setup backs up existing preferences, preserves other typing schemes and learned words, then deploys Cantonese Quick automatically. Select Weasel with Win + Space, then choose 港式速成 with F4 in a text field.
+安裝程式會備份原有設定，保留學習資料，並把港式速成設為預設及唯一可選方案。完成後按 Win + Space 選小狼毫，即可輸入。移除粵鍵方案時可還原未經修改的原有設定。
+Setup backs up existing preferences, preserves learned words and makes Cantonese Quick the default and only selectable scheme. Select Weasel with Win + Space to type. Removing YueKey typing restores unchanged original settings.
 
 語音為選配，使用純 CPU 的 SenseVoice Small Yue INT8。首次啟用下載約 302 MB 模型，之後可離線辨識。
 Optional dictation uses SenseVoice Small Yue INT8 on the CPU. First enable downloads about 302 MB of models; recognition then works offline.

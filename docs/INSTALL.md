@@ -42,7 +42,7 @@ After the build, `dist/` should contain these files for this version:
 
 | 套件 · Package | 用途 · Purpose |
 | --- | --- |
-| `yuekey_0.6.1-1_amd64.deb` **或 / or** `yuekey_0.6.1-1_arm64.deb` | 一個檔案包含全部 YueKey 元件及 CPU 語音模型／All YueKey components and CPU speech models |
+| `yuekey_0.6.2-1_amd64.deb` **或 / or** `yuekey_0.6.2-1_arm64.deb` | 一個檔案包含全部 YueKey 元件及 CPU 語音模型／All YueKey components and CPU speech models |
 | `SHA256SUMS` | 套件檢查碼／Package checksums |
 
 建置使用主機的 CPU 架構；各架構須分別建置。執行 `dpkg --print-architecture` 選擇對應檔案。此版本不提供 Linux i386／ARM32；亦不支援以強制架構選項安裝錯誤 DEB。詳見[架構指南](ARCHITECTURES.md)。
@@ -66,7 +66,7 @@ If you already have these packages, continue below. Docker is used for building;
 Run from the project root:
 
 ```bash
-sudo apt install ./dist/yuekey_0.6.1-1_$(dpkg --print-architecture).deb
+sudo apt install ./dist/yuekey_0.6.2-1_$(dpkg --print-architecture).deb
 quick-hk setup --frontend ibus
 ```
 
@@ -79,8 +79,8 @@ After installing new plugins/extensions, sign out and back in or use the [no-log
 
 1. 在 **設定 → 鍵盤 → 輸入來源** 加入 **Chinese (Rime)**，保留原有英文輸入來源。  
    Add **Chinese (Rime)** in **Settings → Keyboard → Input Sources**, keeping your English source.
-2. 用 **Super+Space** 切換至 Rime，點選文字欄，按 **F4**，選擇 **港式速成**；如未見，可按 Page Down。  
-   Switch to Rime with **Super+Space**, focus a text field, press **F4** and select **港式速成**. Use Page Down if needed.
+2. 用 **Super+Space** 切換至 Rime，點選文字欄，即可使用 **港式速成**。此為預設及唯一方案，毋須按 F4。<br>
+   Switch to Rime with **Super+Space** and focus a text field. **港式速成** is the default and only scheme; no F4 selection is needed.
 3. 在 Extensions 啟用 **粵鍵 YueKey · Candidates**，套用候選字外觀。  
    Enable **粵鍵 YueKey · Candidates** in Extensions for the candidate appearance.
 
@@ -156,13 +156,13 @@ This method cannot replace JavaScript already imported during the current sessio
 ## 5. Kubuntu KDE：安裝速成 · Install Quick input
 
 ```bash
-sudo apt install ./dist/yuekey_0.6.1-1_$(dpkg --print-architecture).deb
+sudo apt install ./dist/yuekey_0.6.2-1_$(dpkg --print-architecture).deb
 quick-hk setup --frontend fcitx5
 ```
 
-在 KDE Wayland 設定選擇 **Fcitx 5** 作虛擬鍵盤／輸入法，登出後登入。開啟 Fcitx 5 Configuration、加入 Rime，再在文字欄按 F4 選 **港式速成**。
+在 KDE Wayland 設定選擇 **Fcitx 5** 作虛擬鍵盤／輸入法，登出後登入。開啟 Fcitx 5 Configuration、加入 Rime，即可在文字欄使用預設的 **港式速成**。
 
-In KDE Wayland settings, select **Fcitx 5** as the virtual keyboard/input method, then sign out and back in. Open Fcitx 5 Configuration, add Rime, and select **港式速成** through F4 in a text field.
+In KDE Wayland settings, select **Fcitx 5** as the virtual keyboard/input method, then sign out and back in. Open Fcitx 5 Configuration, add Rime, and type with **港式速成**, the default and only scheme.
 
 使用 **Classic User Interface**，選 **YueKey Light** 或 **YueKey Dark**。如候選窗由 Kimpanel 接管，先停用 Kimpanel 才能使用 Classic UI 主題。外觀、選字學習、關聯字、標點及中英切換均可在 `quick-hk configure --frontend fcitx5` 設定。
 
@@ -241,7 +241,7 @@ Use `--frontend fcitx5` on KDE. Reload Rime after applying changes; `setup`/`dep
 
 | 情況 · Symptom | 處理方法 · What to check |
 | --- | --- |
-| 打 `h` 出現和、好、還／Unexpected candidates for `h` | 可能是其他 Rime 方案；在文字欄按 F4 選 **港式速成**。／Another Rime scheme may be active; select **港式速成** with F4. |
+| 打 `h` 出現和、好、還／Unexpected candidates for `h` | 可能沿用舊版部署；執行 `quick-hk setup` 並重新載入 Rime，港式速成會成為唯一方案。／An older deployment may be active; run `quick-hk setup` and reload Rime to make Quick the only scheme. |
 | `zb` 沒有標點／No punctuation for `zb` | 確認已更新並部署本版本資料，再重新載入 Rime；輸入 `zb1` 測試。／Deploy this version's data, reload Rime and try `zb1`. |
 | Preferences 無法開啟／Preferences does not open | 執行 `quick-hk configure`；setup 後重新開啟 GNOME Settings。／Run `quick-hk configure`; reopen GNOME Settings after setup. |
 | View Keyboard Layout 無法開啟／Keyboard preview fails | Rime 的 `default` 佈局可能沒有預覽；用英文輸入來源查看實體鍵盤。／Rime's `default` layout may have no preview; use the English source to inspect the physical layout. |

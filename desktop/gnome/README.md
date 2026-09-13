@@ -8,8 +8,9 @@ Setup also installs `ibus-setup-rime.desktop` in the user's applications directo
 GNOME looks up this desktop ID for Chinese (Rime)'s Preferences action; it opens
 YueKey Settings for the IBus profile. The launcher is backed up and restored
 by the same deployment/uninstall transaction as the other managed assets.
-Reopen GNOME Settings after setup to refresh the action. Rime still contains
-multiple schemes: choose 港式速成 from F4 while a text field is focused.
+Reopen GNOME Settings after setup to refresh the action. Setup makes 港式速成 the default and only selectable Rime scheme. Existing
+schema files and learning databases remain on disk, and uninstall restores
+unchanged managed configuration from its original backup.
 
 The extension styles the existing `IBusManager.getIBusManager()._candidatePopup`
 actor. It never replaces key handlers, candidate selection, cursor placement, or
@@ -36,8 +37,8 @@ Primary integration references:
 - [GNOME Shell 50 native candidates](https://github.com/GNOME/gnome-shell/blob/50.0/js/ui/ibusCandidatePopup.js)
 - [IBus Rime InputMode implementation](https://github.com/rime/ibus-rime/blob/master/rime_engine.c)
 
-Manual release checks: enable while Rime is active, switch between 港式速成 and
-another schema, toggle Abc, edit font/theme, disable and re-enable, and restart
+Manual release checks: enable while Rime is active, switch between Rime and English,
+toggle Abc, edit font/theme, disable and re-enable, and restart
 IBus. Check both layouts, light/dark appearance, selection and paging, fractional
 scale, screen edges, and multiple monitors. Automated lifecycle checks cannot
 establish live Shell compatibility or correct cursor placement in applications.

@@ -115,7 +115,7 @@ class Application:
             self.settings = settings
             self.gesture = DoubleControl(0xA2 if settings.effective_dictation_key == 'Control_L' else 0xA3)
             self.refresh_readiness()
-            self.status.set('速成已就緒 · Typing is ready. Win + Space → 小狼毫 · F4 → 港式速成')
+            self.status.set('速成已就緒 · Typing is ready. Win + Space → 小狼毫 · 港式速成')
         self.run_action(work, done)
 
     def open_folder(self):
@@ -407,6 +407,20 @@ def self_test(report: Path, models: Path | None):
         assert root.winfo_height() >= root.winfo_reqheight(), 'Setup controls do not fit in the window'
         assert root.winfo_width() >= root.winfo_reqwidth(), 'Setup controls exceed the window width'
         assert set(asdict(Settings())) == set(app.variables) | {'dictation_enabled', 'dictation_microphone'}
+        from tkinter import ttk
+        from .settings_choices import CHOICES
+        for name, choices in CHOICES.items():
+            labels = tuple(label for _key, label in choices)
+            combo = next(control for control, _state in app.setting_controls
+                         if isinstance(control, ttk.Combobox) and tuple(control['values']) == labels)
+            previous = app.variables[name].get()
+            for index, (key, label) in enumerate(choices):
+                combo.current(index)
+                combo.event_generate('<<ComboboxSelected>>')
+                assert app.variables[name].get() == key
+                assert getattr(app.read_settings(), name) == key
+                assert combo.get() == label
+            app.variables[name].set(previous)
         # Exercise every page at the default and minimum window sizes. Capture
         # only this owned window on the disposable CI desktop for visual review.
         result['pages'] = []

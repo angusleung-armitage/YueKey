@@ -11,6 +11,8 @@ import time
 import pytest
 import yaml
 
+from quick_hk.rime_config import configure_schema_list
+
 ROOT = Path(__file__).resolve().parents[1]
 NATIVE = ROOT / "build/native"
 DATA = ROOT / "build/data"
@@ -24,7 +26,8 @@ def seed(tmp_path_factory):
     assert (DATA / "quick_hk.predict.db").exists(), "Build the prediction database first"
     path = tmp_path_factory.mktemp("rime-seed")
     shutil.copytree(DATA, path, dirs_exist_ok=True)
-    (path / "default.custom.yaml").write_text("patch:\n  schema_list:\n    - schema: quick_hk\n")
+    config = path / "default.custom.yaml"
+    config.write_bytes(configure_schema_list(None, config))
     subprocess.run([str(NATIVE / "quick-hk-deployer"), "--build", str(path), str(SHARED), str(path / "build")],
                    check=True, capture_output=True, text=True)
     return path
@@ -76,6 +79,24 @@ def probe(user_dir):
     instance.send("option prediction 0")
     yield instance
     instance.close()
+
+
+@pytest.mark.parametrize("previous", [None, "luna_pinyin", "cangjie5"])
+def test_quick_is_the_only_schema_and_starts_without_selection(user_dir, previous):
+    default = yaml.safe_load((user_dir / "build/default.yaml").read_text())
+    assert default["schema_list"] == [{"schema": "quick_hk"}]
+    if previous:
+        (user_dir / "user.yaml").write_text(yaml.safe_dump({
+            "var": {"previously_selected_schema": previous},
+        }))
+    instance = Probe(user_dir)
+    try:
+        assert instance.send("snapshot")["schema_id"] == "quick_hk"
+        assert instance.type("hi1")["commit"] == "我"
+        assert instance.type("zb1")["commit"] == "，"
+        assert instance.send("new")["schema_id"] == "quick_hk"
+    finally:
+        instance.close()
 
 
 def test_radicals_and_single_code(probe):
@@ -199,6 +220,8 @@ def test_predictions_are_suffixes_and_sessions_are_isolated(probe):
     predicted = probe.key(str(index + 1))
     assert predicted["commit"] == "你"
     assert "好" in predicted["candidates"]
+    assert predicted["preview"] == predicted["candidates"][0]
+    assert predicted["input"] == "", "A continuation is a preview, not a typed code"
     first_predictions = predicted["candidates"]
     probe.send("new")
     second = probe.type("vd")
@@ -225,6 +248,7 @@ def test_cancel_does_not_recreate_predictions(probe, cancel):
     assert predicted["candidates"]
     cleared = probe.send(cancel)
     assert not cleared["input"] and not cleared["candidates"]
+    assert not cleared["preview"] and not cleared["commit"]
     assert not probe.send("clear")["candidates"]
 
 

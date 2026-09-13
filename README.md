@@ -57,13 +57,13 @@ Windows setup includes the Weasel engine and deploys Cantonese Quick automatical
 
 Choose the installer for your OS and CPU. Each Linux **all-in-one DEB** includes typing, settings, GNOME/KDE integration, the CPU speech runtime and models. APT installs the required system libraries.
 
-| 系統及 CPU · OS / CPU | 下載檔案 · Download (0.6.1) |
+| 系統及 CPU · OS / CPU | 下載檔案 · Download (0.6.2) |
 | --- | --- |
-| Ubuntu / Kubuntu 26.04 · Intel / AMD 64-bit | `yuekey_0.6.1-1_amd64.deb` |
-| Ubuntu 26.04 · ARM64 / AArch64 · GNOME 50 or KDE | `yuekey_0.6.1-1_arm64.deb` |
-| Windows · Intel / AMD 64-bit | `YueKey-0.6.1-windows-x64-setup.exe` |
-| Windows · Intel / AMD 32-bit (x86) | `YueKey-0.6.1-windows-x86-setup.exe` |
-| Windows 11 · ARM64 | `YueKey-0.6.1-windows-arm64-setup.exe` |
+| Ubuntu / Kubuntu 26.04 · Intel / AMD 64-bit | `yuekey_0.6.2-1_amd64.deb` |
+| Ubuntu 26.04 · ARM64 / AArch64 · GNOME 50 or KDE | `yuekey_0.6.2-1_arm64.deb` |
+| Windows · Intel / AMD 64-bit | `YueKey-0.6.2-windows-x64-setup.exe` |
+| Windows · Intel / AMD 32-bit (x86) | `YueKey-0.6.2-windows-x86-setup.exe` |
+| Windows 11 · ARM64 | `YueKey-0.6.2-windows-arm64-setup.exe` |
 
 **[下載安裝檔及 SHA256SUMS · Download installers and checksums](https://github.com/angusleung-armitage/YueKey/releases/latest)** · [詳細架構與驗證範圍 · Architecture and test coverage](docs/ARCHITECTURES.md)
 
@@ -83,7 +83,7 @@ Recognition can make mistakes. See the [compatibility record](docs/compatibility
 
 ```bash
 # Ubuntu / Kubuntu 26.04: chooses amd64 or arm64 automatically
-sudo apt install ./yuekey_0.6.1-1_$(dpkg --print-architecture).deb
+sudo apt install ./yuekey_0.6.2-1_$(dpkg --print-architecture).deb
 quick-hk setup
 quick-hk configure
 ```
@@ -94,9 +94,9 @@ GNOME 使用 `--frontend ibus`；KDE 使用 `--frontend fcitx5` 可明確指定�
 
 Use `--frontend ibus` for GNOME or `--frontend fcitx5` for KDE to choose explicitly. See the [bilingual Linux guide](docs/INSTALL.md) for activation and [first-time setup without signing out](docs/INSTALL.md#live-activation).
 
-在 **設定 → 鍵盤 → 輸入來源** 加入 **Chinese (Rime)**，切換至 Rime，點選文字欄後按 **F4**，選擇 **港式速成**。設定介面可用以下指令開啟：
+在 **設定 → 鍵盤 → 輸入來源** 加入 **Chinese (Rime)**，切換至 Rime，即可使用預設的 **港式速成**；只有這一個方案，毋須按 F4。設定介面可用以下指令開啟：
 
-Add **Chinese (Rime)** under **Settings → Keyboard → Input Sources**. Switch to Rime, focus a text field, press **F4**, and select **港式速成**. Open the settings window with:
+Add **Chinese (Rime)** under **Settings → Keyboard → Input Sources**. Switch to Rime: **港式速成** is the default and only scheme, so no F4 selection is needed. Open the settings window with:
 
 ```bash
 quick-hk configure

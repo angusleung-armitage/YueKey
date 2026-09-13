@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 from .settings import Settings, load_settings, save_settings
+from .settings_choices import CHOICES
 
 
 def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
@@ -98,9 +99,7 @@ def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
             self._switch("horizontal", "橫排候選字 · Horizontal layout", settings.horizontal)
             self._number("page_size", "每頁候選字 · Candidates per page", settings.page_size, 1, 9)
             self._number("font_size", "字體大小 · Font size (pt)", settings.font_size, 10, 36)
-            self._choice("theme", "外觀 · Appearance", settings.theme, [
-                ("light", "淺色 · Light"), ("dark", "深色 · Dark"),
-            ])
+            self._choice("theme", "外觀 · Appearance", settings.theme, CHOICES["theme"])
             self._switch("show_candidates", "輸入時顯示候選字 · Show while typing", settings.show_candidates)
             hint = Gtk.Label(
                 label="關閉後，按空白鍵展開候選字。\nWhen off, press Space to open candidates.",
@@ -113,12 +112,7 @@ def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
             self._switch("learning", "學習選字次序 · Learn candidate choices", settings.learning)
             self._switch("prediction", "顯示關聯字 · Suggest related words", settings.prediction)
             self._switch("ascii_punctuation", "半形標點 · ASCII punctuation", settings.ascii_punctuation)
-            self._choice("switch_key", "中英切換鍵 · Chinese / English key", settings.switch_key, [
-                ("Shift_L", "左 Shift · Left Shift"),
-                ("Shift_R", "右 Shift · Right Shift"),
-                ("Control_L", "左 Ctrl · Left Ctrl"),
-                ("none", "停用 · Disabled"),
-            ])
+            self._choice("switch_key", "中英切換鍵 · Chinese / English key", settings.switch_key, CHOICES["switch_key"])
             self._heading("廣東話語音輸入 · Cantonese dictation")
             from .dictation_setup import microphones, status as speech_status
             speech = speech_status()
@@ -129,9 +123,7 @@ def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
             self.speech_hint.add_css_class("dim-label")
             self.form.append(self.speech_hint)
             self._switch("dictation_enabled", "啟用語音輸入 · Enable dictation", settings.dictation_enabled)
-            self._choice("dictation_key", "連按兩次 · Double-tap key", settings.dictation_key, [
-                ("Control_L", "左 Ctrl · Left Ctrl"), ("Control_R", "右 Ctrl · Right Ctrl"),
-            ])
+            self._choice("dictation_key", "連按兩次 · Double-tap key", settings.dictation_key, CHOICES["dictation_key"])
             devices = microphones()
             if settings.dictation_microphone not in {key for key, _ in devices}:
                 devices.append((settings.dictation_microphone, settings.dictation_microphone))

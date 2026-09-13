@@ -10,6 +10,7 @@ from pathlib import Path
 import sys
 
 from . import __version__
+from .settings_choices import CHOICES
 
 COLORS = dict(background='#F3F6F8', surface='#FFFFFF', ink='#142C37', muted='#526773',
               sidebar='#102F37', sidebar_text='#C2D5DC', accent='#007D75',
@@ -156,13 +157,22 @@ def build_window(app, root):
         control.pack(anchor='w')
         app.setting_controls.append((control, 'normal'))
 
-    def choice(parent, name, label, values):
+    def choice(parent, name, label, values=None):
         row = ttk.Frame(parent)
         row.pack(fill='x', pady=5)
         ttk.Label(row, text=label).pack(side='left', padx=(0, 10))
         variable = tk.StringVar(value=str(getattr(app.settings, name)))
         app.variables[name] = variable
-        combo = ttk.Combobox(row, textvariable=variable, values=values, state='readonly', width=14)
+        choices = CHOICES.get(name)
+        if choices:
+            labels = dict(choices)
+            keys = {label: key for key, label in choices}
+            display = tk.StringVar(value=labels[variable.get()])
+            variable.trace_add('write', lambda *_: display.set(labels[variable.get()]))
+            combo = ttk.Combobox(row, textvariable=display, values=list(keys), state='readonly', width=23)
+            combo.bind('<<ComboboxSelected>>', lambda _: variable.set(keys[display.get()]))
+        else:
+            combo = ttk.Combobox(row, textvariable=variable, values=values, state='readonly', width=14)
         combo.pack(side='right')
         app.setting_controls.append((combo, 'readonly'))
         return combo
@@ -186,8 +196,8 @@ def build_window(app, root):
         key.pack(side='left', padx=(0, 10))
         tk.Label(key, text=f'{code}  →  {character}', background=c['pale'], foreground=c['accent'],
                  font=('Consolas', 13)).pack()
-    note(practice, 'Win + Space 選小狼毫 → F4 選「港式速成」。\n'
-                   'Select Weasel with Win + Space, then choose 港式速成 with F4.')
+    note(practice, 'Win + Space 選小狼毫，即可使用港式速成。\n'
+                   'Select Weasel with Win + Space. Cantonese Quick is ready by default.')
     app.practice_entry = ttk.Entry(practice, font=('Segoe UI', 14))
     app.practice_entry.pack(fill='x', pady=(4, 0))
     voice_card = card(home, '廣東話語音 · Cantonese voice')
@@ -203,13 +213,13 @@ def build_window(app, root):
     check(appearance, 'horizontal', '橫向排列 · Horizontal candidates')
     choice(appearance, 'page_size', '每頁字數 · Candidates per page', list(range(1, 10)))
     choice(appearance, 'font_size', '字體大小 · Font size', list(range(10, 37)))
-    choice(appearance, 'theme', '候選字主題 · Candidate theme', ['light', 'dark'])
+    choice(appearance, 'theme', '外觀 · Appearance')
     behavior = card(typing, '輸入習慣 · Typing behavior')
     check(behavior, 'learning', '記住選字習慣 · Learn candidate choices')
     check(behavior, 'prediction', '顯示關聯字 · Suggest word continuations')
     check(behavior, 'show_candidates', '輸入時顯示候選字 · Show candidates while typing')
-    check(behavior, 'ascii_punctuation', '使用英文標點 · Use English punctuation')
-    choice(behavior, 'switch_key', '中英切換鍵 · Language key', ['Shift_L', 'Shift_R', 'Control_L', 'none'])
+    check(behavior, 'ascii_punctuation', '半形標點 · ASCII punctuation')
+    choice(behavior, 'switch_key', '中英切換鍵 · Chinese / English key')
     note(behavior, '儲存後會自動重新部署。設定只影響港式速成。\n'
                    'Saving automatically deploys your changes. These settings apply to Cantonese Quick.')
 
@@ -231,7 +241,7 @@ def build_window(app, root):
     app.microphone_combo.bind('<<ComboboxSelected>>', app.select_microphone)
     app.setting_controls.append((app.microphone_combo, 'readonly'))
     ttk.Button(recording, text='重新整理 · Refresh microphones', command=app.refresh_microphones).pack(anchor='w', pady=(0, 10))
-    choice(recording, 'dictation_key', '連按兩次 · Double-tap key', ['Control_L', 'Control_R'])
+    choice(recording, 'dictation_key', '連按兩次 · Double-tap key')
     check(recording, 'dictation_punctuation', '自動加入標點 · Add punctuation automatically')
     note(recording, 'Ctrl × 2 開始／停止，Esc 取消。\n'
                     'Double Ctrl starts/stops; Esc cancels.\n\n'

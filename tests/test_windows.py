@@ -60,11 +60,17 @@ class WindowsTests(unittest.TestCase):
             patch_values = yaml.safe_load((target / 'quick_hk.windows.custom.yaml').read_text(encoding='utf-8'))['patch']
             for key, expected in {'menu/page_size': 5, 'style/font_point': 24,
                     'style/horizontal': False, 'style/color_scheme': 'yuekey_dark',
+                    'style/layout/type': 'vertical', 'style/vertical_text': False,
+                    'style/fullscreen': False, 'style/inline_preedit': True,
+                    'style/preedit_type': 'preview',
                     'translator/enable_user_dict': False, 'switches/@1/reset': 0,
                     'switches/@2/reset': 1, 'quick_hk/show_candidates': False,
                     'quick_hk/dictation_key': 'Control_R'}.items():
                 self.assertEqual(patch_values[key], expected, key)
-            apply_settings(target, replace(preferences, prediction=True))
+            apply_settings(target, replace(preferences, prediction=True, horizontal=True))
+            style = yaml.safe_load((target / 'quick_hk.windows.custom.yaml').read_text(encoding='utf-8'))['patch']
+            self.assertTrue(style['style/horizontal'])
+            self.assertEqual(style['style/layout/type'], 'horizontal')
             (target / 'lua/quick_hk.lua').write_text('user edit', encoding='utf-8')
             before = marker.read_bytes()
             with self.assertRaisesRegex(ValueError, 'Preserving'):
@@ -305,7 +311,7 @@ class WindowsTests(unittest.TestCase):
             (target / 'quick_hk.userdb').write_bytes(b'learned')
             install(target, source)
             config = yaml.safe_load((target / 'default.custom.yaml').read_text(encoding='utf-8'))
-            self.assertEqual(config['patch']['schema_list/+'], [{'schema': 'quick_hk'}])
+            self.assertEqual(config['patch']['schema_list'], [{'schema': 'quick_hk'}])
             original_backup = json.loads((target / 'yuekey-install.json').read_text())['backup']
             self.assertEqual(str(install(target, source)), original_backup)
             self.assertEqual(uninstall(target), [])
@@ -313,7 +319,7 @@ class WindowsTests(unittest.TestCase):
             self.assertEqual((target / 'quick_hk.userdb').read_bytes(), b'learned')
             self.assertFalse((target / 'quick_hk.schema.yaml').exists())
 
-    def test_existing_schema_list_and_later_edits_survive(self):
+    def test_quick_replaces_schema_choices_but_later_edits_survive_removal(self):
         with tempfile.TemporaryDirectory() as tmp:
             source, target = Path(tmp) / 'source', Path(tmp) / 'user'
             target.mkdir()
@@ -322,7 +328,7 @@ class WindowsTests(unittest.TestCase):
             config.write_text('patch:\n  schema_list:\n    - schema: other\n', encoding='utf-8')
             install(target, source)
             self.assertEqual(yaml.safe_load(config.read_text())['patch']['schema_list'],
-                             [{'schema': 'other'}, {'schema': 'quick_hk'}])
+                             [{'schema': 'quick_hk'}])
             config.write_text('user edited this', encoding='utf-8')
             self.assertIn('default.custom.yaml', uninstall(target))
             self.assertEqual(config.read_text(), 'user edited this')

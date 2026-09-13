@@ -54,18 +54,19 @@ class DeploymentTests(unittest.TestCase):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(contents)
 
-    def test_schema_list_append_preserves_existing_patches(self):
+    def test_only_quick_is_selectable_and_unrelated_patches_survive(self):
         path = Path("default.custom.yaml")
         for key in ("schema_list", "schema_list/+"):
             with self.subTest(key=key):
                 raw = yaml.safe_dump({"patch": {key: [{"schema": "cangjie5"}], "menu/page_size": 5}}).encode()
-                result = d.merge_schema_list(raw, path)
+                result = d.configure_schema_list(raw, path)
                 document = yaml.safe_load(result)
-                self.assertEqual(document["patch"][key], [{"schema": "cangjie5"}, {"schema": "quick_hk"}])
+                self.assertEqual(document["patch"]["schema_list"], [{"schema": "quick_hk"}])
+                self.assertNotIn("schema_list/+", document["patch"])
                 self.assertEqual(document["patch"]["menu/page_size"], 5)
-                self.assertEqual(d.merge_schema_list(result, path), result)
-        result = yaml.safe_load(d.merge_schema_list(None, path))
-        self.assertEqual(result["patch"]["schema_list/+"], [{"schema": "quick_hk"}])
+                self.assertEqual(d.configure_schema_list(result, path), result)
+        result = yaml.safe_load(d.configure_schema_list(None, path))
+        self.assertEqual(result["patch"]["schema_list"], [{"schema": "quick_hk"}])
 
     def test_shared_assets_survive_one_frontend_removal_and_restore_once(self):
         shared = self.root / 'data/dbus-1/services/org.quick_hk.Dictation.service'
@@ -92,7 +93,7 @@ class DeploymentTests(unittest.TestCase):
             b"patch: [invalid]\n",
         ):
             with self.subTest(raw=raw), self.assertRaises(d.DeploymentError):
-                d.merge_schema_list(raw, Path("default.custom.yaml"))
+                d.configure_schema_list(raw, Path("default.custom.yaml"))
 
     def test_setup_repeated_configuration_and_uninstall_restore_original(self):
         directory = d.frontend_directory("ibus")

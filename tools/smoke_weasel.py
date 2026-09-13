@@ -11,6 +11,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src'))
 from quick_hk.windows_weasel import fetch_installer, installer_path
+from quick_hk.rime_config import configure_schema_list
 
 
 class Traits(C.Structure):
@@ -90,7 +91,11 @@ def exercise(library: Path, preferences=False):
                 text = text.replace(old, new)
             custom.write_text(text, encoding='utf-8')
         shared.mkdir()
-        (shared / 'default.yaml').write_text("config_version: '1'\nschema_list:\n  - schema: quick_hk\n", encoding='utf-8')
+        (shared / 'default.yaml').write_text("config_version: '1'\nschema_list:\n  - schema: luna_pinyin\n", encoding='utf-8')
+        default = user / 'default.custom.yaml'
+        default.write_bytes(configure_schema_list(
+            b'patch:\n  schema_list/+: [{schema: quick_hk}]\n', default))
+        (user / 'user.yaml').write_text('var:\n  previously_selected_schema: luna_pinyin\n', encoding='utf-8')
         traits = Traits(data_size=C.sizeof(Traits) - C.sizeof(C.c_int),
                         shared_data_dir=str(shared).encode(), user_data_dir=str(user).encode(),
                         app_name=b'rime.yuekey_test', log_dir=str(user).encode(), min_log_level=2)
@@ -102,11 +107,23 @@ def exercise(library: Path, preferences=False):
             call('start_maintenance', C.c_int, [C.c_int], 1)
             call('join_maintenance_thread', None, [])
             session = call('create_session', C.c_size_t, [])
-            assert session and call('select_schema', C.c_int, [C.c_size_t, C.c_char_p], session, b'quick_hk')
-            def snapshot(current=session):
+            def assert_default(current):
+                schema = C.create_string_buffer(128)
+                assert current and call('get_current_schema', C.c_int,
+                                        [C.c_size_t, C.c_void_p, C.c_size_t], current, schema, len(schema))
+                assert schema.value == b'quick_hk', schema.value
+
+            assert_default(session)
+            def snapshot(current=session, *, require_prediction_preview=False):
                 context = Context(data_size=C.sizeof(Context) - C.sizeof(C.c_int))
                 assert call('get_context', C.c_int, [C.c_size_t, C.POINTER(Context)], current, C.byref(context))
                 values = [context.menu.candidates[n].text.decode() for n in range(context.menu.num_candidates)]
+                if require_prediction_preview:
+                    assert values and context.commit_text_preview
+                    assert context.commit_text_preview.decode() == values[context.menu.highlighted_candidate_index]
+                    # A zero-length composition is valid for continuations;
+                    # Weasel must display commit_text_preview in preview mode.
+                    assert context.composition.length == 0
                 if values:
                     assert context.menu.page_size == (5 if preferences else 9), context.menu.page_size
                 call('free_context', C.c_int, [C.POINTER(Context)], C.byref(context))
@@ -154,9 +171,9 @@ def exercise(library: Path, preferences=False):
                 call('clear_composition', None, [C.c_size_t], session)
             key('o'); key('f')
             assert key(str(snapshot().index('你') + 1)) == '你'
-            assert '好' in snapshot(), ('Missing portable continuations', snapshot())
+            assert '好' in snapshot(require_prediction_preview=True), ('Missing portable continuations', snapshot())
             second = call('create_session', C.c_size_t, [])
-            assert call('select_schema', C.c_int, [C.c_size_t, C.c_char_p], second, b'quick_hk')
+            assert_default(second)
             assert not snapshot(second), 'Predictions leaked into a second input context'
             assert key(str(snapshot().index('好') + 1)) == '好'
             assert not snapshot(), 'Prediction chaining did not stop at one continuation'

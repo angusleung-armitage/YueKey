@@ -30,9 +30,15 @@ void snapshot(RimeApi* api, RimeSessionId session, bool handled, double elapsed)
             << ",\"commit\":" << quote(committed ? commit.text : "")
             << ",\"input\":" << quote(api->get_input(session))
             << ",\"elapsed_ms\":" << elapsed;
+  RIME_STRUCT(RimeStatus, status);
+  if (api->get_status(session, &status)) {
+    std::cout << ",\"schema_id\":" << quote(status.schema_id);
+    api->free_status(&status);
+  }
   RIME_STRUCT(RimeContext, context);
   if (api->get_context(session, &context)) {
     std::cout << ",\"preedit\":" << quote(context.composition.preedit)
+              << ",\"preview\":" << quote(context.commit_text_preview)
               << ",\"page\":" << context.menu.page_no
               << ",\"selected\":" << context.menu.highlighted_candidate_index
               << ",\"candidates\":[";
@@ -72,10 +78,6 @@ int main(int argc, char** argv) {
   std::vector<RimeSessionId> sessions;
   auto add_session = [&]() {
     auto session = api->create_session();
-    if (!api->select_schema(session, "quick_hk")) {
-      std::cerr << "Could not select quick_hk\n";
-      return RimeSessionId{0};
-    }
     sessions.push_back(session);
     return session;
   };

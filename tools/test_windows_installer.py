@@ -107,6 +107,9 @@ def main():
                 assert not user.FindWindowW(None, 'Microsoft account'), 'Runner first-login prompt stayed open'
                 print('Dismissed first-login account prompt on the disposable Windows ARM runner.')
 
+        from smoke_weasel_ui import exercise as exercise_candidates
+        exercise_candidates(engine, rime, logs)
+
         report = logs / 'installed-runtime.json'
         process = subprocess.run([str(app / 'YueKey.exe'), '--self-test', str(report),
                                   '--models', str(ROOT / 'build/speech-models')], timeout=600)

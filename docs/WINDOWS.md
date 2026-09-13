@@ -14,20 +14,20 @@ Check **Settings → System → About → System type** and choose `windows-x64`
 
 ## 1. 免費下載 · Free download
 
-到 [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases) 下載 **`YueKey-0.6.1-windows-x64-setup.exe`** 及 `SHA256SUMS`。開啟安裝程式，按步驟完成；之後可從開始功能表開啟 **YueKey**。程式安裝於目前使用者的 `%LOCALAPPDATA%\Programs\YueKey`，粵鍵本身採每使用者安裝；首次安裝內置小狼毫引擎時會要求 Windows 管理員權限。
+到 [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases) 下載 **`YueKey-0.6.2-windows-x64-setup.exe`** 及 `SHA256SUMS`。開啟安裝程式，按步驟完成；之後可從開始功能表開啟 **YueKey**。程式安裝於目前使用者的 `%LOCALAPPDATA%\Programs\YueKey`，粵鍵本身採每使用者安裝；首次安裝內置小狼毫引擎時會要求 Windows 管理員權限。
 
-Download **`YueKey-0.6.1-windows-x64-setup.exe`** and `SHA256SUMS` from [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases). Run setup, then open **YueKey** from the Start Menu. Installation is per user, under `%LOCALAPPDATA%\Programs\YueKey`, with an administrator prompt only when the bundled Weasel engine needs to be installed.
+Download **`YueKey-0.6.2-windows-x64-setup.exe`** and `SHA256SUMS` from [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases). Run setup, then open **YueKey** from the Start Menu. Installation is per user, under `%LOCALAPPDATA%\Programs\YueKey`, with an administrator prompt only when the bundled Weasel engine needs to be installed.
 
 在 PowerShell 檢查安裝檔的 SHA-256，與下載頁的 `SHA256SUMS` 比對：<br>
 Compare the installer's SHA-256 with `SHA256SUMS` in PowerShell:
 
 ```powershell
-Get-FileHash .\YueKey-0.6.1-windows-x64-setup.exe -Algorithm SHA256
+Get-FileHash .\YueKey-0.6.2-windows-x64-setup.exe -Algorithm SHA256
 ```
 
-亦提供 **`YueKey-0.6.1-windows-x64.zip`** 免安裝版本。解壓整個資料夾後開啟 `YueKey.exe`，保留旁邊的 `_internal` 資料夾。ZIP 與安裝版包含相同程式及 CPU 執行環境。
+亦提供 **`YueKey-0.6.2-windows-x64.zip`** 免安裝版本。解壓整個資料夾後開啟 `YueKey.exe`，保留旁邊的 `_internal` 資料夾。ZIP 與安裝版包含相同程式及 CPU 執行環境。
 
-The optional **`YueKey-0.6.1-windows-x64.zip`** is a portable edition. Extract the entire folder, keep `_internal` beside `YueKey.exe`, and open the executable. Both editions include the same application and CPU runtime.
+The optional **`YueKey-0.6.2-windows-x64.zip`** is a portable edition. Extract the entire folder, keep `_internal` beside `YueKey.exe`, and open the executable. Both editions include the same application and CPU runtime.
 
 此版本未有 Windows 程式碼簽署憑證，系統可能顯示發行者未經驗證。請只使用本專案 Release 的檔案及檢查碼。
 
@@ -39,8 +39,8 @@ This release is not code-signed; Windows may show an unverified publisher. Use t
    Run the YueKey setup EXE. It includes official **Weasel 0.17.4**, so no separate download is needed. Approve the administrator prompt if the engine is missing; compatible existing installations are reused.
 2. 安裝程式會為目前使用者建立輸入資料夾、備份原有設定、加入速成方案並自動重新部署。預設資料夾是 `%APPDATA%\Rime`；如小狼毫已設定自訂位置，粵鍵會自動沿用。<br>
    Setup creates the current user's typing folder, backs up existing preferences, installs the Quick scheme and deploys it automatically. It uses `%APPDATA%\Rime` or the custom folder already configured in Weasel.
-3. 開啟 **YueKey → 總覽 Overview**，確認「已就緒」。按 **Win + Space** 選小狼毫，在文字欄按 **F4** 選 **港式速成**。可直接在總覽試打 `hi1` → `我`、`zb1` → `，`、`zd1` → `。`。<br>
-   Open **YueKey → Overview** and check **Ready to type**. Select Weasel with **Win + Space**, then choose **港式速成** with **F4** in a text field. Try `hi1` → `我`, `zb1` → `，`, and `zd1` → `。` in the practice field.
+3. 開啟 **YueKey → 總覽 Overview**，確認「已就緒」。按 **Win + Space** 選小狼毫，即可使用預設及唯一的 **港式速成**，毋須按 F4。可直接在總覽試打 `hi1` → `我`、`zb1` → `，`、`zd1` → `。`。<br>
+   Open **YueKey → Overview** and check **Ready to type**. Select Weasel with **Win + Space**. **港式速成** is the default and only scheme; no F4 selection is needed. Try `hi1` → `我`, `zb1` → `，`, and `zd1` → `。` in the practice field.
 
 免安裝 ZIP 亦包含相同引擎安裝檔。首次開啟後，在「總覽」按 **設定速成 · Set up typing**，完成相同設定流程。ZIP 免安裝的是粵鍵程式；Windows 輸入法引擎仍需註冊到系統。
 
@@ -54,9 +54,17 @@ Weasel provides the Windows input-method integration. YueKey supplies the Quick 
 
 Candidate order adapts to local learning. Windows uses the shared Quick dictionary and Cantonese continuation data. After selecting 你, YueKey suggests continuations such as 好; typing a new code or pressing Esc dismisses them.
 
+Windows 會在文字欄內預覽目前選中的關聯字，與 Ubuntu 的預設顯示方式一致。預覽尚未確認；按數字鍵或空白鍵才輸入，Esc 或新速成碼會取消。
+
+Windows previews the selected continuation inside the text field, matching Ubuntu's default display. It is unconfirmed text: a number key or Space accepts it; Esc or a new Quick code dismisses it.
+
 在「輸入設定 · Typing」分頁可調整橫／直排、每頁字數、字體大小、淺／深色主題、學習、關聯字、候選字顯示、英文標點及中英切換鍵。按「儲存並套用」，程式會在背景自動重新部署。設定只影響港式速成，會儲存在 `%LOCALAPPDATA%\YueKey\settings.toml`。
 
 The **Typing** tab controls orientation, page size, font size, light/dark theme, learning, continuations, candidate visibility, English punctuation and the language-switch key. Click **Save changes**; deployment runs automatically in the background. These settings apply to 港式速成 and persist in `%LOCALAPPDATA%\YueKey\settings.toml`.
+
+橫排候選字：**輸入 Typing → 橫向排列 Horizontal candidates → 儲存並套用**。取消勾選可改為直排。請使用粵鍵視窗的設定；本版本會同時更新小狼毫的排列方式設定。
+
+For horizontal candidates, enable **Typing → Horizontal candidates → Save changes** in YueKey. Clear the checkbox for a vertical list. Both Weasel layout settings are updated together when you save.
 
 如需重設學習，先在小狼毫系統匣選「退出」，再按「備份並重設學習」，完成後重新開啟小狼毫。原有資料會移到 `yuekey-backups/learning-*`；執行中的資料庫會拒絕重設。
 
@@ -89,8 +97,8 @@ Windows dictation is a separate companion that can work alongside different inpu
 
 - **安裝未完成：** 若取消管理員提示，可重開 setup 或在總覽按「設定速成」重試。原有小狼毫低於 0.17.4 或檔案不完整時，先使用[官方安裝程式](https://github.com/rime/weasel/releases/tag/0.17.4)更新／修復，再重試粵鍵。
   **Setup incomplete:** retry setup or **Set up typing** after a cancelled administrator prompt. If an existing Weasel is older than 0.17.4 or incomplete, update/repair it with the [official installer](https://github.com/rime/weasel/releases/tag/0.17.4), then retry YueKey.
-- **沒有候選字：** 確認已重新部署，並在 F4 選了港式速成；Shift 可切換中英文。<br>
-  **No candidates:** redeploy, select 港式速成 with F4, and check Chinese mode with Shift.
+- **沒有候選字：** 在粵鍵「總覽」重新設定速成，切換至小狼毫；Shift 可切換中英文。<br>
+  **No candidates:** run Set up typing on Overview again, select Weasel, and check Chinese mode with Shift.
 - **語音沒有開始：** 確認粵鍵正在執行及已啟用語音，兩次 Ctrl 都要按下再放開；Ctrl 組合快捷鍵不會開始錄音。先在一般文字編輯器測試。<br>
   **Dictation does not start:** keep YueKey running and enabled; fully release Ctrl between taps. Ctrl shortcuts do not start recording. Try a normal text editor first.
 - **下載失敗：** 保留已下載檔案，稍後再按啟用語音；下載支援續傳及檢查碼核對。<br>

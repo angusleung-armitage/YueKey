@@ -45,8 +45,8 @@ def _dump_yaml(value: dict) -> bytes:
     return yaml.safe_dump(value, allow_unicode=True, sort_keys=False).encode("utf-8")
 
 
-def merge_schema_list(raw: bytes | None, path: Path) -> bytes:
-    """Add our schema without replacing a user's list or unrelated patches."""
+def configure_schema_list(raw: bytes | None, path: Path) -> bytes:
+    """Make Quick the only selectable schema; deployment backs up the original."""
     document = _yaml(raw or b"", path)
     patch = document.setdefault("patch", {})
     if not isinstance(patch, dict):
@@ -58,16 +58,17 @@ def merge_schema_list(raw: bytes | None, path: Path) -> bytes:
             f"{path}: ambiguous schema_list patches; combine them into one "
             "schema_list or schema_list/+ list before setup"
         )
-    key = schema_keys[0] if schema_keys else "schema_list/+"
-    entries = patch.setdefault(key, [])
+    key = schema_keys[0] if schema_keys else "schema_list"
+    entries = patch.get(key, [])
     if not isinstance(entries, list) or any(
         not isinstance(entry, dict) or not isinstance(entry.get("schema"), str)
         for entry in entries
     ):
         raise DeploymentError(f"{path}: {key} must be a list of schema mappings")
-    if any(entry["schema"] == "quick_hk" for entry in entries):
+    if key == "schema_list" and entries == [{"schema": "quick_hk"}]:
         return raw if raw is not None else _dump_yaml(document)
-    entries.append({"schema": "quick_hk"})
+    patch.pop("schema_list/+", None)
+    patch["schema_list"] = [{"schema": "quick_hk"}]
     return _dump_yaml(document)
 
 
@@ -114,5 +115,13 @@ def schema_custom(settings: Settings, frontend: str = "ibus") -> bytes:
                       "style/color_scheme": f"yuekey_{settings.theme}",
                       "style/color_scheme_dark": f"yuekey_{settings.theme}",
                       "style/inline_preedit": True,
+                      # Predictions have empty composition text but a nonempty
+                      # commit preview. Match IBus's default preview display.
+                      "style/preedit_type": "preview",
+                      # Weasel reads layout/type after the legacy horizontal
+                      # flag, so keep both in agreement for this schema.
+                      "style/layout/type": "horizontal" if settings.horizontal else "vertical",
+                      "style/vertical_text": False,
+                      "style/fullscreen": False,
                       "style/layout/corner_radius": 8})
     return _dump_yaml({"patch": patch})

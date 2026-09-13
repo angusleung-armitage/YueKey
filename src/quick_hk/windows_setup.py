@@ -11,7 +11,7 @@ from pathlib import Path
 import shutil
 import sys
 
-from .rime_config import merge_schema_list, schema_custom
+from .rime_config import configure_schema_list, schema_custom
 from .settings import Settings, load_settings
 
 FILES = ('quick_hk.schema.yaml', 'quick_hk.dict.yaml', 'lua/quick_hk.lua', 'lua/yuekey_predict.lua')
@@ -129,7 +129,7 @@ def install(destination: Path, source: Path | None = None, settings: Settings | 
     # Use the same strict parser as Ubuntu: duplicate or ambiguous patches
     # must fail before changing the user's configuration.
     original = config_path.read_bytes() if config_path.exists() else None
-    config = merge_schema_list(original, config_path)
+    config = configure_schema_list(original, config_path)
     payloads = {name: (source / name).read_bytes() for name in FILES}
     shards = sorted((source / 'yuekey-predict').glob('*.tsv'))
     if not shards:
