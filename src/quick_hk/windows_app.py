@@ -383,6 +383,13 @@ def self_test(report: Path, models: Path | None):
         import tkinter as tk
 
         assert ctypes.sizeof(Input) == (40 if ctypes.sizeof(ctypes.c_void_p) == 8 else 28)
+        import ssl
+        import truststore
+        from .speech_assets import https_context
+        tls = https_context()
+        assert isinstance(tls, truststore.SSLContext)
+        assert tls.check_hostname and tls.verify_mode == ssl.CERT_REQUIRED
+        result['https_validation'] = 'Windows CryptoAPI'
         if models:
             from .speech_assets import ASR_BASE, download, prepare_models
             import wave

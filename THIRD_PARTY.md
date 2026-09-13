@@ -54,6 +54,7 @@ Windows distribution additions:
 | sounddevice | https://github.com/spatialaudio/python-sounddevice | MIT; includes PortAudio binaries and their notices. |
 | PortAudio | https://github.com/PortAudio/portaudio | MIT-style license; retain notices from the wheel. |
 | comtypes | https://github.com/enthought/comtypes | MIT; Windows UI Automation bindings. |
+| truststore | https://github.com/sethmlarson/truststore | MIT; native Windows certificate-chain validation for HTTPS downloads. |
 | Python, Tcl/Tk | https://www.python.org/ and https://www.tcl-lang.org/ | PSF and Tcl/Tk licenses; included with the portable executable. |
 | PyInstaller bootloader | https://github.com/pyinstaller/pyinstaller | GPL-2.0-or-later with bootloader exception permitting distribution of bundled applications under their own terms. |
 | PyYAML | https://github.com/yaml/pyyaml | MIT. |

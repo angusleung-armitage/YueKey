@@ -128,7 +128,11 @@ jobs:
         run: >-
           python -m pip install --require-hashes --only-binary=:all: -r desktop/windows/requirements.txt
       - name: Test Windows upgrades, settings, learning locks, microphones and focus guards
-        run: python -m pytest tests/test_windows.py -q
+        run: python -m pytest tests/test_windows.py tests/test_downloads.py -q
+      - name: Fetch verified Weasel installer with the native Python runtime
+        # ARM64's secondary x64 Python is only for loading the Weasel DLL.
+        # Populate the shared cache before switching to that minimal runtime.
+        run: python -c "from quick_hk.windows_weasel import fetch_installer, installer_path; fetch_installer(installer_path())"
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         id: rime-python
         with:

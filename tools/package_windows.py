@@ -35,6 +35,7 @@ def build():
         '--add-data', f'{ROOT / "desktop/icons"}:app-icons',
         '--collect-all', 'sherpa_onnx', '--collect-all', 'opencc',
         '--collect-all', 'comtypes', '--collect-all', 'sounddevice',
+        '--collect-all', 'truststore',
         str(ROOT / 'desktop/windows/yuekey.py'),
     ], check=True)
     bundle = ROOT / 'build/windows-dist/YueKey'

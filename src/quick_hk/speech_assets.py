@@ -5,7 +5,11 @@ import hashlib
 import os
 from pathlib import Path
 import shutil
+import ssl
+import sys
 import tarfile
+import urllib.error
+import urllib.parse
 import urllib.request
 
 ASR_BASE = ('https://huggingface.co/csukuangfj/'
@@ -30,6 +34,18 @@ def model_hashes() -> dict[str, str]:
             'punctuation.int8.onnx': PUNCT_HASH}
 
 
+def https_context():
+    """Use native Windows chain building, including intermediate CA retrieval."""
+    if sys.platform == 'win32':
+        import truststore
+        return truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    return ssl.create_default_context()
+
+
+class DownloadCertificateError(RuntimeError):
+    """A download could not be authenticated; existing files are retained."""
+
+
 def download(url: str, destination: Path, expected: str) -> None:
     if destination.is_file() and digest(destination) == expected:
         return
@@ -39,12 +55,26 @@ def download(url: str, destination: Path, expected: str) -> None:
         return
     offset = partial.stat().st_size if partial.exists() else 0
     request = urllib.request.Request(url, headers={'Range': f'bytes={offset}-'} if offset else {})
-    with urllib.request.urlopen(request, timeout=60) as source:
-        append = offset > 0 and source.status == 206
-        if append and not source.headers.get('Content-Range', '').startswith(f'bytes {offset}-'):
-            raise RuntimeError('Model server returned an invalid download range')
-        with partial.open('ab' if append else 'wb') as output:
-            shutil.copyfileobj(source, output)
+    try:
+        with urllib.request.urlopen(request, timeout=60, context=https_context()) as source:
+            append = offset > 0 and source.status == 206
+            if append and not source.headers.get('Content-Range', '').startswith(f'bytes {offset}-'):
+                raise RuntimeError('Model server returned an invalid download range')
+            with partial.open('ab' if append else 'wb') as output:
+                shutil.copyfileobj(source, output)
+    except (urllib.error.URLError, ssl.SSLCertVerificationError) as error:
+        reason = getattr(error, 'reason', error)
+        if not isinstance(reason, ssl.SSLCertVerificationError):
+            raise
+        host = urllib.parse.urlsplit(url).hostname
+        detail = getattr(reason, 'verify_message', None) or str(reason)
+        raise DownloadCertificateError(
+            f'未能驗證下載伺服器憑證 · Certificate verification failed\n'
+            f'{destination.name} · {host}\n{detail}\n'
+            '請檢查系統日期／時間及系統信任的憑證，再重試。\n'
+            'Check the system date/time and trusted certificates, then retry. '
+            'On a managed network, ask IT to check its HTTPS inspection certificate.'
+        ) from error
     if digest(partial) != expected:
         partial.unlink()
         raise RuntimeError(f'Checksum mismatch for {destination.name}; model was not installed')

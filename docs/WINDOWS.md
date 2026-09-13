@@ -14,20 +14,20 @@ Check **Settings → System → About → System type** and choose `windows-x64`
 
 ## 1. 免費下載 · Free download
 
-到 [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases) 下載 **`YueKey-0.6.2-windows-x64-setup.exe`** 及 `SHA256SUMS`。開啟安裝程式，按步驟完成；之後可從開始功能表開啟 **YueKey**。程式安裝於目前使用者的 `%LOCALAPPDATA%\Programs\YueKey`，粵鍵本身採每使用者安裝；首次安裝內置小狼毫引擎時會要求 Windows 管理員權限。
+到 [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases) 下載 **`YueKey-0.6.3-windows-x64-setup.exe`** 及 `SHA256SUMS`。開啟安裝程式，按步驟完成；之後可從開始功能表開啟 **YueKey**。程式安裝於目前使用者的 `%LOCALAPPDATA%\Programs\YueKey`，粵鍵本身採每使用者安裝；首次安裝內置小狼毫引擎時會要求 Windows 管理員權限。
 
-Download **`YueKey-0.6.2-windows-x64-setup.exe`** and `SHA256SUMS` from [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases). Run setup, then open **YueKey** from the Start Menu. Installation is per user, under `%LOCALAPPDATA%\Programs\YueKey`, with an administrator prompt only when the bundled Weasel engine needs to be installed.
+Download **`YueKey-0.6.3-windows-x64-setup.exe`** and `SHA256SUMS` from [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases). Run setup, then open **YueKey** from the Start Menu. Installation is per user, under `%LOCALAPPDATA%\Programs\YueKey`, with an administrator prompt only when the bundled Weasel engine needs to be installed.
 
 在 PowerShell 檢查安裝檔的 SHA-256，與下載頁的 `SHA256SUMS` 比對：<br>
 Compare the installer's SHA-256 with `SHA256SUMS` in PowerShell:
 
 ```powershell
-Get-FileHash .\YueKey-0.6.2-windows-x64-setup.exe -Algorithm SHA256
+Get-FileHash .\YueKey-0.6.3-windows-x64-setup.exe -Algorithm SHA256
 ```
 
-亦提供 **`YueKey-0.6.2-windows-x64.zip`** 免安裝版本。解壓整個資料夾後開啟 `YueKey.exe`，保留旁邊的 `_internal` 資料夾。ZIP 與安裝版包含相同程式及 CPU 執行環境。
+亦提供 **`YueKey-0.6.3-windows-x64.zip`** 免安裝版本。解壓整個資料夾後開啟 `YueKey.exe`，保留旁邊的 `_internal` 資料夾。ZIP 與安裝版包含相同程式及 CPU 執行環境。
 
-The optional **`YueKey-0.6.2-windows-x64.zip`** is a portable edition. Extract the entire folder, keep `_internal` beside `YueKey.exe`, and open the executable. Both editions include the same application and CPU runtime.
+The optional **`YueKey-0.6.3-windows-x64.zip`** is a portable edition. Extract the entire folder, keep `_internal` beside `YueKey.exe`, and open the executable. Both editions include the same application and CPU runtime.
 
 此版本未有 Windows 程式碼簽署憑證，系統可能顯示發行者未經驗證。請只使用本專案 Release 的檔案及檢查碼。
 
@@ -80,6 +80,18 @@ WASAPI microphones use Windows shared-mode sample-rate conversion; the system ca
 
 Choose **Voice → Enable voice**. First use downloads about 302 MB of models and verifies every SHA-256. Python and the CPU speech runtime are included in both downloads. No separate Python installation, GPU driver or speech cloud account is needed. The models are initialized locally before the app reports **Dictation ready**.
 
+### SSL 憑證錯誤 · Certificate errors
+
+如舊版顯示 `CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate`，請關閉粵鍵、安裝 0.6.3 或更新版本，再按 **語音 → 啟用語音**。新版透過 Windows 原生憑證驗證使用系統信任的憑證，並讓 Windows 補齊缺少的中繼憑證。已下載的模型和部分下載會保留，可重試。
+
+If an older version reports `CERTIFICATE_VERIFY_FAILED: unable to get local issuer certificate`, close YueKey, install 0.6.3 or newer, then choose **Voice → Enable voice** again. Downloads now use Windows' native certificate validation and intermediate-certificate retrieval through [truststore](https://truststore.readthedocs.io/en/latest/). Existing models and partial downloads are retained for retry.
+
+如仍然失敗，錯誤訊息會列出檔名及下載來源。請檢查系統日期／時間及 Windows 更新；公司網絡可請 IT 檢查 HTTPS 檢查服務的憑證鏈及信任設定。新版仍會拒絕未受信任或主機名稱不符的憑證，並核對模型 SHA-256。
+
+If it still fails, the message identifies the file and download source. Check the system date/time and Windows updates; on a managed network, ask IT to check the HTTPS inspection certificate chain and trust settings. Untrusted certificates and hostname mismatches are still rejected, and model SHA-256 verification remains required.
+
+### 使用語音 · Using dictation
+
 1. 在「語音 · Voice」分頁選擇麥克風，按「儲存並套用」，並在 Windows 隱私設定允許桌面應用程式使用麥克風。<br>
    Choose a microphone in the **Voice** page and click **Save changes**. Allow desktop apps to access the microphone in Windows privacy settings.
 2. 點選一般文字欄，完成未確認的輸入碼。連按兩次 **左 Ctrl**，看到收音提示後開始講廣東話。<br>
@@ -128,7 +140,7 @@ Generate the dictionary on Ubuntu using the [build guide](INSTALL.md#build), run
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --require-hashes --only-binary=:all: -r desktop/windows/requirements.txt
 $env:PYTHONPATH = 'src'
-.\.venv\Scripts\python.exe -m pytest tests/test_windows.py -q
+.\.venv\Scripts\python.exe -m pytest tests/test_windows.py tests/test_downloads.py -q
 .\.venv\Scripts\python.exe tools/package_windows.py
 ```
 
