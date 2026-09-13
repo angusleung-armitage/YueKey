@@ -18,7 +18,7 @@ import time
 
 
 class Client:
-    def __init__(self, client_type='tsf'):
+    def __init__(self, client_type='tsf', *, expected_pid):
         self.kernel = k = C.WinDLL('kernel32', use_last_error=True)
         k.CreateFileW.argtypes = [W.LPCWSTR, W.DWORD, W.DWORD, C.c_void_p, W.DWORD, W.DWORD, W.HANDLE]
         k.CreateFileW.restype = W.HANDLE
@@ -39,18 +39,24 @@ class Client:
         while True:
             self.handle = k.CreateFileW(pipe, 0xC0000000, 0, None, 3, 0, None)
             if self.handle != W.HANDLE(-1).value:
-                break
+                pid = W.DWORD()
+                if not k.GetNamedPipeServerProcessId(self.handle, C.byref(pid)):
+                    error = C.WinError(C.get_last_error())
+                    k.CloseHandle(self.handle)
+                    raise error
+                if pid.value == expected_pid:
+                    self.pid = pid.value
+                    break
+                # Starting WeaselServer restarts its predecessor. Do not open
+                # a session in the old process while it is shutting down.
+                k.CloseHandle(self.handle)
             if time.monotonic() >= deadline:
-                raise C.WinError(C.get_last_error())
+                raise TimeoutError(f'Weasel server {expected_pid} did not become ready')
             time.sleep(.1)
         mode = W.DWORD(2)  # PIPE_READMODE_MESSAGE
         try:
             if not k.SetNamedPipeHandleState(self.handle, C.byref(mode), None, None):
                 raise C.WinError(C.get_last_error())
-            pid = W.DWORD()
-            if not k.GetNamedPipeServerProcessId(self.handle, C.byref(pid)):
-                raise C.WinError(C.get_last_error())
-            self.pid = pid.value
             self.session, response = self.send(2, body=(
                 f'action=session\nsession.client_app=yuekey-ci.exe\nsession.client_type={client_type}\n.\n'))
             assert self.session and response.get('status.schema_id') == 'quick_hk', response
@@ -151,9 +157,9 @@ def exercise(engine, directory: Path, output: Path):
                                show_candidates=True, prediction=True)
             apply_settings(directory, settings)
             deploy(engine, directory)
-            subprocess.Popen([str(engine.root / 'WeaselServer.exe')], cwd=engine.root,
-                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, creationflags=0x08000000)
-            client = Client()
+            server = subprocess.Popen([str(engine.root / 'WeaselServer.exe')], cwd=engine.root,
+                                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, creationflags=0x08000000)
+            client = Client(expected_pid=server.pid)
             try:
                 client.key('h')
                 typed = client.key('i')
@@ -177,7 +183,7 @@ def exercise(engine, directory: Path, output: Path):
             # TSF hosts the candidate UI inside the client process. The IME
             # session uses the same WeaselUI renderer inside WeaselServer,
             # allowing geometry checks without injecting keys into an app.
-            client = Client('ime')
+            client = Client('ime', expected_pid=server.pid)
             try:
                 client.key('h'); client.key('i')
                 hwnd, width, height = candidate_window(client.pid)
