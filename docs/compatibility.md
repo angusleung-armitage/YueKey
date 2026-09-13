@@ -123,3 +123,25 @@ The Windows 11 target still needs real microphone and application tests, includi
 Weasel-active dictation in browsers, office applications and text editors.
 Windows 10, ARM64 and 32-bit companion builds are not validated. Windows typing
 does not yet include the Ubuntu native continuation-prediction plugin.
+
+## YueKey 0.3.0 review and packaging — 2026-09-13
+
+Local Ubuntu 26.04 container checks passed: **85 tests and 21 subtests**, both
+GNOME lifecycle suites, the native gesture test and isolated dictation bridge.
+The new DEBs installed and exercised real IBus and Fcitx5 input, punctuation,
+prediction and repeat deployment. Uninstall restored configuration and retained
+learning. Lintian reported no errors, with only the five existing initial-upload
+changelog warnings.
+
+The [code review](REVIEW.md) records the fixed configuration, removal and capture
+shutdown failures. Windows setup EXE integration results are recorded with the
+GitHub release workflow; real Windows microphone/application checks remain
+separate from these automated tests.
+
+The Windows installer checks also passed in [run 34741463809](https://github.com/angusleung-armitage/YueKey/actions/runs/34741463809)
+at commit `cb0afe5`: 11 Windows tests and 6 subtests, both official Weasel DLL
+architectures, setup and same-version repair into a path with spaces and Chinese
+characters, running-companion rejection, and uninstall preservation. The
+installed executable passed Unicode/password/focus checks and CPU Cantonese
+fixture recognition. The Ubuntu job, including all desktop package dependencies,
+also passed. No physical microphone was opened.

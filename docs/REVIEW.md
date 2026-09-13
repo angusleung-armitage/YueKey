@@ -37,8 +37,9 @@ before accepting another recording.
 ## Validation and remaining limits
 
 Local Ubuntu build and regression checks are recorded in
-[compatibility.md](compatibility.md). The release workflow must pass on both
-platforms before publishing version 0.3.0.
+[compatibility.md](compatibility.md). Both platform jobs passed in [run 34741463809](https://github.com/angusleung-armitage/YueKey/actions/runs/34741463809),
+including the installed Windows executable and uninstall preservation. The
+version-tag workflow repeats these checks before publishing version 0.3.0.
 
 Windows 11 physical microphone tests and the desktop application matrix remain
 outstanding. Windows currently has no continuation-prediction plugin, and its
