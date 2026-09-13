@@ -99,25 +99,6 @@ class WindowsTests(unittest.TestCase):
             resolve_microphone(value, sd)
         self.assertIsNone(resolve_microphone('default', sd))
 
-    def test_rapid_settings_saves_have_distinct_rime_timestamps(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            source, target = Path(tmp) / 'source', Path(tmp) / 'user'
-            target.mkdir()
-            self.payload(source)
-            install(target, source)
-            custom = target / 'quick_hk.windows.custom.yaml'
-            stat = custom.stat()
-            # Simulate a source timestamp at/after the next save, independent
-            # of the test machine's speed and the current second boundary.
-            os.utime(custom, ns=(stat.st_atime_ns, stat.st_mtime_ns + 5_000_000_000))
-            for horizontal in (False, True, False):
-                previous = int(custom.stat().st_mtime)
-                apply_settings(target, Settings(horizontal=horizontal))
-                self.assertGreater(int(custom.stat().st_mtime), previous)
-                values = yaml.safe_load(custom.read_text(encoding='utf-8'))['patch']
-                self.assertEqual(values['style/horizontal'], horizontal)
-            self.assertEqual(uninstall(target), [])
-
     def test_wasapi_capture_converts_system_rate_without_exclusive_access(self):
         host = {'name': 'Windows WASAPI'}
         sd = SimpleNamespace(query_devices=lambda *_: {'hostapi': 0, 'default_samplerate': 48000},
@@ -304,23 +285,36 @@ class WindowsTests(unittest.TestCase):
                 self.assertEqual(uninstall(user), [])
                 self.assertFalse((user / 'default.custom.yaml').exists())
 
-    def test_deployment_must_produce_compiled_typing_data(self):
+    def test_deployment_must_rebuild_and_verify_compiled_typing_data(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             engine = windows_weasel.Installation(root, '0.17.4.0')
-            with patch.object(windows_weasel.subprocess, 'run', return_value=SimpleNamespace(returncode=0)):
+            schema = root / 'build/quick_hk.schema.yaml'
+            compiled_text = None
+
+            def compile_schema(*_args, **_kwargs):
+                self.assertFalse(schema.exists(), 'Stale schema must not survive deployment')
+                if compiled_text:
+                    schema.write_text(compiled_text, encoding='utf-8')
+                return SimpleNamespace(returncode=0)
+
+            with patch.object(windows_weasel.subprocess, 'run', side_effect=compile_schema):
                 with self.assertRaisesRegex(RuntimeError, 'deployment is incomplete'):
                     windows_weasel.deploy(engine, root)
                 (root / 'build').mkdir()
-                for name in ('quick_hk.schema.yaml', 'quick_hk.table.bin', 'quick_hk.prism.bin'):
+                for name in ('quick_hk.table.bin', 'quick_hk.prism.bin'):
                     (root / 'build' / name).write_bytes(b'compiled')
+                learned = root / 'quick_hk.userdb'
+                learned.write_bytes(b'learning sentinel')
                 (root / 'quick_hk.windows.custom.yaml').write_text('patch: {menu/page_size: 5}', encoding='utf-8')
-                schema = root / 'build/quick_hk.schema.yaml'
                 schema.write_text('menu: {page_size: 9}', encoding='utf-8')
+                compiled_text = 'menu: {page_size: 9}'
                 with self.assertRaisesRegex(RuntimeError, 'not applied the new settings'):
                     windows_weasel.deploy(engine, root)
-                schema.write_text('menu: {page_size: 5}', encoding='utf-8')
+                compiled_text = 'menu: {page_size: 5}'
                 windows_weasel.deploy(engine, root)
+                self.assertEqual(learned.read_bytes(), b'learning sentinel')
+                self.assertEqual((root / 'build/quick_hk.table.bin').read_bytes(), b'compiled')
 
     def test_install_remove_restores_exact_config_and_preserves_learning(self):
         with tempfile.TemporaryDirectory() as tmp:

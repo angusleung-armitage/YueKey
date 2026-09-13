@@ -181,6 +181,12 @@ def enable_current_user() -> str:
 
 
 def deploy(engine: Installation, destination: Path, *, require_yuekey=True) -> None:
+    if require_yuekey:
+        # Rime caches compiled configuration by whole-second source timestamps.
+        # Rebuild only our derived schema, leaving dictionaries and learning in
+        # place. This also handles rapid saves and unchanged source timestamps.
+        from .windows_setup import _safe_path
+        _safe_path(destination.resolve(), 'build/quick_hk.schema.yaml').unlink(missing_ok=True)
     completed = subprocess.run([str(engine.root / 'WeaselDeployer.exe'), '/deploy'],
                                cwd=engine.root, timeout=180, creationflags=0x08000000)
     if completed.returncode != 0:

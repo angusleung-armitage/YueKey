@@ -18,12 +18,19 @@ CHECKSUM = hashlib.sha256(BODY).hexdigest()
 
 
 @contextmanager
-def https_server():
+def https_server(*, failures=0, retry_after='0'):
+    pending = [failures]
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *_args):
             pass
 
         def do_GET(self):
+            if self.path == '/limited' and pending[0] > 0:
+                pending[0] -= 1
+                self.send_response(429)
+                self.send_header('Retry-After', retry_after)
+                self.end_headers()
+                return
             if self.path == '/redirect':
                 self.send_response(302)
                 self.send_header('Location', '/model')
@@ -97,6 +104,30 @@ class DownloadTlsTests(unittest.TestCase):
                     self.assertIsNotNone(raised.exception.__cause__)
                     self.assertEqual(path.read_bytes(), b'existing model')
                     self.assertEqual(partial.read_bytes(), b'partial model')
+
+    def test_rate_limit_retry_resumes_verified_partial_download(self):
+        context = self.context(trusted=True)
+        with https_server(failures=2) as port, tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'model.onnx'
+            path.with_name('model.onnx.part').write_bytes(BODY[:7])
+            with patch.object(assets, 'https_context', return_value=context):
+                assets.download(f'https://localhost:{port}/limited', path, CHECKSUM)
+            self.assertEqual(path.read_bytes(), BODY)
+
+    def test_rate_limit_is_bounded_and_respects_long_cooldowns(self):
+        context = self.context(trusted=True)
+        for retry_after, waits in (('0', 3), ('120', 0)):
+            with self.subTest(retry_after=retry_after), \
+                    https_server(failures=10, retry_after=retry_after) as port, \
+                    tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / 'model.onnx'
+                path.write_bytes(b'existing model')
+                with patch.object(assets, 'https_context', return_value=context), \
+                        patch.object(assets.time, 'sleep') as sleep:
+                    with self.assertRaises(assets.urllib.error.HTTPError):
+                        assets.download(f'https://localhost:{port}/limited', path, CHECKSUM)
+                self.assertEqual(sleep.call_count, waits)
+                self.assertEqual(path.read_bytes(), b'existing model')
 
 
 if __name__ == '__main__':

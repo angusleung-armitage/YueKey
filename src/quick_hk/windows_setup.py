@@ -42,16 +42,8 @@ def _hash(data: bytes) -> str:
 
 def _write(path: Path, data: bytes):
     path.parent.mkdir(parents=True, exist_ok=True)
-    previous = path.stat() if path.suffix == '.yaml' and path.exists() else None
     temporary = path.with_name(path.name + '.yuekey-tmp')
     temporary.write_bytes(data)
-    if previous is not None:
-        # Rime ConfigNeedsUpdate compares whole-second source timestamps.
-        # Two saves in the same second must not reuse the old compiled patch.
-        current = temporary.stat()
-        if current.st_mtime_ns // 1_000_000_000 <= previous.st_mtime_ns // 1_000_000_000:
-            modified = (previous.st_mtime_ns // 1_000_000_000 + 1) * 1_000_000_000
-            os.utime(temporary, ns=(current.st_atime_ns, modified))
     temporary.replace(path)
 
 

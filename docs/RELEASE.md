@@ -9,6 +9,7 @@ YueKey 0.6.5 adds a 港 input-mode icon on Windows and a compact dictation indic
 - **關聯字 / Continuations:** retains 0.6.4's list-only suggestions: 你 stays 你 until you explicitly select 講. Browsing does not insert the suggestion.
 - **語音 SSL / Voice HTTPS:** retains native Windows certificate validation and checksum-verified model downloads.
 - **Windows 設定 / Settings:** rapid saves now invalidate Rime's whole-second configuration cache, so layout and page-size changes are applied reliably.
+- **下載重試 / Downloads:** temporarily rate-limited model downloads retry with bounded delays and retain checksum and certificate validation.
 
 - **Windows:** choose the `windows-x64`, `windows-x86` or `windows-arm64` setup EXE. Approve the administrator prompt if Weasel is missing; compatible existing engines are reused. Setup preserves preferences and learning, then deploys Cantonese Quick automatically. Portable ZIPs include the same prerequisite through **Overview → Set up typing**.
 - **新介面 / New interface:** Overview with readiness and a practice field; dedicated Typing, Voice and Advanced pages; branded icon; background setup and automatic deployment when saving settings.

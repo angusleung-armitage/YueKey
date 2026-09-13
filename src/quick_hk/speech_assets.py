@@ -2,12 +2,15 @@
 from __future__ import annotations
 
 import hashlib
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 import os
 from pathlib import Path
 import shutil
 import ssl
 import sys
 import tarfile
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -47,6 +50,31 @@ class DownloadCertificateError(RuntimeError):
 
 
 def download(url: str, destination: Path, expected: str) -> None:
+    for attempt in range(4):
+        try:
+            _download_once(url, destination, expected)
+            return
+        except urllib.error.HTTPError as error:
+            if error.code not in (429, 500, 502, 503, 504) or attempt == 3:
+                raise
+            delay = 10 * 2 ** attempt
+            retry_after = error.headers.get('Retry-After')
+            if retry_after:
+                try:
+                    delay = max(0, int(retry_after))
+                except ValueError:
+                    try:
+                        delay = max(0, (parsedate_to_datetime(retry_after)
+                                        - datetime.now(timezone.utc)).total_seconds())
+                    except (TypeError, ValueError, OverflowError):
+                        pass
+            if delay > 60:
+                raise  # A long server cooldown needs a later user retry.
+            error.close()
+            time.sleep(delay)
+
+
+def _download_once(url: str, destination: Path, expected: str) -> None:
     if destination.is_file() and digest(destination) == expected:
         return
     partial = destination.with_name(destination.name + '.part')
