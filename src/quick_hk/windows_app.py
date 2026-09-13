@@ -398,10 +398,16 @@ def self_test(report: Path, models: Path | None):
         password = user.CreateWindowExW(0, 'EDIT', '', 0x500000A0, 20, 90, 360, 30, parent, None, None, None)
         assert normal and password, 'Could not create isolated Edit controls'
 
-        def settle():
-            for _ in range(20):
-                root.update()
-                time.sleep(0.025)
+        def settle(milliseconds=500):
+            # UIA queries the Edit controls on this GUI thread. Sleeping
+            # between update() calls stalls those cross-thread requests and
+            # can expire the backend's 300 ms freshness guard. Run the real
+            # message loop while waiting, just as the installed application does.
+            timer = root.after(milliseconds, root.quit)
+            try:
+                root.mainloop()
+            finally:
+                root.after_cancel(timer)
 
         user.ShowWindow(parent, 9)
         activated = bool(user.SetForegroundWindow(parent))
@@ -437,8 +443,7 @@ def self_test(report: Path, models: Path | None):
         deadline = started + 10
         result['focus_setup'] = []
         while time.monotonic() < deadline:
-            root.update()
-            time.sleep(0.01)
+            settle(10)
             candidate = backend.target()
             candidate = candidate if candidate and candidate.window == parent else None
             if candidate != target:

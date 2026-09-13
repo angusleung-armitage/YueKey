@@ -163,6 +163,25 @@ class WindowsTests(unittest.TestCase):
         for key, value in [('password', True), ('password', None), ('focused', None), ('enabled', False), ('control_type', 50000)]:
             self.assertFalse(editable(**{**valid, key: value}))
 
+    def test_accessibility_snapshot_expires_even_when_the_field_is_unchanged(self):
+        from quick_hk.windows_input import WindowsInput
+
+        # Exercise the actual adapter guard without installing global hooks.
+        backend = WindowsInput.__new__(WindowsInput)
+        target = Target(10, 20, (1, 2), 5)
+        backend.user = SimpleNamespace(GetForegroundWindow=lambda: 10)
+        backend.activity = target.activity
+        backend.snapshot = (target, 10.0)
+        with patch('quick_hk.windows_input.time.monotonic', return_value=10.1):
+            self.assertEqual(backend.target(), target)
+        with patch('quick_hk.windows_input.time.monotonic', return_value=10.406):
+            self.assertIsNone(backend.target())
+            # Only a new accessibility query makes the same field valid again.
+            backend.snapshot = (target, 10.4)
+            self.assertEqual(backend.target(), target)
+            backend.activity += 1
+            self.assertIsNone(backend.target())
+
     def test_install_remove_restores_exact_config_and_preserves_learning(self):
         with tempfile.TemporaryDirectory() as tmp:
             source, target = Path(tmp) / 'source', Path(tmp) / 'user'
