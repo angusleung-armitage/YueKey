@@ -15,6 +15,9 @@ class SettingsError(ValueError):
     """A settings file or value cannot be used."""
 
 
+NUMBER_RANGES = {"page_size": (1, 9), "font_size": (10, 36)}
+
+
 def config_home() -> Path:
     return Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
 
@@ -51,7 +54,7 @@ class Settings:
         ):
             if type(getattr(self, name)) is not bool:
                 raise SettingsError(f"{name} must be true or false")
-        for name, minimum, maximum in (("page_size", 1, 9), ("font_size", 10, 36)):
+        for name, (minimum, maximum) in NUMBER_RANGES.items():
             value = getattr(self, name)
             if type(value) is not int or not minimum <= value <= maximum:
                 raise SettingsError(f"{name} must be an integer from {minimum} to {maximum}")

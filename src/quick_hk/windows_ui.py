@@ -10,7 +10,8 @@ from pathlib import Path
 import sys
 
 from . import __version__
-from .settings_choices import CHOICES
+from .settings import NUMBER_RANGES
+from .settings_choices import ACTIONS, CHOICES, HINTS, LABELS
 
 COLORS = dict(background='#F3F6F8', surface='#FFFFFF', ink='#142C37', muted='#526773',
               sidebar='#102F37', sidebar_text='#C2D5DC', accent='#007D75',
@@ -172,6 +173,9 @@ def build_window(app, root):
             combo = ttk.Combobox(row, textvariable=display, values=list(keys), state='readonly', width=23)
             combo.bind('<<ComboboxSelected>>', lambda _: variable.set(keys[display.get()]))
         else:
+            if name in NUMBER_RANGES:
+                low, high = NUMBER_RANGES[name]
+                values = list(range(low, high + 1))
             combo = ttk.Combobox(row, textvariable=variable, values=values, state='readonly', width=14)
         combo.pack(side='right')
         app.setting_controls.append((combo, 'readonly'))
@@ -209,17 +213,19 @@ def build_window(app, root):
 
     typing = page('typing', '輸入  Typing', '輸入設定 · Typing',
                   '調整候選字與選字習慣。\nMake the candidate list work the way you do.')
-    appearance = card(typing, '候選字外觀 · Candidate appearance')
-    check(appearance, 'horizontal', '橫向排列 · Horizontal candidates')
-    choice(appearance, 'page_size', '每頁字數 · Candidates per page', list(range(1, 10)))
-    choice(appearance, 'font_size', '字體大小 · Font size', list(range(10, 37)))
-    choice(appearance, 'theme', '外觀 · Appearance')
-    behavior = card(typing, '輸入習慣 · Typing behavior')
-    check(behavior, 'learning', '記住選字習慣 · Learn candidate choices')
-    check(behavior, 'prediction', '顯示關聯字 · Suggest word continuations')
-    check(behavior, 'show_candidates', '輸入時顯示候選字 · Show candidates while typing')
-    check(behavior, 'ascii_punctuation', '半形標點 · ASCII punctuation')
-    choice(behavior, 'switch_key', '中英切換鍵 · Chinese / English key')
+    appearance = card(typing, '候選字 · Candidates')
+    check(appearance, 'horizontal', LABELS['horizontal'])
+    choice(appearance, 'page_size', LABELS['page_size'])
+    choice(appearance, 'font_size', LABELS['font_size'])
+    choice(appearance, 'theme', LABELS['theme'])
+    check(appearance, 'show_candidates', LABELS['show_candidates'])
+    note(appearance, HINTS['show_candidates'])
+    behavior = card(typing, '輸入習慣 · Typing')
+    check(behavior, 'learning', LABELS['learning'])
+    check(behavior, 'prediction', LABELS['prediction'])
+    note(behavior, HINTS['prediction'])
+    check(behavior, 'ascii_punctuation', LABELS['ascii_punctuation'])
+    choice(behavior, 'switch_key', LABELS['switch_key'])
     note(behavior, '儲存後會自動重新部署。設定只影響港式速成。\n'
                    'Saving automatically deploys your changes. These settings apply to Cantonese Quick.')
 
@@ -230,23 +236,22 @@ def build_window(app, root):
               font=('Segoe UI Semibold', 14)).pack(anchor='w', pady=(0, 8))
     note(speech, '首次啟用會下載約 302 MB；之後無需上傳錄音。\n'
                  'First use downloads about 302 MB. Audio is processed locally.')
-    app.enable_button = ttk.Button(speech, text='啟用語音 · Enable voice', style='Primary.TButton', command=app.enable)
+    app.enable_button = ttk.Button(speech, text=LABELS['dictation_enabled'], style='Primary.TButton', command=app.enable)
     app.enable_button.pack(anchor='w', pady=5)
     recording = card(voice, '收音與快捷鍵 · Microphone and shortcut')
+    choice(recording, 'dictation_key', LABELS['dictation_key'])
     app.microphone_value = app.settings.dictation_microphone
     app.microphone = tk.StringVar()
-    ttk.Label(recording, text='麥克風 · Microphone').pack(anchor='w', pady=(0, 6))
+    ttk.Label(recording, text=LABELS['dictation_microphone']).pack(anchor='w', pady=(0, 6))
     app.microphone_combo = ttk.Combobox(recording, textvariable=app.microphone, state='readonly')
     app.microphone_combo.pack(fill='x', pady=(0, 8))
     app.microphone_combo.bind('<<ComboboxSelected>>', app.select_microphone)
     app.setting_controls.append((app.microphone_combo, 'readonly'))
-    ttk.Button(recording, text='重新整理 · Refresh microphones', command=app.refresh_microphones).pack(anchor='w', pady=(0, 10))
-    choice(recording, 'dictation_key', '連按兩次 · Double-tap key')
-    check(recording, 'dictation_punctuation', '自動加入標點 · Add punctuation automatically')
+    ttk.Button(recording, text=ACTIONS['refresh_microphones'], command=app.refresh_microphones).pack(anchor='w', pady=(0, 10))
+    check(recording, 'dictation_punctuation', LABELS['dictation_punctuation'])
     note(recording, 'Ctrl × 2 開始／停止，Esc 取消。\n'
                     'Double Ctrl starts/stops; Esc cancels.\n\n'
-                    '若左 Ctrl 用於中英切換，語音會改用右 Ctrl。\n'
-                    'When Left Ctrl switches language, voice uses Right Ctrl.\n\n'
+                    + HINTS['dictation_key'] + '\n\n'
                     '使用語音時請保持粵鍵開啟；可縮小視窗。\n'
                     'Keep YueKey running for dictation; minimizing is fine.')
 
@@ -261,7 +266,7 @@ def build_window(app, root):
     recovery = card(advanced, '學習與移除 · Learning and removal')
     note(recovery, '重設學習前，請先從系統匣退出小狼毫。原有資料會先備份。\n'
                    'Exit Weasel from its tray menu before resetting learning. Existing data is backed up.')
-    ttk.Button(recovery, text='備份並重設學習 · Back up / Reset learning', command=app.reset_learning).pack(anchor='w', pady=(0, 12))
+    ttk.Button(recovery, text=ACTIONS['reset_learning'], command=app.reset_learning).pack(anchor='w', pady=(0, 12))
     note(recovery, '移除粵鍵速成方案會保留學習資料及小狼毫。\n'
                    'Removing YueKey typing keeps learned words and the Weasel engine.')
     ttk.Button(recovery, text='移除速成方案 · Remove YueKey typing', command=app.remove_typing).pack(anchor='w')
@@ -279,7 +284,7 @@ def build_window(app, root):
     footer = ttk.Frame(root, padding=(28, 14))
     footer.grid(row=1, column=1, sticky='ew')
     footer.grid_columnconfigure(0, weight=1)
-    app.apply_button = ttk.Button(footer, text='儲存並套用 · Save changes', style='Primary.TButton', command=app.apply)
+    app.apply_button = ttk.Button(footer, text=ACTIONS['apply'], style='Primary.TButton', command=app.apply)
     app.apply_button.grid(row=0, column=1, rowspan=2, padx=(20, 0))
     message = ttk.Label(footer, textvariable=app.status, style='Muted.TLabel', justify='left')
     message.grid(row=0, column=0, sticky='ew')

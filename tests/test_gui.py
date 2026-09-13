@@ -87,6 +87,39 @@ class GuiTests(unittest.TestCase):
                     return GLib.SOURCE_CONTINUE
                 try:
                     if state == 0:
+                        from dataclasses import asdict
+                        from quick_hk.settings import NUMBER_RANGES
+                        from quick_hk.settings_choices import CHOICES, LABELS
+                        initial = asdict(load_settings(config_path))
+                        self.assertEqual(set(application.controls), set(initial))
+                        self.assertEqual(set(LABELS), set(initial))
+                        for name, control in application.controls.items():
+                            self.assertEqual(control.get_parent().get_first_child().get_label(), LABELS[name])
+                            self.assertEqual(application.fields[name](), initial[name])
+                            if isinstance(control, Gtk.Switch):
+                                control.set_active(not initial[name])
+                                self.assertEqual(application.fields[name](), not initial[name])
+                                control.set_active(initial[name])
+                            elif name in CHOICES:
+                                for index, (value, label) in enumerate(CHOICES[name]):
+                                    self.assertEqual(control.get_model().get_string(index), label)
+                                    control.set_selected(index)
+                                    self.assertEqual(application.fields[name](), value)
+                                control.set_selected(application.choice_values[name].index(initial[name]))
+                            elif name in NUMBER_RANGES:
+                                low, high = NUMBER_RANGES[name]
+                                self.assertEqual(control.get_adjustment().get_lower(), low)
+                                self.assertEqual(control.get_adjustment().get_upper(), high)
+                        # A refresh must keep the chosen device even after it
+                        # disappears, and must not replace it with the default.
+                        devices = [('default', '系統預設 · System default'), ('mic-a', 'Mic A')]
+                        with patch('quick_hk.dictation_setup.microphones', return_value=devices):
+                            application._refresh_microphones(None)
+                        application.controls['dictation_microphone'].set_selected(1)
+                        with patch('quick_hk.dictation_setup.microphones', return_value=devices[:1]):
+                            application._refresh_microphones(None)
+                        self.assertEqual(application.fields['dictation_microphone'](), 'mic-a')
+                        application.controls['dictation_microphone'].set_selected(0)
                         self.assertEqual(len(application.fields), 13)
                         self.assertEqual(application.fields["theme"](), "dark")
                         self.assertEqual(application.fields["font_size"](), 24)

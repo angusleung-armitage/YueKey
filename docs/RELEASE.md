@@ -1,6 +1,6 @@
 粵鍵 YueKey 0.6.2：港式速成成為 Ubuntu、Kubuntu 及 Windows 的預設及唯一可選 Rime 方案，毋須按 F4 選擇。保留原有學習資料，並統一 Windows 與 Linux 的主題及按鍵選項名稱。
 
-YueKey 0.6.2 makes Cantonese Quick the default and only selectable Rime scheme on Ubuntu, Kubuntu and Windows. No F4 selection is needed. Existing learned words are preserved, and Windows and Linux now use matching bilingual theme and shortcut labels.
+YueKey 0.6.2 makes Cantonese Quick the default and only selectable Rime scheme on Ubuntu, Kubuntu and Windows. No F4 selection is needed. Existing learned words are preserved. All 13 preferences now share bilingual labels, choices and numeric ranges; Linux also gains microphone refresh. See the [menu audit](https://github.com/angusleung-armitage/YueKey/blob/v0.6.2/docs/platform-parity.md).
 
 - **Windows 顯示修正 / Display fixes:** 關聯字會在文字欄預覽，按數字／空白鍵確認，Esc 或新碼取消。橫／直排設定會同時更新小狼毫的兩個排列設定。Windows now previews continuations inline and applies both candidate-layout settings together. Confirm with a number/Space or dismiss with Esc/new input.
 

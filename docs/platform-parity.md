@@ -28,6 +28,36 @@ All three platforms share the Quick mappings, Cantonese continuation data and sp
 
 Open settings with `quick-hk configure` on Linux or YueKey's Typing/Voice pages on Windows. Both expose all 13 shared preferences: horizontal layout, page size, font size, candidate visibility, theme, learning, continuations, ASCII punctuation, language key, speech enabled, speech key, microphone and automatic punctuation. Theme and key choices use the same bilingual labels.
 
+## 設定選項核對 · Settings menu audit
+
+以下全部選項在 Ubuntu、Kubuntu 及 Windows 均提供。標籤、選單值及數值範圍共用定義；預設值來自同一個設定模型。升級會保留你的已儲存偏好。
+
+Every option below is available on Ubuntu, Kubuntu and Windows. Labels, choices and numeric ranges share definitions, and defaults come from one settings model. Upgrades preserve saved preferences.
+
+| 選項 · Option | 選擇 · Choices | 預設 · Default |
+|---|---|---|
+| 橫排候選字 · Horizontal candidates | On / Off (vertical) | On |
+| 每頁候選字 · Candidates per page | 1–9 | 9 |
+| 字體大小 · Font size | 10–36 pt | 18 pt |
+| 外觀 · Appearance | 淺色 Light / 深色 Dark | Light |
+| 輸入時顯示候選字 · Show candidates while typing | On / Off; Space opens hidden candidates | On |
+| 學習選字次序 · Learn candidate choices | On / Off | On |
+| 顯示關聯字 · Suggest word continuations | On / Off | On |
+| 半形標點 · ASCII punctuation | On / Off | Off |
+| 中英切換鍵 · Chinese / English key | Left Shift / Right Shift / Left Ctrl / Disabled | Left Shift |
+| 啟用語音輸入 · Enable dictation | On / Off | Off |
+| 連按兩次 · Double-tap key | Left Ctrl / Right Ctrl | Left Ctrl |
+| 麥克風 · Microphone | System default / available input devices | System default |
+| 自動標點 · Automatic punctuation | On / Off | On |
+
+Both settings windows offer **Refresh microphones**, preserve a disconnected microphone selection, and explain the Right Ctrl fallback when Left Ctrl switches language. **Save changes** and **Back up / Reset learning** use matching labels.
+
+兩個設定視窗均提供「重新整理麥克風」，保留暫未連接的裝置選擇，並說明左 Ctrl 衝突時改用右 Ctrl。「儲存並套用」與「備份並重設學習」名稱亦一致。
+
+The Rime scheme menu uses the same three switches: **中文 / English**, **關聯字關 / 關聯字開**, and **。， / .,**. System tray and desktop input-source menus belong to IBus, Fcitx5 or Weasel and include their own deployment, exit and system-settings commands; those menus are not identical across operating systems.
+
+Rime 方案選單共用三個切換項：「中文／English」、「關聯字關／關聯字開」及「。，／.,」。系統匣及桌面輸入來源選單由 IBus、Fcitx5 或小狼毫提供，其部署、退出及系統設定指令會因平台而異。
+
 Linux 使用一頁設定及「儲存並套用」；Windows 使用分頁，並以語音按鈕即時啟用／停用。Linux 安裝檔內置模型，「驗證語音模型」只作檢查；Windows 首次啟用語音時下載模型。麥克風清單來自各系統的音訊裝置，名稱可以不同。
 
 Linux uses a single settings page with Apply; Windows uses navigation pages and an immediate voice enable/disable button. Linux bundles the models and offers Verify speech models; Windows downloads models on first enable. Microphone names come from each system's audio devices and may differ.

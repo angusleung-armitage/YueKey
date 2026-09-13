@@ -6,8 +6,8 @@ import os
 import sys
 from pathlib import Path
 
-from .settings import Settings, load_settings, save_settings
-from .settings_choices import CHOICES
+from .settings import NUMBER_RANGES, Settings, load_settings, save_settings
+from .settings_choices import ACTIONS, CHOICES, HINTS, LABELS, microphone_choices
 
 
 def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
@@ -35,6 +35,8 @@ def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
             self.window = None
             self.process = None
             self.fields = {}
+            self.controls = {}
+            self.choice_values = {}
             self.connect("activate", self._activate)
 
         def _activate(self, _application) -> None:
@@ -96,23 +98,26 @@ def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
             self.form = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
             content.append(self.form)
             self._heading("候選字 · Candidates")
-            self._switch("horizontal", "橫排候選字 · Horizontal layout", settings.horizontal)
-            self._number("page_size", "每頁候選字 · Candidates per page", settings.page_size, 1, 9)
-            self._number("font_size", "字體大小 · Font size (pt)", settings.font_size, 10, 36)
-            self._choice("theme", "外觀 · Appearance", settings.theme, CHOICES["theme"])
-            self._switch("show_candidates", "輸入時顯示候選字 · Show while typing", settings.show_candidates)
+            self._switch("horizontal", LABELS["horizontal"], settings.horizontal)
+            self._number("page_size", LABELS["page_size"], settings.page_size, *NUMBER_RANGES["page_size"])
+            self._number("font_size", LABELS["font_size"], settings.font_size, *NUMBER_RANGES["font_size"])
+            self._choice("theme", LABELS["theme"], settings.theme, CHOICES["theme"])
+            self._switch("show_candidates", LABELS["show_candidates"], settings.show_candidates)
             hint = Gtk.Label(
-                label="關閉後，按空白鍵展開候選字。\nWhen off, press Space to open candidates.",
+                label=HINTS["show_candidates"],
                 xalign=0,
                 wrap=True,
             )
             hint.add_css_class("dim-label")
             self.form.append(hint)
             self._heading("輸入習慣 · Typing")
-            self._switch("learning", "學習選字次序 · Learn candidate choices", settings.learning)
-            self._switch("prediction", "顯示關聯字 · Suggest related words", settings.prediction)
-            self._switch("ascii_punctuation", "半形標點 · ASCII punctuation", settings.ascii_punctuation)
-            self._choice("switch_key", "中英切換鍵 · Chinese / English key", settings.switch_key, CHOICES["switch_key"])
+            self._switch("learning", LABELS["learning"], settings.learning)
+            self._switch("prediction", LABELS["prediction"], settings.prediction)
+            prediction_hint = Gtk.Label(label=HINTS["prediction"], xalign=0, wrap=True)
+            prediction_hint.add_css_class("dim-label")
+            self.form.append(prediction_hint)
+            self._switch("ascii_punctuation", LABELS["ascii_punctuation"], settings.ascii_punctuation)
+            self._choice("switch_key", LABELS["switch_key"], settings.switch_key, CHOICES["switch_key"])
             self._heading("廣東話語音輸入 · Cantonese dictation")
             from .dictation_setup import microphones, status as speech_status
             speech = speech_status()
@@ -122,14 +127,15 @@ def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
                    else "首次使用請準備語音模型 · Download models before enabling.")))
             self.speech_hint.add_css_class("dim-label")
             self.form.append(self.speech_hint)
-            self._switch("dictation_enabled", "啟用語音輸入 · Enable dictation", settings.dictation_enabled)
-            self._choice("dictation_key", "連按兩次 · Double-tap key", settings.dictation_key, CHOICES["dictation_key"])
-            devices = microphones()
-            if settings.dictation_microphone not in {key for key, _ in devices}:
-                devices.append((settings.dictation_microphone, settings.dictation_microphone))
-            self._choice("dictation_microphone", "麥克風 · Microphone", settings.dictation_microphone, devices)
-            self._switch("dictation_punctuation", "自動標點 · Automatic punctuation", settings.dictation_punctuation)
-            key_hint = Gtk.Label(xalign=0, wrap=True, label="如左 Ctrl 用作中英切換，語音輸入會使用右 Ctrl。\nIf Left Ctrl switches language, dictation uses Right Ctrl.")
+            self._switch("dictation_enabled", LABELS["dictation_enabled"], settings.dictation_enabled)
+            self._choice("dictation_key", LABELS["dictation_key"], settings.dictation_key, CHOICES["dictation_key"])
+            devices = microphone_choices(microphones(), settings.dictation_microphone)
+            self._choice("dictation_microphone", LABELS["dictation_microphone"], settings.dictation_microphone, devices)
+            refresh = Gtk.Button(label=ACTIONS["refresh_microphones"])
+            refresh.connect("clicked", self._refresh_microphones)
+            self.form.append(refresh)
+            self._switch("dictation_punctuation", LABELS["dictation_punctuation"], settings.dictation_punctuation)
+            key_hint = Gtk.Label(xalign=0, wrap=True, label=HINTS["dictation_key"])
             key_hint.add_css_class("dim-label")
             self.form.append(key_hint)
             setup_button = Gtk.Button(label=("驗證語音模型 · Verify speech models" if speech.get('bundled')
@@ -165,12 +171,12 @@ def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
             self.status_scroller.set_child(self.status)
             footer.append(self.status_scroller)
             actions = Gtk.Box(spacing=12)
-            self.reset_button = Gtk.Button(label="重設學習 · Reset learning")
+            self.reset_button = Gtk.Button(label=ACTIONS["reset_learning"])
             self.reset_button.connect("clicked", self._reset)
             actions.append(self.reset_button)
             self.spinner = Gtk.Spinner(hexpand=True, halign=Gtk.Align.END)
             actions.append(self.spinner)
-            self.apply_button = Gtk.Button(label="儲存並套用 · Apply")
+            self.apply_button = Gtk.Button(label=ACTIONS["apply"])
             self.apply_button.add_css_class("suggested-action")
             self.apply_button.connect("clicked", self._apply)
             actions.append(self.apply_button)
@@ -195,6 +201,7 @@ def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
 
         def _switch(self, name: str, text: str, value: bool) -> None:
             control = Gtk.Switch(active=value)
+            self.controls[name] = control
             self.fields[name] = control.get_active
             self._row(text, control)
 
@@ -202,6 +209,7 @@ def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
             control = Gtk.SpinButton.new_with_range(low, high, 1)
             control.set_value(value)
             control.set_numeric(True)
+            self.controls[name] = control
             self.fields[name] = control.get_value_as_int
             self._row(text, control)
 
@@ -209,8 +217,19 @@ def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
             control = Gtk.DropDown.new_from_strings([label for _, label in choices])
             values = [key for key, _ in choices]
             control.set_selected(values.index(value) if value in values else 0)
-            self.fields[name] = lambda: values[control.get_selected()]
+            self.controls[name] = control
+            self.choice_values[name] = values
+            self.fields[name] = lambda: self.choice_values[name][control.get_selected()]
             self._row(text, control)
+
+        def _refresh_microphones(self, _button) -> None:
+            from .dictation_setup import microphones
+            name = "dictation_microphone"
+            selected = self.fields[name]()
+            choices = microphone_choices(microphones(), selected)
+            self.choice_values[name] = [value for value, _label in choices]
+            self.controls[name].set_model(Gtk.StringList.new([label for _value, label in choices]))
+            self.controls[name].set_selected(self.choice_values[name].index(selected))
 
         def _status(self, message: str, *, error: bool = False) -> None:
             self.status.set_label(message)

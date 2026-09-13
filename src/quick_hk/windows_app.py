@@ -5,6 +5,7 @@ import argparse
 from dataclasses import asdict, replace
 
 from .settings import Settings, load_settings, save_settings
+from .settings_choices import ACTIONS, LABELS, microphone_choices
 import json
 import os
 from pathlib import Path
@@ -164,8 +165,7 @@ class Application:
             self.devices = microphones()
         except Exception:
             self.devices = [('default', '系統預設 · System default')]
-        if self.microphone_value not in {value for value, _ in self.devices}:
-            self.devices.append((self.microphone_value, '未連接 · Unavailable: ' + self.microphone_value))
+        self.devices = microphone_choices(self.devices, self.microphone_value)
         self.microphone_combo.configure(values=[label for _, label in self.devices])
         self.microphone_combo.current(next(index for index, (value, _) in enumerate(self.devices) if value == self.microphone_value))
 
@@ -208,7 +208,7 @@ class Application:
         if self.enabled:
             self.enabled = False
             self.cancel()
-            self.enable_button.configure(text='啟用語音 · Enable dictation')
+            self.enable_button.configure(text=LABELS['dictation_enabled'])
             self.status.set('語音已停用 · Dictation disabled')
             self.refresh_readiness()
             try:
@@ -250,7 +250,7 @@ class Application:
             return
         self.enabled = True
         self.loading = False
-        self.enable_button.configure(state='normal', text='停用語音 · Disable dictation')
+        self.enable_button.configure(state='normal', text=ACTIONS['disable_dictation'])
         self.status.set('語音已啟用 · Dictation ready · CPU')
         self.refresh_readiness()
 
@@ -408,7 +408,29 @@ def self_test(report: Path, models: Path | None):
         assert root.winfo_width() >= root.winfo_reqwidth(), 'Setup controls exceed the window width'
         assert set(asdict(Settings())) == set(app.variables) | {'dictation_enabled', 'dictation_microphone'}
         from tkinter import ttk
-        from .settings_choices import CHOICES
+        from .settings_choices import CHOICES, LABELS
+        from .settings import NUMBER_RANGES
+        assert set(LABELS) == set(asdict(Settings()))
+        controls = [control for control, _state in app.setting_controls]
+        for name, variable in app.variables.items():
+            previous = variable.get()
+            if isinstance(variable, tk.BooleanVar):
+                control = next(control for control in controls if isinstance(control, ttk.Checkbutton)
+                               and str(control['variable']) == str(variable))
+                assert str(control['text']) == LABELS[name]
+                control.invoke()
+                assert getattr(app.read_settings(), name) == (not previous)
+                control.invoke()
+            elif name in NUMBER_RANGES:
+                control = next(control for control in controls if isinstance(control, ttk.Combobox)
+                               and str(control['textvariable']) == str(variable))
+                low, high = NUMBER_RANGES[name]
+                assert tuple(map(int, control['values'])) == tuple(range(low, high + 1))
+                for value in (low, high):
+                    control.set(str(value))
+                    assert getattr(app.read_settings(), name) == value
+                variable.set(previous)
+        assert str(app.enable_button['text']) == LABELS['dictation_enabled']
         for name, choices in CHOICES.items():
             labels = tuple(label for _key, label in choices)
             combo = next(control for control, _state in app.setting_controls
