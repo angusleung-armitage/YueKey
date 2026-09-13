@@ -14,6 +14,9 @@ def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
     try:
         import gi
 
+        # Gtk.Application owns initialization. Import-time legacy initialization
+        # can cache a failed display check before application startup on ARM64.
+        gi.disable_legacy_autoinit()
         gi.require_version("Gtk", "4.0")
         from gi.repository import Gio, GLib, Gtk
     except (ImportError, ValueError) as exc:

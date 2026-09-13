@@ -29,6 +29,7 @@ class GuiTests(unittest.TestCase):
         try:
             import gi
 
+            gi.disable_legacy_autoinit()
             gi.require_version("Gtk", "4.0")
             from gi.repository import Gio, GLib, Gtk
         except (ImportError, ValueError) as error:

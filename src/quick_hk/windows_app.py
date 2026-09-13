@@ -403,33 +403,38 @@ def self_test(report: Path, models: Path | None):
                 root.update()
                 time.sleep(0.025)
 
-        def activate_test_field():
-            # Only the opt-in integration test activates a window. Windows 11
-            # can deny activation to a process launched by a background runner.
-            # Temporarily share the foreground thread's input queue, then detach.
-            foreground = user.GetWindowThreadProcessId(user.GetForegroundWindow(), None)
-            current = backend.kernel.GetCurrentThreadId()
-            user.AttachThreadInput.argtypes = [W.DWORD, W.DWORD, W.BOOL]
-            user.AttachThreadInput.restype = W.BOOL
-            attached = foreground != current and foreground and user.AttachThreadInput(current, foreground, True)
-            try:
-                user.ShowWindow(parent, 9)
-                result['test_activation'] = {'attached': bool(attached),
-                                             'activated': bool(user.SetForegroundWindow(parent))}
-                user.SetFocus(normal)
-            finally:
-                if attached:
-                    user.AttachThreadInput(current, foreground, False)
-
-        activate_test_field()
+        user.ShowWindow(parent, 9)
+        activated = bool(user.SetForegroundWindow(parent))
+        result['test_activation'] = {'activated': activated}
+        if not activated and os.environ.get('GITHUB_ACTIONS') == 'true':
+            # Windows 11 restricts programmatic foreground activation. In the
+            # disposable CI desktop, click only our verified visible Edit field.
+            # Never inject a click if another window covers the target point.
+            from .windows_input import MouseInput
+            user.SetWindowPos.argtypes = [W.HWND, W.HWND, ctypes.c_int, ctypes.c_int,
+                                          ctypes.c_int, ctypes.c_int, W.UINT]
+            user.ClientToScreen.argtypes = [W.HWND, ctypes.POINTER(W.POINT)]
+            user.SetCursorPos.argtypes = [ctypes.c_int, ctypes.c_int]
+            user.WindowFromPoint.argtypes = [W.POINT]
+            user.WindowFromPoint.restype = W.HWND
+            assert user.SetWindowPos(parent, W.HWND(-1), 0, 0, 0, 0, 0x53), 'Could not expose test window'
+            point = W.POINT(10, 10)
+            assert user.ClientToScreen(normal, ctypes.byref(point))
+            assert user.WindowFromPoint(point) == normal, 'Test field is covered; refusing to click'
+            assert user.SetCursorPos(point.x, point.y), 'Could not move within the test field'
+            clicks = (Input * 2)(Input(type=0, mi=MouseInput(dwFlags=2)),
+                                 Input(type=0, mi=MouseInput(dwFlags=4)))
+            assert user.SendInput(2, clicks, ctypes.sizeof(Input)) == 2, 'Test click was rejected'
+            result['test_activation']['clicked_own_field'] = True
+        else:
+            user.SetFocus(normal)
         target = None
         deadline = time.monotonic() + 5
         while target is None and time.monotonic() < deadline:
             root.update()
             time.sleep(0.01)
-            if user.GetForegroundWindow() != parent:
-                activate_test_field()
-            target = backend.target()
+            candidate = backend.target()
+            target = candidate if candidate and candidate.window == parent else None
         result['focus_diagnostic'] = backend.focus_diagnostic
         result['foreground_matches_test_window'] = user.GetForegroundWindow() == parent
         foreground_title = ctypes.create_unicode_buffer(256)
