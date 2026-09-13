@@ -20,6 +20,18 @@ WINDOW = 512
 MAX_SECONDS = 120
 
 
+def system_environment() -> dict[str, str]:
+    """System PipeWire must not inherit the frozen worker's private libraries."""
+    environment = dict(os.environ)
+    if getattr(sys, 'frozen', False):
+        original = environment.get('LD_LIBRARY_PATH_ORIG')
+        if original is None:
+            environment.pop('LD_LIBRARY_PATH', None)
+        else:
+            environment['LD_LIBRARY_PATH'] = original
+    return environment
+
+
 def words_only(text: str) -> str:
     return ''.join(c for c in text if not c.isspace() and not unicodedata.category(c).startswith('P'))
 
@@ -110,7 +122,7 @@ class Recording:
         if request.get('microphone', 'default') != 'default':
             command += ['--target', request['microphone']]
         self.process = subprocess.Popen(command + ['-'], stdout=subprocess.PIPE,
-                                        stderr=subprocess.DEVNULL)
+                                        stderr=subprocess.DEVNULL, env=system_environment())
         self.thread = threading.Thread(target=self.decode, daemon=True)
         self.reader = threading.Thread(target=self.capture, daemon=True)
         self.thread.start()
@@ -330,6 +342,9 @@ def main():
     parser.add_argument('--check', action='store_true', help='Initialize CPU models and check silence without a microphone')
     args = parser.parse_args()
     if args.check:
+        if sys.platform == 'linux':
+            subprocess.run(['pw-record', '--version'], env=system_environment(),
+                           stdout=subprocess.DEVNULL, check=True, timeout=10)
         assert Recognizer(args.models).transcribe_pcm(bytes(RATE * 2)) == ''
         print(json.dumps({'ready': True, 'provider': 'cpu'}))
     elif args.wav:

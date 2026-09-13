@@ -14,6 +14,22 @@ import yaml
 
 
 class DictationTests(unittest.TestCase):
+    def test_frozen_recorder_restores_system_libraries_for_pipewire(self):
+        from quick_hk import dictation_worker as worker
+        for original in (None, '/custom/system/libs'):
+            environment = {'LD_LIBRARY_PATH': '/frozen/private/libs', 'XDG_RUNTIME_DIR': '/run/user/1000'}
+            if original is not None:
+                environment['LD_LIBRARY_PATH_ORIG'] = original
+            with patch.dict(worker.os.environ, environment, clear=True), \
+                    patch.object(worker.sys, 'frozen', True, create=True), \
+                    patch.object(worker.subprocess, 'Popen') as spawn, patch.object(worker.threading, 'Thread'):
+                worker.Recording(None, {'id': 'test', 'microphone': 'fixture-device'}, lambda _: None)
+                child_environment = spawn.call_args.kwargs['env']
+                self.assertEqual(child_environment.get('LD_LIBRARY_PATH'), original)
+                self.assertEqual(child_environment['XDG_RUNTIME_DIR'], '/run/user/1000')
+                self.assertEqual(worker.os.environ['LD_LIBRARY_PATH'], '/frozen/private/libs')
+                self.assertIn('fixture-device', spawn.call_args.args[0])
+
     def test_bundled_setup_is_offline_and_rejects_corrupt_models(self):
         from quick_hk import dictation_setup as setup
         with tempfile.TemporaryDirectory() as directory:

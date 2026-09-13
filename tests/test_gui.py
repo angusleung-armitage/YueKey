@@ -33,6 +33,9 @@ class GuiTests(unittest.TestCase):
             from gi.repository import Gio, GLib, Gtk
         except (ImportError, ValueError) as error:
             self.skipTest(f"GTK4 is unavailable: {error}")
+        self.assertTrue(Gtk.init_check(),
+                        f"GTK could not open DISPLAY={os.environ.get('DISPLAY')}; "
+                        f"GDK_BACKEND={os.environ.get('GDK_BACKEND')}")
 
         with tempfile.TemporaryDirectory(prefix="quick-hk-gui-test-") as temporary:
             root = Path(temporary)

@@ -340,6 +340,21 @@ def self_test(report: Path, models: Path | None):
         import tkinter as tk
 
         assert ctypes.sizeof(Input) == (40 if ctypes.sizeof(ctypes.c_void_p) == 8 else 28)
+        if models:
+            from .speech_assets import ASR_BASE, download, prepare_models
+            import wave
+            prepare_models(models)
+            recognizer = Recognizer(models)
+            assert recognizer.transcribe_pcm(bytes(32000)) == ''
+            sample = models.parent / 'public-yue-test.wav'
+            download(ASR_BASE + 'test_wavs/yue-0.wav', sample,
+                     'd029018f0dcaf6bbd66f1f9c1633dc30846e809f4b698a14b70b0849cf77a266')
+            with wave.open(str(sample)) as wav:
+                assert (wav.getframerate(), wav.getnchannels(), wav.getsampwidth()) == (16000, 1, 2)
+                text = recognizer.transcribe_pcm(wav.readframes(wav.getnframes()))
+            assert '企鵝' in text, 'Public Cantonese sample did not decode correctly'
+            result['cpu_models'] = True
+            result['cantonese_fixture'] = True
         root = tk.Tk()
         root.title('YueKey isolated Windows smoke test')
         root.update()
@@ -399,7 +414,8 @@ def self_test(report: Path, models: Path | None):
             attached = foreground != current and foreground and user.AttachThreadInput(current, foreground, True)
             try:
                 user.ShowWindow(parent, 9)
-                user.SetForegroundWindow(parent)
+                result['test_activation'] = {'attached': bool(attached),
+                                             'activated': bool(user.SetForegroundWindow(parent))}
                 user.SetFocus(normal)
             finally:
                 if attached:
@@ -416,6 +432,9 @@ def self_test(report: Path, models: Path | None):
             target = backend.target()
         result['focus_diagnostic'] = backend.focus_diagnostic
         result['foreground_matches_test_window'] = user.GetForegroundWindow() == parent
+        foreground_title = ctypes.create_unicode_buffer(256)
+        user.GetWindowTextW(user.GetForegroundWindow(), foreground_title, len(foreground_title))
+        result['test_foreground_title'] = foreground_title.value
         result['snapshot_age'] = time.monotonic() - backend.snapshot[1]
         result['activity'] = backend.activity
         assert target is not None, 'UI Automation did not identify the isolated Edit control'
@@ -434,21 +453,6 @@ def self_test(report: Path, models: Path | None):
         assert backend.target() is None, 'Password control was not rejected'
         assert not backend.insert('forbidden', target), 'Stale target was not rejected'
         result['unicode_and_password_guards'] = True
-        if models:
-            from .speech_assets import ASR_BASE, download, prepare_models
-            import wave
-            prepare_models(models)
-            recognizer = Recognizer(models)
-            assert recognizer.transcribe_pcm(bytes(32000)) == ''
-            sample = models.parent / 'public-yue-test.wav'
-            download(ASR_BASE + 'test_wavs/yue-0.wav', sample,
-                     'd029018f0dcaf6bbd66f1f9c1633dc30846e809f4b698a14b70b0849cf77a266')
-            with wave.open(str(sample)) as wav:
-                assert (wav.getframerate(), wav.getnchannels(), wav.getsampwidth()) == (16000, 1, 2)
-                text = recognizer.transcribe_pcm(wav.readframes(wav.getnframes()))
-            assert '企鵝' in text, 'Public Cantonese sample did not decode correctly'
-            result['cpu_models'] = True
-            result['cantonese_fixture'] = True
         from .windows_arch import package_architecture
         result.update(ok=True, input_size=ctypes.sizeof(Input), rime_payload=True,
                       architecture=package_architecture())

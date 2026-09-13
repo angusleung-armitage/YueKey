@@ -7,7 +7,7 @@ RUN apt-get -o Acquire::ForceIPv4=true update && apt-get install -y --no-install
     libboost-filesystem-dev libboost-regex-dev libboost-system-dev \
     ibus-rime fcitx5-rime libfcitx5core-dev fcitx5-modules-dev python3 libpython3.14 python3-venv python3-pip python3-yaml python3-gi python3-pytest \
     gir1.2-gtk-4.0 gir1.2-ibus-1.0 dbus-x11 xvfb xauth \
-    fonts-noto-cjk libcangjie3-data lintian && \
+    fonts-noto-cjk libcangjie3-data lintian pipewire-bin && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /work
 RUN apt-get -o Acquire::ForceIPv4=true update && \

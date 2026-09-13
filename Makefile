@@ -14,7 +14,7 @@ native:
 prediction: data native
 	$(BUILD_DIR)/native/quick-hk-build-predict $(BUILD_DIR)/data/quick_hk.predict.db < $(BUILD_DIR)/data/quick_hk.predict.tsv
 test:
-	PYTHONPATH=src xvfb-run -a $(PYTHON) -m pytest -q
+	PYTHONPATH=src GDK_BACKEND=x11 GSK_RENDERER=cairo GTK_A11Y=none xvfb-run -a $(PYTHON) -m pytest -q
 speech:
 	$(PYTHON) tools/package_linux_speech.py
 packages: all
