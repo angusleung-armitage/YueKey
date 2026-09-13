@@ -28,13 +28,10 @@ def resources() -> Path:
 
 def rime_directory() -> Path:
     import winreg
-    try:
-        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\Rime\Weasel') as key:
-            path, _ = winreg.QueryValueEx(key, 'RimeUserDir')
-            if path:
-                return Path(os.path.expandvars(path))
-    except OSError:
-        pass
+    from .windows_weasel import registry_value, WEASEL_KEY
+    path = registry_value(winreg.HKEY_CURRENT_USER, WEASEL_KEY, 'RimeUserDir')
+    if path:
+        return Path(os.path.expandvars(path))
     return Path(os.environ['APPDATA']) / 'Rime'
 
 
@@ -125,7 +122,8 @@ def install(destination: Path, source: Path | None = None, settings: Settings | 
     source = source or resources()
     destination = destination.resolve()
     if not destination.is_dir():
-        raise ValueError('Install Weasel first, then choose its existing user folder.')
+        raise ValueError('找不到輸入資料夾，請在總覽按「設定速成」。\n'
+                         'The typing folder is missing. Choose Set up typing on Overview.')
     marker = destination / 'yuekey-install.json'
     config_path = destination / 'default.custom.yaml'
     # Use the same strict parser as Ubuntu: duplicate or ambiguous patches

@@ -17,6 +17,7 @@ from quick_hk.windows_devices import microphones, resolve_microphone, input_para
 from quick_hk.windows_state import DoubleControl, Request, Target, editable
 from quick_hk.rime_config import DeploymentError
 from quick_hk.dictation_worker import WindowsRecording
+from quick_hk import windows_weasel
 
 
 class WindowsTests(unittest.TestCase):
@@ -181,6 +182,74 @@ class WindowsTests(unittest.TestCase):
             self.assertEqual(backend.target(), target)
             backend.activity += 1
             self.assertIsNone(backend.target())
+
+    def test_existing_weasel_is_reused_without_elevation_or_download(self):
+        engine = windows_weasel.Installation(Path('installed-weasel'), '0.17.4.0')
+        with patch.object(windows_weasel, 'detect', return_value=engine), \
+                patch.object(windows_weasel, '_run_installer') as run, \
+                patch.object(windows_weasel, 'verify_installer') as verify:
+            self.assertEqual(windows_weasel.ensure_engine(), engine)
+            run.assert_not_called()
+            verify.assert_not_called()
+
+    def test_changed_bundled_installer_cannot_be_elevated(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            installer = Path(temporary) / 'weasel.exe'
+            installer.write_bytes(b'not the verified official installer')
+            with patch.object(windows_weasel, 'detect', return_value=None), \
+                    patch.object(windows_weasel, 'installer_path', return_value=installer), \
+                    patch.object(windows_weasel, '_run_installer') as run:
+                with self.assertRaisesRegex(RuntimeError, 'checksum mismatch'):
+                    windows_weasel.ensure_engine()
+                run.assert_not_called()
+
+    def test_weasel_detection_preserves_old_or_incomplete_installations(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for name in ('WeaselServer.exe', 'WeaselDeployer.exe', 'WeaselSetup.exe', 'rime.dll'):
+                (root / name).write_bytes(b'fixture')
+            with patch.dict(sys.modules, winreg=SimpleNamespace(HKEY_LOCAL_MACHINE=1)):
+                with patch.object(windows_weasel, 'registry_value', side_effect=[str(root), '0.17.4.0']):
+                    self.assertEqual(windows_weasel.detect(), windows_weasel.Installation(root, '0.17.4.0'))
+                with patch.object(windows_weasel, 'registry_value', side_effect=[str(root), '0.16.0']):
+                    with self.assertRaisesRegex(RuntimeError, 'existing Weasel'):
+                        windows_weasel.detect()
+                (root / 'rime.dll').unlink()
+                with patch.object(windows_weasel, 'registry_value', return_value=str(root)):
+                    with self.assertRaisesRegex(RuntimeError, 'needs repair'):
+                        windows_weasel.detect()
+
+    def test_automatic_setup_creates_missing_user_folder_and_reuses_backup(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            source, user = Path(temporary) / 'source', Path(temporary) / 'new-profile'
+            self.payload(source)
+            engine = windows_weasel.Installation(Path(temporary) / 'engine', '0.17.4.0')
+            with patch.object(windows_weasel, 'ensure_engine', return_value=engine), \
+                    patch('quick_hk.windows_setup.rime_directory', return_value=user), \
+                    patch('quick_hk.windows_setup.resources', return_value=source), \
+                    patch.object(windows_weasel, 'enable_current_user', return_value='registered-profile'), \
+                    patch.object(windows_weasel, 'deploy') as deploy, \
+                    patch.object(windows_weasel.subprocess, 'Popen'):
+                first = windows_weasel.configure_typing(Settings())
+                self.assertTrue(first['ok'])
+                self.assertTrue((user / 'yuekey-install.json').is_file())
+                second = windows_weasel.configure_typing(Settings(page_size=5))
+                self.assertEqual(first['backup'], second['backup'])
+                deploy.assert_called_with(engine, user)
+                self.assertEqual(uninstall(user), [])
+                self.assertFalse((user / 'default.custom.yaml').exists())
+
+    def test_deployment_must_produce_compiled_typing_data(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            engine = windows_weasel.Installation(root, '0.17.4.0')
+            with patch.object(windows_weasel.subprocess, 'run', return_value=SimpleNamespace(returncode=0)):
+                with self.assertRaisesRegex(RuntimeError, 'deployment is incomplete'):
+                    windows_weasel.deploy(engine, root)
+                (root / 'build').mkdir()
+                for name in ('quick_hk.schema.yaml', 'quick_hk.table.bin', 'quick_hk.prism.bin'):
+                    (root / 'build' / name).write_bytes(b'compiled')
+                windows_weasel.deploy(engine, root)
 
     def test_install_remove_restores_exact_config_and_preserves_learning(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -50,7 +50,7 @@ Windows distribution additions:
 
 | Input | Source | License / notice |
 |---|---|---|
-| Weasel frontend | https://github.com/rime/weasel | GPL-3.0; installed separately from its official release, not bundled in YueKey. |
+| Weasel frontend | https://github.com/rime/weasel | GPL-3.0; unmodified official 0.17.4 installer bundled as a separate prerequisite. Full license in LICENSES/GPL-3.0.txt; exact binary, upstream source and notices documented in [docs/WEASEL.md](docs/WEASEL.md). |
 | sounddevice | https://github.com/spatialaudio/python-sounddevice | MIT; includes PortAudio binaries and their notices. |
 | PortAudio | https://github.com/PortAudio/portaudio | MIT-style license; retain notices from the wheel. |
 | comtypes | https://github.com/enthought/comtypes | MIT; Windows UI Automation bindings. |

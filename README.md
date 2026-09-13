@@ -45,13 +45,13 @@ Quick codes can match several characters; frequency data and personal learning a
 
 Choose the installer for your OS and CPU. Each Linux **all-in-one DEB** includes typing, settings, GNOME/KDE integration, the CPU speech runtime and models. APT installs the required system libraries.
 
-| 系統及 CPU · OS / CPU | 下載檔案 · Download (0.5.0) |
+| 系統及 CPU · OS / CPU | 下載檔案 · Download (0.6.0) |
 | --- | --- |
-| Ubuntu / Kubuntu 26.04 · Intel / AMD 64-bit | `yuekey_0.5.0-1_amd64.deb` |
-| Ubuntu 26.04 · ARM64 / AArch64 · GNOME 50 or KDE | `yuekey_0.5.0-1_arm64.deb` |
-| Windows · Intel / AMD 64-bit | `YueKey-0.5.0-windows-x64-setup.exe` |
-| Windows · Intel / AMD 32-bit (x86) | `YueKey-0.5.0-windows-x86-setup.exe` |
-| Windows 11 · ARM64 | `YueKey-0.5.0-windows-arm64-setup.exe` |
+| Ubuntu / Kubuntu 26.04 · Intel / AMD 64-bit | `yuekey_0.6.0-1_amd64.deb` |
+| Ubuntu 26.04 · ARM64 / AArch64 · GNOME 50 or KDE | `yuekey_0.6.0-1_arm64.deb` |
+| Windows · Intel / AMD 64-bit | `YueKey-0.6.0-windows-x64-setup.exe` |
+| Windows · Intel / AMD 32-bit (x86) | `YueKey-0.6.0-windows-x86-setup.exe` |
+| Windows 11 · ARM64 | `YueKey-0.6.0-windows-arm64-setup.exe` |
 
 **[下載安裝檔及 SHA256SUMS · Download installers and checksums](https://github.com/angusleung-armitage/YueKey/releases/latest)** · [詳細架構與驗證範圍 · Architecture and test coverage](docs/ARCHITECTURES.md)
 
@@ -59,19 +59,19 @@ Linux 可執行 `dpkg --print-architecture` 選檔；Windows 到「設定 → �
 
 On Linux, use `dpkg --print-architecture`. On Windows, check **Settings → System → About → System type**. Ubuntu 26.04 has no 32-bit x86 desktop edition. Linux i386 and ARM32 installers are currently unavailable. These DEBs target 26.04; they are not universal across Ubuntu/Debian releases.
 
-語音辨識可能出錯；完整桌面及應用程式的驗證範圍見[相容性紀錄](docs/compatibility.md)。Windows 需要另行安裝 Weasel，並於首次啟用語音時下載模型。
+語音辨識可能出錯；完整桌面及應用程式的驗證範圍見[相容性紀錄](docs/compatibility.md)。Windows 安裝檔已包含小狼毫 Weasel，並會自動設定速成；首次啟用語音時才下載模型。
 
-Recognition can make mistakes. See the [compatibility record](docs/compatibility.md) for desktop/application coverage. Windows requires a separate Weasel installation and a model download when enabling speech for the first time.
+Recognition can make mistakes. See the [compatibility record](docs/compatibility.md) for desktop/application coverage. Windows setup includes Weasel and configures typing automatically. Speech models download when first enabled.
 
 <a id="get-started"></a>
 ## 開始使用 · Get started
 
 1. **下載 · Download** — 由 Releases 選擇上表對應安裝檔，核對 `SHA256SUMS`。Choose your installer above and verify its checksum.
-2. **安裝 · Install** — Windows 執行 EXE，再依 [Windows 指南](docs/WINDOWS.md) 設定 Weasel。Linux 在下載目錄執行下列指令。On Windows, run the EXE and follow the [Weasel setup guide](docs/WINDOWS.md). On Linux, run these commands in your downloads folder:
+2. **安裝 · Install** — Windows 執行 EXE；如未安裝小狼毫，允許一次管理員提示。詳見 [Windows 指南](docs/WINDOWS.md)。Linux 在下載目錄執行下列指令。On Windows, run the EXE and approve the administrator prompt if Weasel is missing. See the [Windows guide](docs/WINDOWS.md). On Linux, run these commands in your downloads folder:
 
 ```bash
 # Ubuntu / Kubuntu 26.04: chooses amd64 or arm64 automatically
-sudo apt install ./yuekey_0.5.0-1_$(dpkg --print-architecture).deb
+sudo apt install ./yuekey_0.6.0-1_$(dpkg --print-architecture).deb
 quick-hk setup
 quick-hk configure
 ```

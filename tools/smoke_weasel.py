@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
 """Exercise the Windows schema in Weasel's actual librime DLL, without installing an IME."""
 import ctypes as C
-import hashlib
 import os
 from pathlib import Path
 import shutil
 import subprocess
 import sys
 import tempfile
-import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
-URL = 'https://github.com/rime/weasel/releases/download/0.17.4/weasel-0.17.4.0-installer.exe'
-SHA256 = 'cf509534a8f5f8af9c98ed7cbb8f135439f145a8cbe7e50ede42bb5b5ab45c29'
+sys.path.insert(0, str(ROOT / 'src'))
+from quick_hk.windows_weasel import fetch_installer, installer_path
 
 
 class Traits(C.Structure):
@@ -185,9 +183,8 @@ def main():
     if len(sys.argv) in (2, 3):
         exercise(Path(sys.argv[1]), len(sys.argv) == 3 and sys.argv[2] == '--preferences')
         return
-    installer = ROOT / 'build/weasel-installer.exe'
-    urllib.request.urlretrieve(URL, installer)
-    assert hashlib.sha256(installer.read_bytes()).hexdigest() == SHA256
+    installer = installer_path()
+    fetch_installer(installer)
     extracted = ROOT / 'build/weasel-runtime'
     shutil.rmtree(extracted, ignore_errors=True)
     # NSIS stores both architectures as rime.dll. Preserve duplicates instead of

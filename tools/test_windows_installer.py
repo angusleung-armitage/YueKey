@@ -16,8 +16,10 @@ def main():
     if sys.platform != 'win32' or os.environ.get('GITHUB_ACTIONS') != 'true':
         raise SystemExit('Only run this integration test on a disposable Windows Actions runner.')
     import winreg
-    from quick_hk.windows_setup import install, uninstall
+    from quick_hk.windows_setup import uninstall
     from quick_hk.windows_arch import package_architecture
+    from quick_hk.windows_weasel import detect, verify_installer, INSTALLER_NAME
+    import hashlib
 
     key = r'Software\Microsoft\Windows\CurrentVersion\Uninstall\YueKey.Companion_is1'
     access = winreg.KEY_READ | winreg.KEY_WOW64_64KEY
@@ -34,6 +36,14 @@ def main():
     shortcut = Path(os.environ['APPDATA']) / 'Microsoft/Windows/Start Menu/Programs/YueKey/YueKey.lnk'
     startup = Path(os.environ['APPDATA']) / 'Microsoft/Windows/Start Menu/Programs/Startup/YueKey.lnk'
     assert not any(path.exists() for path in (data, rime, shortcut, startup)), 'Expected a clean disposable profile'
+    assert detect() is None, 'Do not modify an existing Weasel installation in this test'
+    # Seed real user preferences before either installer runs.
+    rime.mkdir()
+    original = b'# existing preferences\npatch: {}\n'
+    (rime / 'default.custom.yaml').write_bytes(original)
+    learned = rime / 'quick_hk.userdb' / 'keep.txt'
+    learned.parent.mkdir()
+    learned.write_bytes(b'learning sentinel')
     logs = ROOT / 'build/windows-installer'
     logs.mkdir(parents=True, exist_ok=True)
     architecture = package_architecture()
@@ -42,8 +52,23 @@ def main():
     with tempfile.TemporaryDirectory(prefix='YueKey installer ') as temporary:
         app = Path(temporary) / '粵鍵 user programs'
         for step in ('install', 'repair'):
-            subprocess.run([str(setup), *quiet, '/TASKS=startup', f'/DIR={app}', f'/LOG={logs / (step + ".log")}'],
-                           check=True, timeout=180)
+            process = subprocess.run([str(setup), *quiet, '/TASKS=startup', f'/DIR={app}', f'/LOG={logs / (step + ".log")}'],
+                                     timeout=600)
+            report = data / 'setup-report.json'
+            if report.is_file():
+                (logs / f'{step}-typing.json').write_bytes(report.read_bytes())
+                print(report.read_text(encoding='utf-8'), flush=True)
+            process.check_returncode()
+            result = json.loads(report.read_text(encoding='utf-8'))
+            assert result['ok'] and Path(result['user_directory']) == rime
+            assert result['input_profile'].startswith('0404:'), 'Fresh setup should register Traditional Chinese'
+            engine = detect()
+            assert engine and engine.version == '0.17.4.0'
+            verify_installer(app / '_internal/prerequisites' / INSTALLER_NAME)
+            assert (rime / 'build/quick_hk.table.bin').is_file(), 'Typing was not automatically deployed'
+            backup = Path(json.loads((rime / 'yuekey-install.json').read_text())['backup'])
+            assert (backup / 'default.custom.yaml').read_bytes() == original
+            assert learned.read_bytes() == b'learning sentinel'
             with installed() as registration:
                 assert winreg.QueryValueEx(registration, 'DisplayVersion')[0] == VERSION
                 assert Path(winreg.QueryValueEx(registration, 'InstallLocation')[0]) == app
@@ -54,11 +79,13 @@ def main():
                 # user alone, including typing configuration and learning.
                 (data / 'dictation/models').mkdir(parents=True)
                 (data / 'dictation/models/keep.txt').write_bytes(b'model sentinel')
-                rime.mkdir()
-                (rime / 'default.custom.yaml').write_bytes(b'# existing preferences\npatch: {}\n')
-                (rime / 'quick_hk.userdb').write_bytes(b'learning sentinel')
-                install(rime, app / '_internal/windows-data')
                 (app / 'user-notes.txt').write_bytes(b'user notes')
+                engine_hash = hashlib.sha256((engine.root / 'WeaselServer.exe').read_bytes()).hexdigest()
+                first_backup = backup
+            else:
+                assert backup == first_backup, 'Repair replaced the original preference backup'
+                assert hashlib.sha256((engine.root / 'WeaselServer.exe').read_bytes()).hexdigest() == engine_hash
+                assert 'Reusing existing Weasel installation' in (logs / 'repair.log').read_text(encoding='utf-8-sig')
 
         if architecture == 'arm64':
             # The Windows 11 hosted image can show an OS first-login account
@@ -111,10 +138,11 @@ def main():
         assert not shortcut.exists() and not startup.exists() and installed() is None
         assert (app / 'user-notes.txt').read_bytes() == b'user notes'
         assert (data / 'dictation/models/keep.txt').read_bytes() == b'model sentinel'
-        assert (rime / 'quick_hk.userdb').read_bytes() == b'learning sentinel'
+        assert learned.read_bytes() == b'learning sentinel'
+        assert detect() == engine, 'Removing YueKey must retain the shared Weasel installation'
         assert (rime / 'yuekey-install.json').is_file()
         assert uninstall(rime) == []
-        assert (rime / 'default.custom.yaml').read_bytes() == b'# existing preferences\npatch: {}\n'
+        assert (rime / 'default.custom.yaml').read_bytes() == original
         # The uninstaller removes its own executable asynchronously.
         deadline = time.monotonic() + 10
         while (app / 'unins000.exe').exists() and time.monotonic() < deadline:

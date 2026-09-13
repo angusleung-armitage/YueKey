@@ -21,9 +21,9 @@ from .windows_state import DoubleControl, Request
 class Application:
     def __init__(self, root):
         import tkinter as tk
-        from tkinter import filedialog, messagebox, ttk
+        from tkinter import messagebox
         from .windows_input import WindowsInput
-        from .windows_setup import data_directory, install, rime_directory, uninstall
+        from .windows_setup import data_directory
 
         self.root, self.messagebox = root, messagebox
         self.backend = WindowsInput()
@@ -34,76 +34,14 @@ class Application:
         self.enabled = False
         self.loading = False
         self.closed = False
+        self.busy = False
         self.models = data_directory() / 'dictation/models'
         self.status = tk.StringVar(value='準備就緒 · Ready')
         self.variables = {}
-        root.title('粵鍵 YueKey')
-        root.geometry('760x720')
-        root.minsize(740, 690)
-        frame = ttk.Frame(root, padding=20)
-        frame.pack(fill='both', expand=True)
-        ttk.Label(frame, text='粵鍵 YueKey', font=('Segoe UI', 22, 'bold')).pack(anchor='w')
-        ttk.Label(frame, text='速成輸入 · 廣東話語音 · CPU only').pack(anchor='w', pady=(0, 12))
-        book = ttk.Notebook(frame)
-        book.pack(fill='both', expand=True)
-        setup, typing, speech = [ttk.Frame(book, padding=16) for _ in range(3)]
-        for tab, title in [(setup, '安裝 · Setup'), (typing, '輸入設定 · Typing'), (speech, '語音 · Speech')]:
-            book.add(tab, text=title)
-        self.folder = tk.StringVar(value=str(rime_directory()))
-        ttk.Label(setup, text='小狼毫使用者資料夾 · Weasel user folder').pack(anchor='w')
-        ttk.Entry(setup, textvariable=self.folder).pack(fill='x', pady=6)
-        ttk.Button(setup, text='選擇資料夾 · Browse', command=lambda: self.folder.set(
-            filedialog.askdirectory() or self.folder.get())).pack(anchor='w')
-        ttk.Button(setup, text='安裝／更新速成 · Install / Update typing', command=lambda: self.action(
-            lambda: install(Path(self.folder.get()), settings=self.read_settings()),
-            '已備份並安裝。請在小狼毫選單按「重新部署」，再按 F4 選港式速成。\n'
-            'Installed with backup. Choose Weasel → Deploy, then F4 → 港式速成.')).pack(anchor='w', pady=12)
-        ttk.Button(setup, text='下載小狼毫 · Get Weasel', command=lambda: webbrowser.open(
-            'https://github.com/rime/weasel/releases/tag/0.17.4')).pack(anchor='w')
-        ttk.Button(setup, text='移除速成 · Remove typing', command=lambda: self.remove(uninstall)).pack(anchor='w', pady=12)
-        ttk.Label(setup, text='試打 hi1 → 我、zb1 → ，、zd1 → 。\nType hi1 → 我, zb1 → ，, zd1 → 。', wraplength=630).pack(anchor='w', pady=8)
-        ttk.Label(setup, text='所有學習資料及語音辨識均留在本機。\nLearning and speech recognition stay on this computer.', wraplength=630).pack(anchor='w')
-
-        def check(parent, name, label):
-            variable = tk.BooleanVar(value=getattr(self.settings, name))
-            self.variables[name] = variable
-            ttk.Checkbutton(parent, text=label, variable=variable).pack(anchor='w', pady=4)
-        def choice(parent, name, label, values):
-            row = ttk.Frame(parent)
-            row.pack(fill='x', pady=5)
-            ttk.Label(row, text=label).pack(side='left')
-            variable = tk.StringVar(value=str(getattr(self.settings, name)))
-            self.variables[name] = variable
-            combo = ttk.Combobox(row, textvariable=variable, values=values, state='readonly', width=18)
-            combo.pack(side='right')
-            return combo
-        check(typing, 'horizontal', '橫向候選字 · Horizontal candidates')
-        choice(typing, 'page_size', '每頁候選字 · Candidates per page', list(range(1, 10)))
-        choice(typing, 'font_size', '字體大小 · Font size', list(range(10, 37)))
-        choice(typing, 'theme', '主題 · Theme (light 淺色 / dark 深色)', ['light', 'dark'])
-        check(typing, 'learning', '學習選字習慣 · Learn candidate choices')
-        check(typing, 'prediction', '關聯字建議 · Word continuations')
-        check(typing, 'show_candidates', '顯示候選字 · Show candidates')
-        check(typing, 'ascii_punctuation', '英文標點 · English punctuation')
-        choice(typing, 'switch_key', '中英切換 · Language switch', ['Shift_L', 'Shift_R', 'Control_L', 'none'])
-        ttk.Button(typing, text='備份並重設學習 · Back up / Reset learning', command=self.reset_learning).pack(anchor='w', pady=8)
-        ttk.Label(typing, text='重設前請先在系統匣退出小狼毫。\nExit Weasel from its tray menu before resetting learning.').pack(anchor='w')
-        self.enable_button = ttk.Button(speech, text='啟用語音／下載模型 · Enable dictation / Get models', command=self.enable)
-        self.enable_button.pack(anchor='w', pady=8)
-        ttk.Label(speech, text='首次下載約 302 MB；之後離線使用。\nFirst use downloads about 302 MB; recognition then works offline.').pack(anchor='w')
-        choice(speech, 'dictation_key', '連按兩次 · Double-tap key', ['Control_L', 'Control_R'])
-        check(speech, 'dictation_punctuation', '自動標點 · Automatic punctuation')
-        self.microphone_value = self.settings.dictation_microphone
-        self.microphone = tk.StringVar()
-        ttk.Label(speech, text='麥克風 · Microphone').pack(anchor='w', pady=(12, 0))
-        self.microphone_combo = ttk.Combobox(speech, textvariable=self.microphone, state='readonly')
-        self.microphone_combo.pack(fill='x', pady=6)
-        self.microphone_combo.bind('<<ComboboxSelected>>', self.select_microphone)
-        ttk.Button(speech, text='重新整理麥克風 · Refresh microphones', command=self.refresh_microphones).pack(anchor='w')
+        from .windows_ui import build_window
+        build_window(self, root)
         self.refresh_microphones()
-        ttk.Label(speech, wraplength=620, text='如左 Ctrl 用作中英切換，語音會使用右 Ctrl。\nIf Left Ctrl switches language, dictation uses Right Ctrl.\n\n連按兩次 Ctrl 開始／停止；Esc 取消。\nDouble Ctrl starts/stops; Esc cancels.\n\n保持程式開啟，可縮小視窗。下次開啟會記住語音狀態。\nKeep YueKey running; minimizing is fine. Speech enablement is remembered.').pack(anchor='w', pady=12)
-        ttk.Button(frame, text='儲存並套用 · Save / Apply', command=self.apply).pack(anchor='e', pady=10)
-        ttk.Label(frame, textvariable=self.status, wraplength=690).pack(anchor='w')
+        self.refresh_readiness()
         root.protocol('WM_DELETE_WINDOW', self.close)
         # A non-activating status window: showing it must not steal the target field.
         self.overlay = tk.Toplevel(root)
@@ -119,18 +57,94 @@ class Application:
         if self.settings.dictation_enabled:
             root.after(100, self.enable)
 
-    def action(self, function, message):
-        try:
-            function()
-            self.messagebox.showinfo('YueKey', message)
-        except Exception as error:
-            self.messagebox.showerror('YueKey', str(error))
+    def set_busy(self, busy):
+        self.busy = busy
+        for button in (self.setup_button, self.apply_button):
+            button.configure(state='disabled' if busy else 'normal')
+        for control, state in self.setting_controls:
+            control.configure(state='disabled' if busy else state)
+        if busy:
+            self.progress.grid()
+            self.progress.start(15)
+        else:
+            self.progress.stop()
+            self.progress.grid_remove()
 
-    def remove(self, function):
+    def run_action(self, function, success):
+        if self.busy:
+            return
+        if self.loading:
+            self.status.set('請等待語音準備完成後再套用設定。\nWait for voice setup to finish before applying changes.')
+            return
+        self.cancel()
+        self.set_busy(True)
+        self.status.set('正在處理… · Working…')
+
         def work():
-            preserved = function(Path(self.folder.get()))
-            self.status.set('保留已修改檔案 · Preserved edits: ' + ', '.join(preserved) if preserved else '已移除；學習資料保留 · Removed; learned data retained')
-        self.action(work, '請在小狼毫選單按「重新部署」。\nChoose Weasel → Deploy to apply the change.')
+            try:
+                self.queue.put(dict(event='action-done', result=function(), callback=success))
+            except Exception as error:
+                self.queue.put(dict(event='action-error', message=str(error)))
+        threading.Thread(target=work, daemon=True).start()
+
+    def refresh_readiness(self):
+        from .windows_setup import rime_directory
+        from .windows_weasel import detect
+        try:
+            destination = rime_directory()
+            self.folder.set(str(destination))
+            engine = detect()
+            ready = engine and (destination / 'yuekey-install.json').is_file() and (
+                destination / 'build/quick_hk.table.bin').is_file()
+            self.typing_status.set('已就緒 · Ready to type' if ready else '尚待設定 · Ready to set up')
+        except Exception:
+            self.typing_status.set('需要修復 · Setup needs attention')
+        self.speech_status.set('已啟用 · Ready for dictation' if self.enabled else
+                               '準備中… · Preparing…' if self.loading else '未啟用 · Not enabled')
+
+    def setup_typing(self):
+        from .windows_weasel import configure_typing
+        settings = self.read_settings()
+
+        def work():
+            result = configure_typing(settings, lambda text: self.queue.put(dict(event='action-progress', message=text)))
+            save_settings(settings)
+            return result
+
+        def done(_):
+            self.settings = settings
+            self.gesture = DoubleControl(0xA2 if settings.effective_dictation_key == 'Control_L' else 0xA3)
+            self.refresh_readiness()
+            self.status.set('速成已就緒 · Typing is ready. Win + Space → 小狼毫 · F4 → 港式速成')
+        self.run_action(work, done)
+
+    def open_folder(self):
+        folder = Path(self.folder.get())
+        if folder.is_dir():
+            os.startfile(folder)
+        else:
+            self.status.set('請先在總覽設定速成。\nChoose Set up typing on Overview first.')
+
+    def open_guide(self):
+        webbrowser.open('https://github.com/angusleung-armitage/YueKey/blob/main/docs/WINDOWS.md')
+
+    def remove_typing(self):
+        from .windows_setup import uninstall
+        from .windows_weasel import detect, deploy
+        destination = Path(self.folder.get())
+
+        def work():
+            preserved = uninstall(destination)
+            engine = detect()
+            if engine:
+                deploy(engine, destination, require_yuekey=False)
+            return preserved
+
+        def done(preserved):
+            self.refresh_readiness()
+            self.status.set('保留已修改檔案 · Preserved edits: ' + ', '.join(preserved) if preserved
+                            else '速成方案已移除；學習資料保留。\nTyping removed; learned words retained.')
+        self.run_action(work, done)
 
     def read_settings(self):
         values = asdict(self.settings)
@@ -138,7 +152,7 @@ class Application:
         for key in ('page_size', 'font_size'):
             values[key] = int(values[key])
         values['dictation_microphone'] = self.microphone_value
-        values['dictation_enabled'] = self.enabled
+        values['dictation_enabled'] = self.enabled or (self.loading and self.settings.dictation_enabled)
         return Settings(**values)
 
     def select_microphone(self, _=None):
@@ -156,23 +170,32 @@ class Application:
         self.microphone_combo.current(next(index for index, (value, _) in enumerate(self.devices) if value == self.microphone_value))
 
     def apply(self):
+        from .windows_setup import apply_settings
+        from .windows_weasel import detect, deploy
+        settings = self.read_settings()
+        destination = Path(self.folder.get())
+
         def work():
-            from .windows_setup import apply_settings
-            settings = self.read_settings()
-            self.cancel()
-            apply_settings(Path(self.folder.get()), settings)
+            engine = detect()
+            if engine and (destination / 'yuekey-install.json').is_file():
+                apply_settings(destination, settings)
+                deploy(engine, destination)
             save_settings(settings)
+
+        def done(_):
             self.settings = settings
             self.gesture = DoubleControl(0xA2 if settings.effective_dictation_key == 'Control_L' else 0xA3)
-        self.action(work, '設定已儲存。請在小狼毫選單按「重新部署」。\nSettings saved. Choose Weasel → Deploy to apply typing changes.')
+            self.refresh_readiness()
+            self.status.set('設定已儲存並套用 · Your changes are saved.')
+        self.run_action(work, done)
 
     def reset_learning(self):
-        def work():
-            from .windows_setup import reset_learning
-            self.cancel()
-            backup = reset_learning(Path(self.folder.get()))
+        from .windows_setup import reset_learning
+        destination = Path(self.folder.get())
+
+        def done(backup):
             self.status.set('學習備份 · Learning backup: ' + str(backup) if backup else '沒有學習資料 · No learned data')
-        self.action(work, '重設完成；原有學習資料已備份。請重新開啟小狼毫。\nReset complete; existing learning was backed up. Start Weasel again.')
+        self.run_action(lambda: reset_learning(destination), done)
 
     def persist_enabled(self, value):
         settings = replace(self.settings, dictation_enabled=value)
@@ -180,11 +203,14 @@ class Application:
         self.settings = settings
 
     def enable(self):
+        if self.busy:
+            return
         if self.enabled:
             self.enabled = False
             self.cancel()
             self.enable_button.configure(text='啟用語音 · Enable dictation')
             self.status.set('語音已停用 · Dictation disabled')
+            self.refresh_readiness()
             try:
                 self.persist_enabled(False)
             except (OSError, ValueError) as error:
@@ -196,6 +222,7 @@ class Application:
             self.activate()
             return
         self.loading = True
+        self.refresh_readiness()
         self.enable_button.configure(state='disabled')
         self.status.set('準備語音模型 · Preparing speech models…')
 
@@ -219,11 +246,13 @@ class Application:
             self.loading = False
             self.enable_button.configure(state="normal")
             self.status.set(str(error))
+            self.refresh_readiness()
             return
         self.enabled = True
         self.loading = False
         self.enable_button.configure(state='normal', text='停用語音 · Disable dictation')
         self.status.set('語音已啟用 · Dictation ready · CPU')
+        self.refresh_readiness()
 
     def show(self, text):
         self.status.set(text)
@@ -236,7 +265,7 @@ class Application:
         self.backend.user.ShowWindow(self.overlay_id, 0)
 
     def toggle(self):
-        if not self.enabled or self.backend.modifiers_down():
+        if self.busy or not self.enabled or self.backend.modifiers_down():
             return
         if self.request:
             if self.request.state == 'recording':
@@ -283,8 +312,18 @@ class Application:
             while True:
                 message = self.queue.get_nowait()
                 kind = message['event']
-                if kind == 'setup':
+                if kind == 'action-progress':
                     self.status.set(message['message'])
+                elif kind == 'action-done':
+                    self.set_busy(False)
+                    message['callback'](message['result'])
+                elif kind == 'action-error':
+                    self.set_busy(False)
+                    self.refresh_readiness()
+                    self.status.set('未能完成，請查看詳情後重試。\nCould not complete setup. Review the details and retry.')
+                    self.messagebox.showerror('粵鍵 YueKey', message['message'])
+                elif kind == 'setup':
+                    self.status.set('下載及驗證語音模型中… · Downloading and verifying voice models…')
                 elif kind == 'ready':
                     self.recognizer = message['recognizer']
                     self.activate()
@@ -292,6 +331,7 @@ class Application:
                     self.loading = False
                     self.enable_button.configure(state='normal')
                     self.status.set('設定失敗 · Setup failed: ' + message['message'])
+                    self.refresh_readiness()
                 elif self.request and message.get('id') == self.request.identifier:
                     if kind == 'finishing':
                         self.request.state = 'finishing'
@@ -319,6 +359,9 @@ class Application:
         self.root.after(50, self.tick)
 
     def close(self):
+        if self.busy:
+            self.status.set('請等待設定完成後關閉。\nPlease wait for setup to finish before closing YueKey.')
+            return
         self.closed = True
         self.cancel()
         self.backend.close()
@@ -364,6 +407,27 @@ def self_test(report: Path, models: Path | None):
         assert root.winfo_height() >= root.winfo_reqheight(), 'Setup controls do not fit in the window'
         assert root.winfo_width() >= root.winfo_reqwidth(), 'Setup controls exceed the window width'
         assert set(asdict(Settings())) == set(app.variables) | {'dictation_enabled', 'dictation_microphone'}
+        # Exercise every page at the default and minimum window sizes. Capture
+        # only this owned window on the disposable CI desktop for visual review.
+        result['pages'] = []
+        for geometry in ('1000x760', '860x620'):
+            root.geometry(geometry)
+            for page, button in app.navigation.items():
+                button.invoke()
+                root.after(150, root.quit)
+                root.mainloop()
+                assert app.active_page == page and app.pages[page].winfo_ismapped()
+                assert app.apply_button.winfo_rootx() + app.apply_button.winfo_width() <= root.winfo_rootx() + root.winfo_width()
+                assert app.apply_button.winfo_rooty() + app.apply_button.winfo_height() <= root.winfo_rooty() + root.winfo_height()
+                if os.environ.get('GITHUB_ACTIONS') == 'true':
+                    from .windows_visual import capture_window
+                    hwnd = backend.user.GetParent(root.winfo_id()) or root.winfo_id()
+                    capture_window(hwnd, report.parent / f'ui-{page}-{geometry}.png')
+                result['pages'].append(f'{page}-{geometry}')
+        app.set_busy(True)
+        assert str(app.apply_button['state']) == str(app.setup_button['state']) == 'disabled'
+        app.set_busy(False)
+        assert str(app.apply_button['state']) == str(app.setup_button['state']) == 'normal'
         original = app.read_settings()
         app.variables['switch_key'].set('Control_L')
         app.variables['page_size'].set('5')
@@ -527,11 +591,24 @@ def main():
     parser.add_argument('--self-test', type=Path, metavar='REPORT')
     parser.add_argument('--models', type=Path)
     parser.add_argument('--background', action='store_true', help='Start minimized for login startup')
+    parser.add_argument('--setup-typing', action='store_true', help='Configure typing after prerequisite installation')
+    parser.add_argument('--setup-report', type=Path, help='Write installation result as JSON')
     args = parser.parse_args()
     if args.self_test:
         return self_test(args.self_test, args.models)
     if sys.platform != 'win32':
         raise SystemExit('Use quick-hk on Ubuntu. This companion is for Windows.')
+    if args.setup_typing:
+        from .windows_setup import data_directory
+        from .windows_weasel import configure_typing
+        report = args.setup_report or data_directory() / 'setup-report.json'
+        try:
+            result = configure_typing(install_missing=False)
+        except Exception as error:
+            result = dict(ok=False, error=str(error))
+        report.parent.mkdir(parents=True, exist_ok=True)
+        report.write_text(json.dumps(result, indent=2), encoding='utf-8')
+        return 0 if result['ok'] else 1
     import ctypes
     from ctypes import wintypes
     import tkinter as tk

@@ -1,17 +1,17 @@
 ﻿粵鍵 YueKey — 速成輸入及廣東話語音
 Cantonese Quick input and local dictation
 
-這個安裝程式會為目前使用者安裝粵鍵，並加入開始功能表及解除安裝項目。無需系統管理員權限。
-This setup installs YueKey for the current user, with a Start Menu shortcut and an uninstaller. Administrator rights are not required.
+一次安裝，即可使用速成。此安裝檔已包含官方小狼毫 0.17.4；如尚未安裝，Windows 會要求管理員權限。已安裝的相容版本會沿用。粵鍵本身為每使用者安裝，並加入開始功能表及解除安裝項目。
+One setup prepares Cantonese Quick typing. Official Weasel 0.17.4 is included; Windows requests administrator approval if the engine is missing. Compatible existing installations are reused. YueKey itself installs for the current user with a Start Menu shortcut and an uninstaller.
 
-速成輸入需要另行安裝官方小狼毫 Weasel 0.17.4。安裝完成後，開啟粵鍵，按「安裝／更新速成」，再於小狼毫選單按「重新部署」。
-Typing requires official Weasel 0.17.4, installed separately. After setup, open YueKey, click Install / Update typing, then choose Deploy in the Weasel menu.
+安裝程式會備份原有設定，保留其他輸入方案及學習資料，然後自動部署速成。完成後按 Win + Space 選小狼毫，在文字欄按 F4 選「港式速成」。
+Setup backs up existing preferences, preserves other typing schemes and learned words, then deploys Cantonese Quick automatically. Select Weasel with Win + Space, then choose 港式速成 with F4 in a text field.
 
-語音輸入為選配，使用 SenseVoice Small Yue INT8，完全以 CPU 執行。首次啟用會下載約 302 MB 模型。之後可離線使用。
-Optional dictation uses SenseVoice Small Yue INT8 on the CPU. Enabling it for the first time downloads about 302 MB of models; recognition then works offline.
+語音為選配，使用純 CPU 的 SenseVoice Small Yue INT8。首次啟用下載約 302 MB 模型，之後可離線辨識。
+Optional dictation uses SenseVoice Small Yue INT8 on the CPU. First enable downloads about 302 MB of models; recognition then works offline.
 
-升級或解除安裝前，請先關閉粵鍵。解除安裝程式會保留小狼毫設定、學習資料、備份及語音模型。如要移除速成方案，請先在粵鍵按「移除」並重新部署小狼毫。
-Close YueKey before upgrading or uninstalling. Uninstalling the app retains Weasel settings, learning, backups and speech models. To remove the typing scheme, use Remove in YueKey and redeploy Weasel first.
+升級或解除安裝前，請先關閉粵鍵。解除安裝會保留共用小狼毫引擎、設定、學習資料、備份及模型。如要移除速成方案，先在粵鍵「進階」按「移除速成方案」。
+Close YueKey before upgrading or uninstalling. Uninstall preserves the shared Weasel engine, preferences, learning, backups and models. To remove the Quick scheme, first choose Advanced → Remove YueKey typing.
 
-原創程式採 MIT 授權；字典及第三方元件保留原有授權，詳見隨附的 LICENSE 及 THIRD_PARTY.md。
-Original code is MIT-licensed. Dictionaries and third-party components retain their own licenses; see the included LICENSE and THIRD_PARTY.md.
+粵鍵原創程式及介面採 MIT 授權。小狼毫採 GPL-3.0，其他元件保留各自授權。詳見隨附 LICENSE、THIRD_PARTY.md 及 docs/WEASEL.md；小狼毫對應原始碼：https://github.com/rime/weasel/tree/0.17.4
+Original YueKey code and interface are MIT-licensed. Weasel is GPL-3.0; other components retain their licenses. See the included LICENSE, THIRD_PARTY.md and docs/WEASEL.md. Weasel corresponding source: https://github.com/rime/weasel/tree/0.17.4

@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 VERSION = (ROOT / 'VERSION').read_text().strip()
 sys.path.insert(0, str(ROOT / 'src'))
 from quick_hk.windows_arch import package_architecture
+from quick_hk.windows_weasel import INSTALLER_NAME, INSTALLER_SHA256, fetch_installer, installer_path
 
 
 def build():
@@ -21,12 +22,17 @@ def build():
         Path(os.environ.get('ProgramFiles(x86)', r'C:\Program Files (x86)')) / 'Inno Setup 6/ISCC.exe')
     if not Path(compiler).is_file():
         raise SystemExit('Install Inno Setup 6.7+ from https://jrsoftware.org/isdl.php and add ISCC.exe to PATH.')
+    prerequisite = installer_path()
+    fetch_installer(prerequisite)
     subprocess.run([
         sys.executable, '-m', 'PyInstaller', '--noconfirm', '--clean', '--windowed',
         '--name', 'YueKey', '--paths', str(ROOT / 'src'),
+        '--icon', str(ROOT / 'desktop/windows/assets/yuekey.ico'),
         '--distpath', str(ROOT / 'build/windows-dist'), '--workpath', str(ROOT / 'build/pyinstaller'),
         '--specpath', str(ROOT / 'build'),
         '--add-data', f'{ROOT / "build/windows-data"}:windows-data',
+        '--add-data', f'{prerequisite}:prerequisites',
+        '--add-data', f'{ROOT / "desktop/windows/assets"}:windows-assets',
         '--collect-all', 'sherpa_onnx', '--collect-all', 'opencc',
         '--collect-all', 'comtypes', '--collect-all', 'sounddevice',
         str(ROOT / 'desktop/windows/yuekey.py'),
@@ -61,6 +67,7 @@ def build():
     shutil.make_archive(str(ROOT / 'dist' / f'YueKey-{VERSION}-windows-{architecture}'), 'zip', bundle.parent, bundle.name)
     subprocess.run([
         compiler, '/Qp', f'/DAppVersion={VERSION}', f'/DRepoRoot={ROOT}', f'/DAppArch={architecture}',
+        f'/DWeaselName={INSTALLER_NAME}', f'/DWeaselSHA256={INSTALLER_SHA256}',
         str(ROOT / 'desktop/windows/yuekey.iss'),
     ], check=True)
 

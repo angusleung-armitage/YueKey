@@ -12,9 +12,9 @@ An all-in-one DEB contains every YueKey component, but native binaries require a
 | Windows x86 / 32-bit | `YueKey-*-windows-x86-setup.exe` / ZIP | 32-bit Python and executable on the x64 Windows runner; 28-byte Win32 INPUT, x86 Weasel runtime |
 | Windows 11 ARM64 | `YueKey-*-windows-arm64-setup.exe` / ZIP | Native Windows 11 ARM runner and companion; official Weasel's x64 Rime server through Windows emulation |
 
-Windows checks cover installer repair/removal, real Unicode insertion into an isolated text field, password/focus guards, settings, learning locks and public Cantonese audio. They never record a microphone. The x86 executable is tested on 64-bit Windows through WOW64; a complete 32-bit Windows 10 installation has not been tested. Linux tests exercise both input frameworks, but do not replace hands-on GNOME/KDE Wayland and microphone testing on each device.
+Windows checks cover fresh installation of the bundled Weasel engine, automatic profile deployment, engine reuse on repair, four-page UI navigation at two window sizes, installer removal, real Unicode insertion into an isolated text field, password/focus guards, settings, learning locks and public Cantonese audio. They never record a microphone. The x86 executable is tested on 64-bit Windows through WOW64; a complete 32-bit Windows 10 installation has not been tested. Linux tests exercise both input frameworks, but do not replace hands-on GNOME/KDE Wayland and microphone testing on each device.
 
-Windows 測試包括安裝／修復／移除、真實文字欄輸入、密碼及焦點保護、設定、學習資料鎖定及公開廣東話錄音。測試不會收音。x86 程式在 64-bit Windows 的 WOW64 驗證，尚未於完整 32-bit Windows 10 實機驗證。Linux 兩種輸入框架均有測試；完整 Wayland 桌面及不同硬件麥克風仍需實機驗證。
+Windows 測試包括內置小狼毫引擎全新安裝、自動部署、修復時沿用引擎、四頁介面於兩種視窗大小的導覽、移除、真實文字欄輸入、密碼及焦點保護、設定、學習資料鎖定及公開廣東話錄音。測試不會收音。x86 程式在 64-bit Windows 的 WOW64 驗證，尚未於完整 32-bit Windows 10 實機驗證。Linux 兩種輸入框架均有測試；完整 Wayland 桌面及不同硬件麥克風仍需實機驗證。
 
 ## 選擇下載檔案 · Choose a download
 
