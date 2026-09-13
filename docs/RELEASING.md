@@ -1,8 +1,8 @@
 # 發行 · Releasing YueKey
 
-`main` 的 push 及 pull request 會建置、測試 Ubuntu 套件，再產生 Windows ZIP。開發產物存於 GitHub Actions，版本標籤通過所有檢查後才會建立 GitHub Release。
+`main` 的 push 及 pull request 會平行建置、測試 Ubuntu 套件及 Windows ZIP。Windows 會先等候共用字典驗證完成。開發產物存於 GitHub Actions，版本標籤通過所有檢查後才會建立 GitHub Release。
 
-Pushes to `main` and pull requests build/test Ubuntu packages, then the Windows ZIP. Development artifacts are available in GitHub Actions. A version tag publishes a GitHub Release only after both platform jobs pass.
+Pushes to `main` and pull requests build/test Ubuntu packages and the Windows ZIP in parallel. Windows waits for the verified shared dictionary. Development artifacts are available in GitHub Actions. A version tag publishes a GitHub Release only after both platform jobs pass.
 
 1. Update `VERSION`, `pyproject.toml`, `src/quick_hk/__init__.py`, `CMakeLists.txt`, the schema/data version and installation examples together. Update `docs/RELEASE.md` with the actual release scope.
 2. Run the workflow on `main` and check every job. Do not claim Windows desktop/manual microphone checks were run unless recorded.

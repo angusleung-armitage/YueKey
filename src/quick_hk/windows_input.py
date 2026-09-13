@@ -41,6 +41,7 @@ class WindowsInput:
     def __init__(self):
         import comtypes.client  # import on the UI thread; create UIA objects in the MTA worker
         self.automation = None
+        self.focus_diagnostic = 'not checked'
         self.user = C.WinDLL('user32', use_last_error=True)
         self.kernel = C.WinDLL('kernel32', use_last_error=True)
         self.user.GetForegroundWindow.restype = W.HWND
@@ -156,12 +157,17 @@ class WindowsInput:
             generation = self.activity
             window = self.user.GetForegroundWindow()
             element = self.automation.GetFocusedElement()
-            if not window or not element or not editable(
+            if not window or not element:
+                self.focus_diagnostic = 'no foreground window or focused element'
+                return None
+            properties = dict(
                 control_type=element.GetCurrentPropertyValueEx(30003, True),
                 password=element.GetCurrentPropertyValueEx(30019, True),
                 focused=element.GetCurrentPropertyValueEx(30008, True),
                 enabled=element.GetCurrentPropertyValueEx(30010, True),
-            ):
+            )
+            self.focus_diagnostic = {key: f'{type(value).__name__}: {value}' for key, value in properties.items()}
+            if not editable(**properties):
                 return None
             # A focused provider can belong to a renderer process different
             # from the foreground window's process (for example a browser).
@@ -172,7 +178,8 @@ class WindowsInput:
             if not identifier or self.activity != generation:
                 return None
             return Target(int(window), process, identifier, generation)
-        except Exception:
+        except Exception as error:
+            self.focus_diagnostic = type(error).__name__ + ': ' + str(error)
             return None
 
     def target(self) -> Target | None:

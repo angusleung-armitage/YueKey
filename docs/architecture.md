@@ -86,3 +86,35 @@ checks password/private hints from both GNOME's input method and its IBus panel
 signals, including direct IBus clients. Unknown content types block dictation.
 Integration with individual applications still requires validation, especially direct IBus and
 XWayland clients with limited focus metadata.
+
+## Windows companion and release builds
+
+The Windows package uses Weasel for TSF input. `prepare_windows_data.py` consumes
+exactly the same generated character dictionary as Ubuntu and removes components
+that require Ubuntu native modules. Rime still owns candidate selection and local
+learning. Continuation prediction remains Ubuntu-only in this version.
+
+`windows_setup.py` adds the scheme to the existing Weasel configuration, backs up
+changed files and records their installed hashes. Removal restores only unchanged
+managed files and preserves learned dictionaries and later user edits.
+
+`windows_app.py` provides the bilingual setup window and optional speech controls.
+It shares `Recognizer`, the pinned models and VAD/decode path with Ubuntu.
+`WindowsRecording` captures 16 kHz mono PCM through PortAudio using the system's
+default microphone. Model loading and decoding run off the GUI thread.
+
+`windows_input.py` uses low-level Ctrl hooks plus mouse and focus events to track
+cancellation, without retaining typed characters. UI Automation queries run in a
+separate MTA thread; unknown/password controls and stale snapshots are rejected.
+A request binds the foreground window, provider process, runtime control ID and
+activity generation. A matching result is consumed once and inserted as one
+Unicode SendInput batch. There is no clipboard fallback or automatic retry after
+a partial insertion. This Windows companion is independent of the active IME;
+users must finish any pending IME composition before dictating.
+
+GitHub Actions builds the Windows executable on Windows and Ubuntu packages in an
+Ubuntu 26.04 container. Tests cover actual Weasel DLL typing, focus/password
+checks, packaged CPU model initialization, both Linux frontends and the Rime
+D-Bus bridge. Tag releases require all jobs to pass and publish a complete set of
+packages, corresponding dictionary source, license notices and SHA-256 checksums.
+The original project code is MIT; third-party data/code keep their own terms.

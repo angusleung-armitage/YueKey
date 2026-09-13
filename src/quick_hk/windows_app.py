@@ -234,17 +234,18 @@ class Application:
 
 def self_test(report: Path, models: Path | None):
     """Opt-in disposable-runner checks; no microphone is opened."""
-    from .windows_input import WindowsInput, Input
-    from .dictation_worker import Recognizer
-    import ctypes
-    import comtypes.client
-    import sounddevice
-    import sherpa_onnx
-    import tkinter as tk
-
     result = {'ok': False}
     root = backend = None
+    parent = None
     try:
+        from .windows_input import WindowsInput, Input
+        from .dictation_worker import Recognizer
+        import ctypes
+        import comtypes.client
+        import sounddevice
+        import sherpa_onnx
+        import tkinter as tk
+
         assert ctypes.sizeof(Input) == 40
         root = tk.Tk()
         root.title('YueKey isolated Windows smoke test')
@@ -261,10 +262,14 @@ def self_test(report: Path, models: Path | None):
         user.CreateWindowExW.restype = W.HWND
         user.SetFocus.argtypes = [W.HWND]
         user.SetFocus.restype = W.HWND
+        user.SetForegroundWindow.argtypes = [W.HWND]
+        user.DestroyWindow.argtypes = [W.HWND]
         user.GetWindowTextW.argtypes = [W.HWND, W.LPWSTR, ctypes.c_int]
-        root.geometry('450x200')
+        root.withdraw()
         root.update()
-        parent = user.GetParent(root.winfo_id()) or root.winfo_id()
+        parent = user.CreateWindowExW(0, 'STATIC', 'YueKey isolated test', 0x10CF0000,
+                                      100, 100, 450, 220, None, None, None, None)
+        assert parent, 'Could not create isolated Win32 window'
         normal = user.CreateWindowExW(0, 'EDIT', '', 0x50000080, 20, 40, 360, 30, parent, None, None, None)
         password = user.CreateWindowExW(0, 'EDIT', '', 0x500000A0, 20, 90, 360, 30, parent, None, None, None)
         assert normal and password, 'Could not create isolated Edit controls'
@@ -274,10 +279,12 @@ def self_test(report: Path, models: Path | None):
                 root.update()
                 time.sleep(0.025)
 
-        root.focus_force()
+        user.SetForegroundWindow(parent)
         user.SetFocus(normal)
         settle()
         target = backend.target()
+        result['focus_diagnostic'] = backend.focus_diagnostic
+        result['foreground_matches_test_window'] = user.GetForegroundWindow() == parent
         assert target is not None, 'UI Automation did not identify the isolated Edit control'
         assert backend.insert('我，𨋢', target), 'Unicode SendInput failed'
         settle()
@@ -290,19 +297,31 @@ def self_test(report: Path, models: Path | None):
         assert not backend.insert('forbidden', target), 'Stale target was not rejected'
         result['unicode_and_password_guards'] = True
         if models:
-            from .speech_assets import prepare_models
+            from .speech_assets import ASR_BASE, download, prepare_models
+            import wave
             prepare_models(models)
             recognizer = Recognizer(models)
             assert recognizer.transcribe_pcm(bytes(32000)) == ''
+            sample = models.parent / 'public-yue-test.wav'
+            download(ASR_BASE + 'test_wavs/yue-0.wav', sample,
+                     'd029018f0dcaf6bbd66f1f9c1633dc30846e809f4b698a14b70b0849cf77a266')
+            with wave.open(str(sample)) as wav:
+                assert (wav.getframerate(), wav.getnchannels(), wav.getsampwidth()) == (16000, 1, 2)
+                text = recognizer.transcribe_pcm(wav.readframes(wav.getnframes()))
+            assert '企鵝' in text, 'Public Cantonese sample did not decode correctly'
             result['cpu_models'] = True
+            result['cantonese_fixture'] = True
         result.update(ok=True, input_size=ctypes.sizeof(Input), rime_payload=True)
         from .windows_setup import resources, FILES
         assert all((resources() / name).is_file() for name in FILES)
     except Exception as error:
-        result.update(ok=False, error=str(error))
+        import traceback
+        result.update(ok=False, error=str(error), traceback=traceback.format_exc())
     finally:
         if backend:
             backend.close()
+        if parent:
+            user.DestroyWindow(parent)
         if root:
             root.destroy()
         report.write_text(json.dumps(result, indent=2), encoding='utf-8')

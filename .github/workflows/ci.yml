@@ -15,6 +15,26 @@ concurrency:
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 jobs:
+  typing-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Prepare verified cross-platform typing data
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-yaml
+          /usr/bin/python3 tools/fetch_sources.py
+          /usr/bin/python3 tools/build_data.py
+          /usr/bin/python3 tools/prepare_windows_data.py
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: windows-data
+          path: build/windows-data/
+          if-no-files-found: error
+
   ubuntu:
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -44,16 +64,8 @@ jobs:
         run: >-
           docker run --rm --init --network host -v "$PWD:/work:ro"
           quick-hk-dev:26.04 python3 tools/test_packages.py --with-desktops
-      - name: Prepare shared Windows data and corresponding source
-        run: |
-          docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/work" quick-hk-dev:26.04 python3 tools/prepare_windows_data.py
-          python3 tools/package_source.py
-      - name: Share verified typing data
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: windows-data
-          path: build/windows-data/
-          if-no-files-found: error
+      - name: Package corresponding source
+        run: python3 tools/package_source.py
       - name: Keep development packages
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -65,7 +77,7 @@ jobs:
           retention-days: 14
 
   windows:
-    needs: ubuntu
+    needs: typing-data
     runs-on: windows-2025
     timeout-minutes: 30
     env:
@@ -98,7 +110,10 @@ jobs:
           python-version: '3.12'
           architecture: x86
       - name: Test typing in the official Weasel runtime
-        run: '& "${{ steps.python32.outputs.python-path }}" tools/smoke_weasel.py'
+        run: |
+          & "${{ steps.python32.outputs.python-path }}" tools/smoke_weasel.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & "${{ steps.python64.outputs.python-path }}" tools/smoke_weasel.py
       - name: Package portable application
         run: '& "${{ steps.python64.outputs.python-path }}" tools/package_windows.py'
       - name: Exercise packaged runtime and CPU models without a microphone

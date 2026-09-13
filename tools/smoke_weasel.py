@@ -98,15 +98,18 @@ def main():
     urllib.request.urlretrieve(URL, installer)
     assert hashlib.sha256(installer.read_bytes()).hexdigest() == SHA256
     extracted = ROOT / 'build/weasel-runtime'
-    subprocess.run(['7z', 'x', str(installer), f'-o{extracted}', '-y'], check=True, stdout=subprocess.DEVNULL)
-    for file in extracted.rglob('rime.dll'):
+    shutil.rmtree(extracted, ignore_errors=True)
+    # NSIS stores both architectures as rime.dll. Preserve duplicates instead of
+    # letting the second payload overwrite the first during archive extraction.
+    subprocess.run(['7z', 'x', str(installer), f'-o{extracted}', '-aou', '-y'], check=True, stdout=subprocess.DEVNULL)
+    for file in extracted.rglob('rime*.dll'):
         data = file.read_bytes()
         pe = int.from_bytes(data[0x3c:0x40], 'little')
         machine = 0x8664 if C.sizeof(C.c_void_p) == 8 else 0x14c
         if int.from_bytes(data[pe + 4:pe + 6], 'little') == machine:
             exercise(file)
             return
-    raise RuntimeError('No rime.dll matches this Python architecture; Weasel uses a 32-bit server')
+    raise RuntimeError('No rime.dll matches this Python architecture')
 
 
 if __name__ == '__main__':
