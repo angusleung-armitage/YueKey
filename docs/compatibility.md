@@ -170,3 +170,12 @@ Setup, repair, optional login startup, running-app protection and uninstall
 preservation also passed. The release workflow repeats these checks and adds a
 second real-Rime run with changed page size, candidate visibility, learning,
 prediction, punctuation and language-switch preferences.
+
+
+## YueKey 0.4.1 microphone compatibility
+
+WASAPI streams now request Windows shared-mode sample-rate conversion when
+capturing mono 16 kHz audio. This supports system mixers configured at 44.1/48 kHz
+without requesting exclusive access. MME and other backends keep their normal
+stream settings. A regression check covers backend selection and conversion
+parameters; real microphone hardware checks remain necessary.

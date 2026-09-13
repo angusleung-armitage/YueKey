@@ -13,7 +13,7 @@ from unittest.mock import patch
 import yaml
 from quick_hk.windows_setup import FILES, install, uninstall, apply_settings, learning_lock, reset_learning
 from quick_hk.settings import Settings, load_settings, save_settings, settings_path
-from quick_hk.windows_devices import microphones, resolve_microphone
+from quick_hk.windows_devices import microphones, resolve_microphone, input_parameters
 from quick_hk.windows_state import DoubleControl, Request, Target, editable
 from quick_hk.rime_config import DeploymentError
 from quick_hk.dictation_worker import WindowsRecording
@@ -89,6 +89,16 @@ class WindowsTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'missing'):
             resolve_microphone(value, sd)
         self.assertIsNone(resolve_microphone('default', sd))
+
+    def test_wasapi_capture_converts_system_rate_without_exclusive_access(self):
+        host = {'name': 'Windows WASAPI'}
+        sd = SimpleNamespace(query_devices=lambda *_: {'hostapi': 0, 'default_samplerate': 48000},
+                             query_hostapis=lambda: [host],
+                             WasapiSettings=lambda **values: values)
+        options = input_parameters('default', sd)
+        self.assertEqual(options, {'device': None, 'extra_settings': {'auto_convert': True}})
+        host['name'] = 'MME'
+        self.assertEqual(input_parameters('default', sd), {'device': None})
 
     @unittest.skipUnless(sys.platform == 'win32', 'Requires actual Windows file locking')
     def test_learning_reset_refuses_live_database_and_preserves_backup(self):
@@ -262,7 +272,9 @@ class WindowsTests(unittest.TestCase):
                 stream = Stream()
                 recognizer = SimpleNamespace(vad=SimpleNamespace(reset=lambda: None))
                 events = []
-                with patch.dict('sys.modules', {'sounddevice': SimpleNamespace(RawInputStream=lambda **_: stream)}):
+                with patch.dict('sys.modules', {'sounddevice': SimpleNamespace(
+                        RawInputStream=lambda **_: stream, query_devices=lambda *_: {'hostapi': 0},
+                        query_hostapis=lambda: [{'name': 'MME'}])}):
                     recording = WindowsRecording(recognizer, {'id': 'request'}, events.append)
                     self.assertTrue(reading.wait(1))
                     recording.stop()

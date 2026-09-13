@@ -361,6 +361,8 @@ def self_test(report: Path, models: Path | None):
         assert backend.thread.is_alive()
         assert backend.automation is not None
         assert sounddevice.get_portaudio_version()
+        assert sounddevice.WasapiSettings(auto_convert=True)
+        result['wasapi_conversion_available'] = True
         from ctypes import wintypes as W
         user = backend.user
         user.CreateWindowExW.argtypes = [W.DWORD, W.LPCWSTR, W.LPCWSTR, W.DWORD,

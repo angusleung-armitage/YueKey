@@ -211,10 +211,10 @@ class WindowsRecording(Recording):
         self.stream_lock = threading.Lock()
         self.frames = queue.Queue(maxsize=4096)
         device = request.get('microphone', 'default')
-        from .windows_devices import resolve_microphone
+        from .windows_devices import input_parameters
         self.stream = sd.RawInputStream(
             samplerate=RATE, channels=1, dtype='int16', blocksize=WINDOW,
-            device=resolve_microphone(device, sd),
+            **input_parameters(device, sd),
         )
         try:
             self.stream.start()

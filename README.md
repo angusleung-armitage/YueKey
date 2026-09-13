@@ -41,16 +41,16 @@ Quick codes can match several characters; frequency data and personal learning a
 | Kubuntu 26.04 amd64 · KDE · Fcitx5 | ✓ | ✓ · 選配／Optional |
 | Windows 11 x64 · Weasel 0.17.4 | ✓ · 包括關聯字／Including continuations | ✓ · 選配／Optional |
 
-目前為 **0.4.0 開發版本**。語音辨識、專有名詞及中英夾雜內容可能出錯；其他系統版本及個別應用程式仍需驗證。詳見[相容性紀錄](docs/compatibility.md)及[語音測試紀錄](docs/dictation-validation.md)。
+目前為 **0.4.1 開發版本**。語音辨識、專有名詞及中英夾雜內容可能出錯；其他系統版本及個別應用程式仍需驗證。詳見[相容性紀錄](docs/compatibility.md)及[語音測試紀錄](docs/dictation-validation.md)。
 
-This is the **0.4.0 development release**. Recognition may make mistakes, especially with names and mixed Cantonese/English speech. Other OS versions and individual applications need further validation. See the [compatibility record](docs/compatibility.md) and [dictation validation](docs/dictation-validation.md).
+This is the **0.4.1 development release**. Recognition may make mistakes, especially with names and mixed Cantonese/English speech. Other OS versions and individual applications need further validation. See the [compatibility record](docs/compatibility.md) and [dictation validation](docs/dictation-validation.md).
 
 <a id="get-started"></a>
 ## 開始使用 · Get started
 
-Windows：下載並執行 `YueKey-0.4.0-windows-x64-setup.exe`，從開始功能表開啟 YueKey，按照 **[Windows 雙語指南](docs/WINDOWS.md)** 安裝小狼毫及啟用語音。
+Windows：下載並執行 `YueKey-0.4.1-windows-x64-setup.exe`，從開始功能表開啟 YueKey，按照 **[Windows 雙語指南](docs/WINDOWS.md)** 安裝小狼毫及啟用語音。
 
-Windows: run `YueKey-0.4.0-windows-x64-setup.exe`, open YueKey from the Start Menu, and follow the **[Windows guide](docs/WINDOWS.md)** for Weasel and dictation setup. No separate Python installation is needed. A portable ZIP is also available.
+Windows: run `YueKey-0.4.1-windows-x64-setup.exe`, open YueKey from the Start Menu, and follow the **[Windows guide](docs/WINDOWS.md)** for Weasel and dictation setup. No separate Python installation is needed. A portable ZIP is also available.
 
 Ubuntu 完整步驟見 **[中英雙語安裝指南](docs/INSTALL.md)**，包括從原始碼建置、GNOME／KDE 安裝、語音設定及首次免登出啟用。
 
@@ -61,9 +61,9 @@ Follow the **[bilingual installation guide](docs/INSTALL.md)** for source builds
 Download the required `.deb` files from Releases into a `dist/` folder, or build them from source, then run:
 
 ```bash
-sudo apt install ./dist/quick-hk-core_0.4.0-1_all.deb \
-  ./dist/quick-hk-predict_0.4.0-1_amd64.deb \
-  ./dist/quick-hk-gnome_0.4.0-1_all.deb
+sudo apt install ./dist/quick-hk-core_0.4.1-1_all.deb \
+  ./dist/quick-hk-predict_0.4.1-1_amd64.deb \
+  ./dist/quick-hk-gnome_0.4.1-1_all.deb
 quick-hk setup --frontend ibus
 ```
 

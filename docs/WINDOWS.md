@@ -8,20 +8,20 @@ YueKey supports Windows 11 x64: Cantonese Quick typing, punctuation, local candi
 
 ## 1. 免費下載 · Free download
 
-到 [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases) 下載 **`YueKey-0.4.0-windows-x64-setup.exe`** 及 `SHA256SUMS`。開啟安裝程式，按步驟完成；之後可從開始功能表開啟 **YueKey**。程式安裝於目前使用者的 `%LOCALAPPDATA%\Programs\YueKey`，無需系統管理員權限。
+到 [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases) 下載 **`YueKey-0.4.1-windows-x64-setup.exe`** 及 `SHA256SUMS`。開啟安裝程式，按步驟完成；之後可從開始功能表開啟 **YueKey**。程式安裝於目前使用者的 `%LOCALAPPDATA%\Programs\YueKey`，無需系統管理員權限。
 
-Download **`YueKey-0.4.0-windows-x64-setup.exe`** and `SHA256SUMS` from [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases). Run setup, then open **YueKey** from the Start Menu. Installation is per user, under `%LOCALAPPDATA%\Programs\YueKey`, without an administrator prompt.
+Download **`YueKey-0.4.1-windows-x64-setup.exe`** and `SHA256SUMS` from [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases). Run setup, then open **YueKey** from the Start Menu. Installation is per user, under `%LOCALAPPDATA%\Programs\YueKey`, without an administrator prompt.
 
 在 PowerShell 檢查安裝檔的 SHA-256，與下載頁的 `SHA256SUMS` 比對：  
 Compare the installer's SHA-256 with `SHA256SUMS` in PowerShell:
 
 ```powershell
-Get-FileHash .\YueKey-0.4.0-windows-x64-setup.exe -Algorithm SHA256
+Get-FileHash .\YueKey-0.4.1-windows-x64-setup.exe -Algorithm SHA256
 ```
 
-亦提供 **`YueKey-0.4.0-windows-x64.zip`** 免安裝版本。解壓整個資料夾後開啟 `YueKey.exe`，保留旁邊的 `_internal` 資料夾。ZIP 與安裝版包含相同程式及 CPU 執行環境。
+亦提供 **`YueKey-0.4.1-windows-x64.zip`** 免安裝版本。解壓整個資料夾後開啟 `YueKey.exe`，保留旁邊的 `_internal` 資料夾。ZIP 與安裝版包含相同程式及 CPU 執行環境。
 
-The optional **`YueKey-0.4.0-windows-x64.zip`** is a portable edition. Extract the entire folder, keep `_internal` beside `YueKey.exe`, and open the executable. Both editions include the same application and CPU runtime.
+The optional **`YueKey-0.4.1-windows-x64.zip`** is a portable edition. Extract the entire folder, keep `_internal` beside `YueKey.exe`, and open the executable. Both editions include the same application and CPU runtime.
 
 此版本未有 Windows 程式碼簽署憑證，系統可能顯示發行者未經驗證。請只使用本專案 Release 的檔案及檢查碼。
 
@@ -55,6 +55,10 @@ To reset learning, exit Weasel from its tray menu, click **Back up / Reset learn
 ## 3. 廣東話語音 · Cantonese dictation
 
 在粵鍵視窗按 **啟用語音／下載模型**。首次需要下載約 302 MB 的模型；每個檔案均會核對 SHA-256。Python 與 CPU 語音執行環境已包含在安裝檔及 ZIP，無需另裝 Python、GPU 驅動或語音雲端帳戶。模型下載後會在本機初始化，通過檢查才會顯示「Dictation ready」。
+
+WASAPI 麥克風會使用 Windows 共用模式自動轉換取樣率，毋須更改系統的 44.1／48 kHz 設定。
+
+WASAPI microphones use Windows shared-mode sample-rate conversion; the system can remain at 44.1/48 kHz.
 
 Click **Enable dictation / Get models**. First use downloads about 302 MB of models and verifies every SHA-256. Python and the CPU speech runtime are included in both downloads. No separate Python installation, GPU driver or speech cloud account is needed. The models are initialized locally before the app reports **Dictation ready**.
 

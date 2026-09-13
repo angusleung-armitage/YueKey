@@ -32,3 +32,15 @@ def resolve_microphone(value: str, sd):
     if len(matches) != 1:
         raise ValueError('The selected microphone is missing or ambiguous. Choose it again in YueKey settings.')
     return matches[0]
+
+
+def input_parameters(value: str, sd) -> dict:
+    device = resolve_microphone(value, sd)
+    info = sd.query_devices(device, 'input')
+    host = sd.query_hostapis()[info['hostapi']]['name']
+    parameters = {'device': device}
+    if host == 'Windows WASAPI':
+        # Shared-mode devices commonly use 44.1/48 kHz. Let Windows convert
+        # channels and sample rate to the recognizer's mono 16 kHz PCM stream.
+        parameters['extra_settings'] = sd.WasapiSettings(auto_convert=True)
+    return parameters

@@ -38,11 +38,11 @@ After the build, `dist/` should contain these files for this version:
 
 | 套件 · Package | 用途 · Purpose |
 | --- | --- |
-| `quick-hk-core_0.4.0-1_all.deb` | 速成資料、設定及部署工具／Scheme data, settings and deployment |
-| `quick-hk-predict_0.4.0-1_amd64.deb` | 關聯字插件及編譯工具／Prediction plugin and deployer |
-| `quick-hk-gnome_0.4.0-1_all.deb` | GNOME／IBus 整合／integration |
-| `quick-hk-kde_0.4.0-1_amd64.deb` | KDE／Fcitx5 整合及語音橋接／Integration and dictation bridge |
-| `quick-hk-dictation_0.4.0-1_amd64.deb` | GNOME／KDE 選配語音輸入／Optional GNOME/KDE dictation |
+| `quick-hk-core_0.4.1-1_all.deb` | 速成資料、設定及部署工具／Scheme data, settings and deployment |
+| `quick-hk-predict_0.4.1-1_amd64.deb` | 關聯字插件及編譯工具／Prediction plugin and deployer |
+| `quick-hk-gnome_0.4.1-1_all.deb` | GNOME／IBus 整合／integration |
+| `quick-hk-kde_0.4.1-1_amd64.deb` | KDE／Fcitx5 整合及語音橋接／Integration and dictation bridge |
+| `quick-hk-dictation_0.4.1-1_amd64.deb` | GNOME／KDE 選配語音輸入／Optional GNOME/KDE dictation |
 | `SHA256SUMS` | 套件檢查碼／Package checksums |
 
 可在 `dist/` 核對檔案完整性：  
@@ -62,9 +62,9 @@ If you already have these packages, continue below. Docker is used for building;
 Run from the project root:
 
 ```bash
-sudo apt install ./dist/quick-hk-core_0.4.0-1_all.deb \
-  ./dist/quick-hk-predict_0.4.0-1_amd64.deb \
-  ./dist/quick-hk-gnome_0.4.0-1_all.deb
+sudo apt install ./dist/quick-hk-core_0.4.1-1_all.deb \
+  ./dist/quick-hk-predict_0.4.1-1_amd64.deb \
+  ./dist/quick-hk-gnome_0.4.1-1_all.deb
 quick-hk setup --frontend ibus
 ```
 
@@ -99,7 +99,7 @@ Older packages may show the previous settings-window name; the command is the sa
 After installing the GNOME typing packages, install the optional speech package:
 
 ```bash
-sudo apt install ./dist/quick-hk-dictation_0.4.0-1_amd64.deb
+sudo apt install ./dist/quick-hk-dictation_0.4.1-1_amd64.deb
 ```
 
 語音設定需要 `uv` 建立獨立 Python 3.12 執行環境。如尚未安裝，可使用 [uv 官方 Linux 安裝方式](https://docs.astral.sh/uv/getting-started/installation/)，無需 `sudo`：
@@ -168,9 +168,9 @@ This method cannot replace JavaScript already imported during the current sessio
 ## 5. Kubuntu KDE：安裝速成 · Install Quick input
 
 ```bash
-sudo apt install ./dist/quick-hk-core_0.4.0-1_all.deb \
-  ./dist/quick-hk-predict_0.4.0-1_amd64.deb \
-  ./dist/quick-hk-kde_0.4.0-1_amd64.deb
+sudo apt install ./dist/quick-hk-core_0.4.1-1_all.deb \
+  ./dist/quick-hk-predict_0.4.1-1_amd64.deb \
+  ./dist/quick-hk-kde_0.4.1-1_amd64.deb
 quick-hk setup --frontend fcitx5
 ```
 
@@ -188,7 +188,7 @@ Use **Classic User Interface** with **YueKey Light** or **YueKey Dark**. If Kimp
 After completing the KDE typing installation:
 
 ```bash
-sudo apt install ./dist/quick-hk-dictation_0.4.0-1_amd64.deb
+sudo apt install ./dist/quick-hk-dictation_0.4.1-1_amd64.deb
 quick-hk dictation setup
 quick-hk configure --frontend fcitx5 --set dictation_enabled=true
 ```
