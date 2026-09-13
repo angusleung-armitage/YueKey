@@ -127,6 +127,11 @@ def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
                    else "首次使用請準備語音模型 · Download models before enabling.")))
             self.speech_hint.add_css_class("dim-label")
             self.form.append(self.speech_hint)
+            self.extension_hint = Gtk.Label(xalign=0, wrap=True, label=
+                "語音提示已更新，GNOME 會在下次登入載入新介面。\n"
+                "Microphone UI updated; GNOME loads it at the next login.")
+            self.form.append(self.extension_hint)
+            self._refresh_extension_hint()
             self._switch("dictation_enabled", LABELS["dictation_enabled"], settings.dictation_enabled)
             self._choice("dictation_key", LABELS["dictation_key"], settings.dictation_key, CHOICES["dictation_key"])
             devices = microphone_choices(microphones(), settings.dictation_microphone)
@@ -300,6 +305,11 @@ def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
                 from .dictation_setup import status as speech_status
                 if speech_status()['ready']:
                     self.speech_hint.set_label("SenseVoice Small Yue · CPU · 離線\n已準備好 · Double-tap Ctrl to start / stop.")
+                self._refresh_extension_hint()
+
+        def _refresh_extension_hint(self) -> None:
+            from .dictation_service import gnome_extension_status
+            self.extension_hint.set_visible(bool(gnome_extension_status().get('update_pending')))
 
         def _set_busy(self, busy: bool) -> None:
             self.form.set_sensitive(not busy)

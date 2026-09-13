@@ -168,6 +168,12 @@ def exercise(library: Path, preferences=False):
                         call('free_commit', C.c_int, [C.POINTER(Commit)], C.byref(commit))
                 assert committed == expected, (keys, committed, expected)
                 call('clear_composition', None, [C.c_size_t], session)
+            for letters, modifiers in (('HI', 0), ('HI', 2), ('HI', 1), ('hi', 3)):
+                for letter in letters:
+                    assert not key(letter, modifiers)
+                assert snapshot()[0] == '我', (letters, modifiers, snapshot())
+                assert key('1', modifiers & 2) == '我'
+                call('clear_composition', None, [C.c_size_t], session)
             key('o'); key('f')
             assert key(str(snapshot().index('你') + 1)) == '你'
             assert '好' in snapshot(require_prediction_menu=True), ('Missing portable continuations', snapshot())

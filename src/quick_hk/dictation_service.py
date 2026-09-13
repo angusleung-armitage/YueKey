@@ -361,3 +361,29 @@ def live_status() -> dict:
         return {'ready': False, 'state': 'unavailable', 'error': str(error)}
     except Exception:
         return {'ready': False, 'state': 'not running'}
+
+
+def gnome_extension_status() -> dict:
+    """Compare GNOME's in-memory extension version with its deployed files.
+
+    This is a read-only diagnostic: restarting IBus or toggling an extension
+    cannot replace JavaScript already imported by the running Shell.
+    """
+    try:
+        from pathlib import Path
+        from gi.repository import Gio, GLib
+        from .deployment import DICTATION_EXTENSION_UUID
+        bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+        result = bus.call_sync('org.gnome.Shell', '/org/gnome/Shell',
+            'org.gnome.Shell.Extensions', 'GetExtensionInfo',
+            GLib.Variant('(s)', (DICTATION_EXTENSION_UUID,)),
+            GLib.VariantType.new('(a{sv})'), Gio.DBusCallFlags.NO_AUTO_START, 500, None)
+        info = result.unpack()[0]
+        deployed = json.loads((Path(info['path']) / 'metadata.json').read_text())
+        loaded, installed = int(info['version']), int(deployed['version'])
+        return {'loaded_version': loaded, 'installed_version': installed,
+                'update_pending': installed > loaded}
+    except Exception:
+        # KDE, a missing extension or an unavailable session bus is not evidence
+        # of a pending GNOME update.
+        return {}

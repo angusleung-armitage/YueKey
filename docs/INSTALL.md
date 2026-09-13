@@ -42,7 +42,7 @@ After the build, `dist/` should contain these files for this version:
 
 | 套件 · Package | 用途 · Purpose |
 | --- | --- |
-| `yuekey_0.6.5-1_amd64.deb` **或 / or** `yuekey_0.6.5-1_arm64.deb` | 一個檔案包含全部 YueKey 元件及 CPU 語音模型／All YueKey components and CPU speech models |
+| `yuekey_0.6.6-1_amd64.deb` **或 / or** `yuekey_0.6.6-1_arm64.deb` | 一個檔案包含全部 YueKey 元件及 CPU 語音模型／All YueKey components and CPU speech models |
 | `SHA256SUMS` | 套件檢查碼／Package checksums |
 
 建置使用主機的 CPU 架構；各架構須分別建置。執行 `dpkg --print-architecture` 選擇對應檔案。此版本不提供 Linux i386／ARM32；亦不支援以強制架構選項安裝錯誤 DEB。詳見[架構指南](ARCHITECTURES.md)。
@@ -66,7 +66,7 @@ If you already have these packages, continue below. Docker is used for building;
 Run from the project root:
 
 ```bash
-sudo apt install ./dist/yuekey_0.6.5-1_$(dpkg --print-architecture).deb
+sudo apt install ./dist/yuekey_0.6.6-1_$(dpkg --print-architecture).deb
 quick-hk setup --frontend ibus
 ```
 
@@ -152,15 +152,15 @@ Press Esc, enable the relevant entries in Extensions, then select Rime/港式速
 
 This method cannot replace JavaScript already imported during the current session. After updating an already loaded extension, sign out and back in when convenient. Rime configuration can be redeployed separately.
 
-0.6.5 更新了語音提示的 JavaScript。安裝後，本次登入已載入的舊版仍會使用舊提示，直至下次登入。新版小咪高峰優先跟隨游標；空白欄位可透過桌面輔助功能取得欄位位置。程式未提供位置時，提示會退回目前視窗邊緣。
+0.6.6 的語音提示是游標下方的綠色小咪高峰，空白欄位會放在文字起點附近。GNOME 會保留本次登入已載入的舊版 JavaScript；新版外觀要下次登入才會生效，重開 IBus 或停用再啟用擴充功能亦不能取代。設定頁及 `quick-hk dictation status` 會顯示更新是否待載入。程式未提供位置時，提示會退回目前視窗邊緣。
 
-Version 0.6.5 changes the dictation extension's JavaScript. An already loaded copy keeps its previous indicator until the next login. The new badge follows the caret, using accessibility geometry for empty fields and the active window edge when an application reports no position.
+Version 0.6.6 places a green microphone capsule below the caret, near the text-start edge for empty fields. GNOME keeps JavaScript already loaded during this login; the new appearance takes effect at the next login. Restarting IBus or toggling the extension cannot replace it. Settings and `quick-hk dictation status` report pending UI updates. Applications that report no position use the active window edge as a fallback.
 
 <a id="kde"></a>
 ## 5. Kubuntu KDE：安裝速成 · Install Quick input
 
 ```bash
-sudo apt install ./dist/yuekey_0.6.5-1_$(dpkg --print-architecture).deb
+sudo apt install ./dist/yuekey_0.6.6-1_$(dpkg --print-architecture).deb
 quick-hk setup --frontend fcitx5
 ```
 
@@ -208,6 +208,10 @@ quick-hk configure --frontend fcitx5
 
 
 ## 6. 常用操作與設定 · Everyday use and settings
+
+中文模式的速成碼不分大小階：`hi`、`HI` 或混合大小階都可取碼。Caps Lock 或按住 Shift 輸入字母不會變成英文；單按設定的中英切換鍵（預設左 Shift）仍會切換中英。
+
+Quick codes are case-insensitive in Chinese mode: `hi`, `HI` and mixed case work with Caps Lock or held Shift. Tapping the configured language-switch key (Left Shift by default) still switches Chinese/English.
 
 關聯字只顯示在清單：選出「你」後，文字欄仍然是「你」；選取「講」後才成為「你講」。可用數字鍵或 Space 確認，Esc 取消。
 

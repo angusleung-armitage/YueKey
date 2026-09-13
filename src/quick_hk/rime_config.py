@@ -86,7 +86,7 @@ def schema_custom(settings: Settings, frontend: str = "ibus") -> bytes:
         "quick_hk/dictation_key": settings.effective_dictation_key,
         "ascii_composer/switch_key": {
             key: "commit_code" if key == settings.switch_key else "noop"
-            for key in ("Shift_L", "Shift_R", "Control_L", "Control_R")
+            for key in ("Caps_Lock", "Shift_L", "Shift_R", "Control_L", "Control_R")
         },
         "switches/@1/reset": int(settings.prediction),
         "switches/@2/reset": int(settings.ascii_punctuation),

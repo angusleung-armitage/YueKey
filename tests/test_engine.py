@@ -153,6 +153,65 @@ def test_shortcuts_and_ascii_mode(probe):
     assert not probe.key(",")["handled"]
 
 
+@pytest.mark.parametrize("letters,modifiers", [("HI", 0), ("HI", 2), ("HI", 1), ("hi", 3)])
+def test_uppercase_quick_codes_keep_chinese_mode(probe, letters, modifiers):
+    for letter in letters:
+        result = probe.key(letter, modifiers)
+        assert not result['commit']
+    assert result['input'] == 'hi'
+    assert result['preedit'] == '竹戈'
+    assert result['candidates'][0] == '我'
+    assert probe.key('1', modifiers & 2)['commit'] == '我'
+
+
+def test_shift_chord_does_not_toggle_language_but_tap_does(probe):
+    probe.key(0xffe1)
+    probe.key('H', 1)
+    probe.key(0xffe1, 1 << 30)
+    assert probe.key('i')['input'] == 'hi'
+    assert probe.key('1')['commit'] == '我'
+    probe.key(0xffe1)
+    probe.key(0xffe1, 1 << 30)
+    assert not probe.key('H', 2)['handled']  # Explicit English mode keeps capitals.
+    probe.key(0xffe1)
+    probe.key(0xffe1, 1 << 30)
+    assert probe.type('HI1')['commit'] == '我'
+
+
+def test_uppercase_third_letter_and_predictions_do_not_insert_english(probe):
+    probe.send('option prediction 1')
+    assert probe.type('HI')['candidates'][0] == '我'
+    result = probe.key('O', 2)
+    assert result['commit'] == '我' and result['input'] == 'o'
+    result = probe.key('F', 2)
+    assert result['input'] == 'of'
+    predicted = probe.key(str(result['candidates'].index('你') + 1))
+    assert predicted['commit'] == '你' and predicted['candidates']
+    result = probe.key('Z', 2)
+    assert not result['commit'] and result['input'] == 'z'
+    probe.key('B', 2)
+    assert probe.key('1', 2)['commit'] == '，'
+
+
+def test_caps_lock_toggle_preserves_partial_quick_code(probe):
+    probe.key('h')
+    probe.key(0xffe5)  # Linux turns Lock on after the key-down event.
+    probe.key(0xffe5, (1 << 30) | 2)
+    assert probe.key('I', 2)['input'] == 'hi'
+    assert probe.key('1', 2)['commit'] == '我'
+    probe.key(0xffe5, 2)
+    probe.key(0xffe5, 1 << 30)
+    assert probe.type('hi1')['commit'] == '我'
+
+
+@pytest.mark.parametrize('modifiers', [4 | 2, 8 | 1, (1 << 26) | 2, (1 << 30) | 2])
+def test_uppercase_shortcuts_and_releases_leave_composition_unchanged(probe, modifiers):
+    probe.type('hi')
+    result = probe.key('C', modifiers)
+    assert not result['handled'] and not result['commit']
+    assert result['input'] == 'hi'
+
+
 def test_invalid_code_kept_editable(probe):
     codes = set()
     for line in (DATA / "quick_hk.dict.yaml").read_text().splitlines():

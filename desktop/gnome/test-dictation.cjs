@@ -19,11 +19,12 @@ console.log('PASS dictation disabled, other schema, lock, no window, password, P
 
 const place = (...args) => Array.from(context.indicatorPosition(...args));
 const area = {x: 0, y: 0, width: 1920, height: 1040};
-assert.deepEqual(place({x: 400, y: 300, width: 1, height: 20}, area, 56, 38), [409, 328]);
-assert.deepEqual(place({x: 1900, y: 1020, width: 1, height: 20}, area, 56, 38), [1836, 974]);
+assert.deepEqual(place({x: 400, y: 300, width: 1, height: 20}, area, 36, 28), [382, 326]);
+assert.deepEqual(place({x: 1900, y: 1020, width: 1, height: 20}, area, 36, 28), [1878, 986]);
 assert.deepEqual(place({x: -1300, y: -100, width: 1, height: 20},
-    {x: -1920, y: -200, width: 1920, height: 1080}, 56, 38), [-1291, -72]);
-assert.deepEqual(place({x: -4000, y: -4000, width: 1, height: 20}, area, 56, 38), [8, 8]);
+    {x: -1920, y: -200, width: 1920, height: 1080}, 36, 28), [-1318, -74]);
+assert.deepEqual(place({x: -4000, y: -4000, width: 1, height: 20}, area, 36, 28), [6, 6]);
+assert.deepEqual(place({x: 400, y: 300, width: 600, height: 32}, area, 36, 28), [388, 338]);
 console.log('PASS caret placement, bottom/right edge, negative monitor coordinates, off-screen clamp');
 
 // Empty fields may reject GetCharacterExtents(0). Their component bounds must

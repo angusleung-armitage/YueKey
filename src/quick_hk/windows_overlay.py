@@ -17,7 +17,8 @@ class DictationBadge:
         self.window.withdraw()
         self.window.overrideredirect(True)
         self.window.attributes('-topmost', True)
-        self.canvas = tk.Canvas(self.window, width=56, height=38, bg='#173f3a',
+        self.window.attributes('-transparentcolor', '#010203')
+        self.canvas = tk.Canvas(self.window, width=36, height=28, bg='#010203',
                                 highlightthickness=0, takefocus=False)
         self.canvas.pack(fill='both', expand=True)
         self.window.update_idletasks()
@@ -47,29 +48,41 @@ class DictationBadge:
             self.hide()
             return
         scale = max(1.0, self.user.GetDpiForWindow(target.window) / 96)
-        width, height, gap = round(56 * scale), round(38 * scale), round(8 * scale)
+        width, height, gap = round(36 * scale), round(28 * scale), round(6 * scale)
         area = (info.rcWork.left, info.rcWork.top, info.rcWork.right - info.rcWork.left,
                 info.rcWork.bottom - info.rcWork.top)
         px, py = indicator_position(target.anchor, area, width, height, gap)
+        self._draw(state, level, scale)
+        # Physical coordinates also work on monitors left of the primary one.
+        self.user.SetWindowPos(self.hwnd, W.HWND(-1), px, py, width, height, 0x10 | 0x40)
+
+    def _draw(self, state, level, scale):
         self.canvas.delete('all')
-        color = '#78e0c2' if state == 'recording' else '#ffffff'
-        self.canvas.create_oval(17, 7, 27, 22, fill=color, outline=color)
-        self.canvas.create_arc(12, 12, 32, 28, start=180, extent=180,
-                               style='arc', outline=color, width=2)
-        self.canvas.create_line(22, 27, 22, 31, fill=color, width=2)
-        self.canvas.create_line(17, 31, 27, 31, fill=color, width=2)
+        green = '#16a34a'
+        self.canvas.create_oval(0, 0, 28, 28, fill=green, outline='')
+        self.canvas.create_rectangle(14, 0, 22, 28, fill=green, outline='')
+        self.canvas.create_oval(8, 0, 36, 28, fill=green, outline='')
         if state == 'recording':
-            for index in range(3):
-                high = 4 + max(0, min(1, level)) * (10 + index * 4)
-                self.canvas.create_line(39 + index * 4, 27, 39 + index * 4, 27 - high,
-                                        fill=color, width=2)
+            # Original line microphone, matching the GNOME symbolic drawing.
+            self.canvas.create_line(15.4, 9.5, 15.4, 6.9, 18, 6.9, 20.6, 6.9, 20.6, 9.5,
+                                    20.6, 13.3, 20.6, 15.9, 18, 15.9, 15.4, 15.9, 15.4, 13.3,
+                                    15.4, 9.5, smooth=True, fill='white', width=1.35)
+            self.canvas.create_line(13.1, 12.9, 13.1, 14, 13.1, 18.9, 18, 18.9,
+                                    22.9, 18.9, 22.9, 14, 22.9, 12.9,
+                                    smooth=True, fill='white', width=1.35)
+            self.canvas.create_line(18, 18.9, 18, 21.1, fill='white', width=1.35)
+            self.canvas.create_line(15.4, 21.1, 20.6, 21.1, fill='white', width=1.35)
+            if level > 0:
+                high = max(0, min(1, level)) * 5
+                self.canvas.create_line(18, 14, 18, 14 - high, fill='#bbf7d0', width=2)
         else:
             for index in range(3):
-                self.canvas.create_oval(36 + index * 5, 19, 38 + index * 5, 21, fill=color, outline=color)
+                self.canvas.create_oval(11 + index * 5.5, 12.5, 14 + index * 5.5, 15.5,
+                                        fill='white', outline='')
         self.canvas.scale('all', 0, 0, scale, scale)
-        # Physical coordinates also work on monitors left of the primary one;
-        # Tk's negative geometry offsets would mean distance from the right edge.
-        self.user.SetWindowPos(self.hwnd, W.HWND(-1), px, py, width, height, 0x10 | 0x40)
+        for item in self.canvas.find_all():
+            if self.canvas.type(item) == 'line':
+                self.canvas.itemconfigure(item, width=float(self.canvas.itemcget(item, 'width')) * scale)
 
     def hide(self):
         self.user.ShowWindow(self.hwnd, 0)

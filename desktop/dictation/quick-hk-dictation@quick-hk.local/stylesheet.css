@@ -1,12 +1,7 @@
 .quick-hk-dictation {
-    background-color: rgba(28, 28, 30, 0.96);
+    background-color: #16a34a;
     color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 10px;
-    padding: 7px 8px;
-    spacing: 4px;
-    font-family: "Noto Sans CJK HK";
-    font-size: 13px;
+    border-radius: 14px;
+    padding: 5px 9px;
+    spacing: 0;
 }
-
-.quick-hk-dictation-level { width: 10px; }

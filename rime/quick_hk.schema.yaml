@@ -2,7 +2,7 @@
 schema:
   schema_id: quick_hk
   name: 港式速成
-  version: '0.6.5'
+  version: '0.6.6'
   description: 香港用字、速成首尾碼、個人詞頻及關聯字
 
 switches:
@@ -74,6 +74,7 @@ predictor:
 ascii_composer:
   good_old_caps_lock: true
   switch_key:
+    Caps_Lock: noop
     Shift_L: commit_code
     Shift_R: noop
     Control_L: noop

@@ -19,7 +19,7 @@ export default class QuickHkDictationExtension extends Extension {
                 if (property.get_key() === 'InputMode')
                     return property.get_label()?.get_text() === '港式速成';
             }
-        });
+        }, this.path);
         this._sourceSignal = this._sources.connect('current-source-changed', () => this._ui.invalidate());
         this._file = Gio.File.new_for_path(GLib.build_filenamev([
             GLib.get_user_config_dir(), 'quick-hk', 'presentation.json']));

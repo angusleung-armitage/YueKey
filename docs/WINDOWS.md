@@ -14,20 +14,20 @@ Check **Settings → System → About → System type** and choose `windows-x64`
 
 ## 1. 免費下載 · Free download
 
-到 [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases) 下載 **`YueKey-0.6.5-windows-x64-setup.exe`** 及 `SHA256SUMS`。開啟安裝程式，按步驟完成；之後可從開始功能表開啟 **YueKey**。程式安裝於目前使用者的 `%LOCALAPPDATA%\Programs\YueKey`，粵鍵本身採每使用者安裝；首次安裝內置小狼毫引擎時會要求 Windows 管理員權限。
+到 [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases) 下載 **`YueKey-0.6.6-windows-x64-setup.exe`** 及 `SHA256SUMS`。開啟安裝程式，按步驟完成；之後可從開始功能表開啟 **YueKey**。程式安裝於目前使用者的 `%LOCALAPPDATA%\Programs\YueKey`，粵鍵本身採每使用者安裝；首次安裝內置小狼毫引擎時會要求 Windows 管理員權限。
 
-Download **`YueKey-0.6.5-windows-x64-setup.exe`** and `SHA256SUMS` from [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases). Run setup, then open **YueKey** from the Start Menu. Installation is per user, under `%LOCALAPPDATA%\Programs\YueKey`, with an administrator prompt only when the bundled Weasel engine needs to be installed.
+Download **`YueKey-0.6.6-windows-x64-setup.exe`** and `SHA256SUMS` from [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases). Run setup, then open **YueKey** from the Start Menu. Installation is per user, under `%LOCALAPPDATA%\Programs\YueKey`, with an administrator prompt only when the bundled Weasel engine needs to be installed.
 
 在 PowerShell 檢查安裝檔的 SHA-256，與下載頁的 `SHA256SUMS` 比對：<br>
 Compare the installer's SHA-256 with `SHA256SUMS` in PowerShell:
 
 ```powershell
-Get-FileHash .\YueKey-0.6.5-windows-x64-setup.exe -Algorithm SHA256
+Get-FileHash .\YueKey-0.6.6-windows-x64-setup.exe -Algorithm SHA256
 ```
 
-亦提供 **`YueKey-0.6.5-windows-x64.zip`** 免安裝版本。解壓整個資料夾後開啟 `YueKey.exe`，保留旁邊的 `_internal` 資料夾。ZIP 與安裝版包含相同程式及 CPU 執行環境。
+亦提供 **`YueKey-0.6.6-windows-x64.zip`** 免安裝版本。解壓整個資料夾後開啟 `YueKey.exe`，保留旁邊的 `_internal` 資料夾。ZIP 與安裝版包含相同程式及 CPU 執行環境。
 
-The optional **`YueKey-0.6.5-windows-x64.zip`** is a portable edition. Extract the entire folder, keep `_internal` beside `YueKey.exe`, and open the executable. Both editions include the same application and CPU runtime.
+The optional **`YueKey-0.6.6-windows-x64.zip`** is a portable edition. Extract the entire folder, keep `_internal` beside `YueKey.exe`, and open the executable. Both editions include the same application and CPU runtime.
 
 此版本未有 Windows 程式碼簽署憑證，系統可能顯示發行者未經驗證。請只使用本專案 Release 的檔案及檢查碼。
 
@@ -66,6 +66,10 @@ Continuations appear only in the candidate list. After selecting 你, the field 
 
 The **Typing** tab controls orientation, page size, font size, light/dark theme, learning, continuations, candidate visibility, English punctuation and the language-switch key. Click **Save changes**; deployment runs automatically in the background. These settings apply to 港式速成 and persist in `%LOCALAPPDATA%\YueKey\settings.toml`.
 
+中文模式的速成碼不分大小階，Caps Lock／按住 Shift 也可輸入；單按中英切換鍵仍會切換語言。英文模式保留正常大小階。
+
+Chinese Quick codes accept either case, including Caps Lock and held Shift. Tapping the configured language key still switches languages; English mode preserves normal capitalization.
+
 橫排候選字：**輸入 Typing → 橫向排列 Horizontal candidates → 儲存並套用**。取消勾選可改為直排。請使用粵鍵視窗的設定；本版本會同時更新小狼毫的排列方式設定。
 
 For horizontal candidates, enable **Typing → Horizontal candidates → Save changes** in YueKey. Clear the checkbox for a vertical list. Both Weasel layout settings are updated together when you save.
@@ -96,9 +100,9 @@ If it still fails, the message identifies the file and download source. Check th
 
 ### 使用語音 · Using dictation
 
-小咪高峰會放在文字游標旁；不提供游標座標的程式則使用輸入欄位置，最後才退回目前視窗邊緣。提示不會取得鍵盤焦點，亦支援螢幕邊界和負座標的多螢幕排列。
+綠色圓角提示內的白色線條咪高峰會置中放在文字游標下方，接近螢幕底部時移到上方；不提供游標座標的程式則使用輸入欄的文字起點，最後才退回目前視窗邊緣。提示不會取得鍵盤焦點，亦支援螢幕邊界和負座標的多螢幕排列。
 
-The small microphone sits beside the caret, with the input field and then the active window edge as fallbacks. It does not take keyboard focus and stays within the monitor work area, including monitors left of the primary display.
+The green capsule with a white outline microphone sits centred below the caret and moves above it near the bottom of the monitor. When caret coordinates are unavailable, it uses the input field’s text-start edge, then the active window edge as fallbacks. It does not take keyboard focus and stays within the monitor work area, including monitors left of the primary display.
 
 1. 在「語音 · Voice」分頁選擇麥克風，按「儲存並套用」，並在 Windows 隱私設定允許桌面應用程式使用麥克風。<br>
    Choose a microphone in the **Voice** page and click **Save changes**. Allow desktop apps to access the microphone in Windows privacy settings.

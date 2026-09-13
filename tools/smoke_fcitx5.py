@@ -110,7 +110,14 @@ def main():
             for character in code + "1":
                 key(character)
             assert commits[-1] == punctuation, commits
-        print("PASS Fcitx5: 你好, native prediction, reset, focus out/in, zb1/zd1 punctuation")
+        for letters, modifiers in (('HI', 0), ('HI', 2), ('HI', 1), ('hi', 3)):
+            context('Reset')
+            for character in letters:
+                assert context('ProcessKeyEvent', '(uuubu)', (ord(character), 0, modifiers, False, 0))[0]
+            assert menus[-1][0] == '我', (letters, modifiers, menus[-1])
+            context('ProcessKeyEvent', '(uuubu)', (ord('1'), 0, modifiers & 2, False, 0))
+            assert commits[-1] == '我', commits
+        print("PASS Fcitx5: 你好, predictions, reset, focus, punctuation, uppercase/Caps Lock/Shift codes")
         check_dictation(bus, context, commits, call)
         context("DestroyIC")
         bus.signal_unsubscribe(token)

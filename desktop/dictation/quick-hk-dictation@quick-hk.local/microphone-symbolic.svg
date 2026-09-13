@@ -1,0 +1,7 @@
+<!-- SPDX-License-Identifier: MIT; original YueKey microphone drawing. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <path fill="#fff" fill-rule="evenodd" d="M12 1.6A4.4 4.4 0 0 1 16.4 6v5a4.4 4.4 0 0 1-8.8 0V6A4.4 4.4 0 0 1 12 1.6Zm0 1.8A2.6 2.6 0 0 0 9.4 6v5a2.6 2.6 0 0 0 5.2 0V6A2.6 2.6 0 0 0 12 3.4Z"/>
+  <path fill="#fff" d="M4.6 10.5a.9.9 0 0 1 1.8 0V12a5.6 5.6 0 0 0 11.2 0v-1.5a.9.9 0 0 1 1.8 0V12a7.4 7.4 0 0 1-14.8 0Z"/>
+  <rect fill="#fff" x="11.1" y="18.5" width="1.8" height="3" rx=".9"/>
+  <rect fill="#fff" x="7.6" y="20.6" width="8.8" height="1.8" rx=".9"/>
+</svg>

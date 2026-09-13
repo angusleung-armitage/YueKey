@@ -27,11 +27,11 @@ export function allowedTarget(enabled, quickHk, locked, window, purpose, hints) 
         purpose !== 8 && purpose !== 9 && !(hints & (2048 | 4096)));
 }
 
-export function indicatorPosition(rect, area, width, height, gap = 8) {
-    let x = rect.x + rect.width + gap;
+export function indicatorPosition(rect, area, width, height, gap = 6) {
+    // Centre beneath the caret. A whole-field fallback uses its text-start
+    // edge instead of placing the badge beyond the far end of the field.
+    const x = rect.x + (rect.width > 4 * gap ? gap : 0) - width / 2;
     let y = rect.y + rect.height + gap;
-    if (x + width > area.x + area.width - gap)
-        x = rect.x - width - gap;
     if (y + height > area.y + area.height - gap)
         y = rect.y - height - gap;
     return [Math.round(Math.max(area.x + gap, Math.min(x, area.x + area.width - width - gap))),
@@ -39,7 +39,7 @@ export function indicatorPosition(rect, area, width, height, gap = 8) {
 }
 
 export class DictationUI {
-    constructor(isQuickHk) {
+    constructor(isQuickHk, extensionPath) {
         this._isQuickHk = isQuickHk;
         this._enabled = false;
         this._generation = 1;
@@ -55,11 +55,12 @@ export class DictationUI {
         this._actor = new St.BoxLayout({style_class: 'quick-hk-dictation',
             orientation: Clutter.Orientation.HORIZONTAL, reactive: false,
             can_focus: false, visible: false});
-        this._icon = new St.Icon({icon_name: 'audio-input-microphone-symbolic', icon_size: 22});
-        this._level = new St.Label({text: '▁', y_align: Clutter.ActorAlign.CENTER,
-            style_class: 'quick-hk-dictation-level'});
+        this._microphone = new Gio.FileIcon({file: Gio.File.new_for_path(
+            GLib.build_filenamev([extensionPath, 'microphone-symbolic.svg']))});
+        this._busy = new Gio.FileIcon({file: Gio.File.new_for_path(
+            GLib.build_filenamev([extensionPath, 'busy-symbolic.svg']))});
+        this._icon = new St.Icon({gicon: this._microphone, icon_size: 18});
         this._actor.add_child(this._icon);
-        this._actor.add_child(this._level);
         Main.layoutManager.addChrome(this._actor);
         this._object = Gio.DBusExportedObject.wrapJSObject(XML, this);
         this._object.export(Gio.DBus.session, PATH);
@@ -175,7 +176,8 @@ export class DictationUI {
             {x: frame.x + 16, y: frame.y + frame.height - 64, width: 0, height: 0};
         const [, width] = this._actor.get_preferred_width(-1);
         const [, height] = this._actor.get_preferred_height(width);
-        this._actor.set_position(...indicatorPosition(rect, area, width, height));
+        const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+        this._actor.set_position(...indicatorPosition(rect, area, width, height, 6 * scale));
     }
 
     _accessibleCursor(window) {
@@ -242,11 +244,10 @@ export class DictationUI {
             if (Object.hasOwn(titles, state)) {
                 const seconds = Math.max(0, Math.floor(elapsed));
                 this._actor.accessible_name = `${titles[state]} · ${seconds}s · Ctrl × 2 停止 · Esc 取消`;
-                const count = Math.max(0, Math.min(8, Math.round(level * 8)));
-                this._level.text = state === 'recording' ? '▁▁▂▃▄▅▆▇█'[count] : '·';
-                this._icon.icon_name = state === 'finishing' ? 'content-loading-symbolic' :
-                    'audio-input-microphone-symbolic';
-                this._actor.set_style(`color: ${state === 'recording' ? '#78e0c2' : '#ffffff'};`);
+                this._icon.gicon = state === 'recording' ? this._microphone : this._busy;
+                const opacity = state === 'recording' ?
+                    0.22 + Math.max(0, Math.min(1, level)) * 0.25 : 0.18;
+                this._actor.set_style(`box-shadow: 0 2px 8px rgba(0, 120, 55, ${opacity});`);
                 this._actor.show();
                 this._place();
             }

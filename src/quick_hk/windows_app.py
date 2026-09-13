@@ -623,9 +623,9 @@ def self_test(report: Path, models: Path | None):
             rect = W.RECT()
             assert user.GetWindowRect(app.badge.hwnd, ctypes.byref(rect))
             x, y, w, h = target.anchor
-            assert 0 <= rect.left - (x + w) <= 24, 'Badge is not beside the caret'
+            assert abs((rect.left + rect.right) / 2 - x) <= 2, 'Badge is not centred on the caret'
             assert 0 <= rect.top - (y + h) <= 24, 'Badge is not below the caret'
-            assert rect.right - rect.left <= 112, 'Dictation badge is unexpectedly wide'
+            assert rect.right - rect.left <= 72, 'Dictation badge is unexpectedly wide'
             if cycle == 0:
                 from .windows_visual import capture_window
                 capture_window(app.badge.hwnd, report.parent / 'dictation-badge.png')

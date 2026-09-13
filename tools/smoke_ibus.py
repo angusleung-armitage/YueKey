@@ -103,7 +103,16 @@ def main():
                 context.process_key_event(ord(character), 0, 0)
                 drain()
             assert commits[-1] == punctuation, commits
-        print("PASS IBus: 你好, native prediction, reset, focus out/in, zb1/zd1 punctuation")
+        for letters, modifiers in (('HI', 0), ('HI', 2), ('HI', 1), ('hi', 3)):
+            context.reset()
+            for character in letters:
+                assert context.process_key_event(ord(character), 0, modifiers)
+                drain()
+            assert menus[-1][0] == '我', (letters, modifiers, menus[-1])
+            context.process_key_event(ord('1'), 0, modifiers & 2)
+            drain()
+            assert commits[-1] == '我', commits
+        print("PASS IBus: 你好, predictions, reset, focus, punctuation, uppercase/Caps Lock/Shift codes")
         context.destroy()
     finally:
         daemon.terminate()

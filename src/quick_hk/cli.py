@@ -73,9 +73,10 @@ def main(argv: list[str] | None = None) -> int:
             if args.action == "serve":
                 from .dictation_service import serve
                 return serve(args.frontend)
-            from .dictation_service import live_status
+            from .dictation_service import live_status, gnome_extension_status
             status = dictation_setup.status(verify=True)
             status["service"] = live_status()
+            status["desktop_extension"] = gnome_extension_status()
             if args.json:
                 print(json.dumps(status, ensure_ascii=False, indent=2))
             else:
@@ -86,6 +87,8 @@ def main(argv: list[str] | None = None) -> int:
                     print("Desktop: restart Fcitx5; run quick-hk dictation serve --frontend fcitx5." if status["service"].get("frontend") == "fcitx5" else "Desktop: sign out and back in, then enable YueKey Dictation in Extensions.")
                 if status["service"].get("error"):
                     print(status["service"]["error"])
+                if status["desktop_extension"].get("update_pending"):
+                    print("語音提示更新待載入：下次登入後生效。 · Microphone UI update pending: takes effect at the next login.")
             return 0 if status["ready"] else 1
         except (RuntimeError, OSError, ValueError) as error:
             print(f"quick-hk: {error}", file=sys.stderr)

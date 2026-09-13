@@ -29,6 +29,16 @@ function M.processor.func(key, env)
   local input = ctx.input
   local code = key.keycode
 
+  -- Chinese Quick codes are case-insensitive. Feed the usual spelling path
+  -- once, so Caps Lock/Shift also retain selection, caret edits and learning.
+  local uppercase = code >= 0x41 and code <= 0x5a
+  if (uppercase or (code >= 0x61 and code <= 0x7a)) and
+      (uppercase or key:shift() or key:caps()) then
+    local lower = uppercase and code + 0x20 or code
+    env.engine:process_key(KeyEvent(lower, key.modifier & ~3)) -- Clear Shift/Lock only.
+    return ACCEPTED
+  end
+
   if code == 0xff1b then -- Escape cancels suggestions and input without committing.
     return NOOP -- The predictor and editor handle this together.
   end

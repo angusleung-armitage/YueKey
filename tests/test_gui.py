@@ -87,6 +87,15 @@ class GuiTests(unittest.TestCase):
                     return GLib.SOURCE_CONTINUE
                 try:
                     if state == 0:
+                        with patch('quick_hk.dictation_service.gnome_extension_status',
+                                   return_value={'update_pending': True}):
+                            application._refresh_extension_hint()
+                        self.assertTrue(application.extension_hint.get_visible())
+                        self.assertIn('下次登入', application.extension_hint.get_label())
+                        with patch('quick_hk.dictation_service.gnome_extension_status',
+                                   return_value={'update_pending': False}):
+                            application._refresh_extension_hint()
+                        self.assertFalse(application.extension_hint.get_visible())
                         from dataclasses import asdict
                         from quick_hk.settings import NUMBER_RANGES
                         from quick_hk.settings_choices import CHOICES, LABELS
