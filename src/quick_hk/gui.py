@@ -47,6 +47,10 @@ def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
                 default_height=710,
             )
             self.window.connect("close-request", self._close_requested)
+            from .deployment import desktop_directory
+            icons = desktop_directory() / "icons"
+            Gtk.IconTheme.get_for_display(self.window.get_display()).add_search_path(str(icons))
+            self.window.set_icon_name("yuekey")
             header = Gtk.HeaderBar()
             header.set_title_widget(Gtk.Label(label="粵鍵設定 · Settings"))
             self.window.set_titlebar(header)
@@ -65,9 +69,14 @@ def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
                 margin_end=24,
             )
             scroller.set_child(content)
+            brand = Gtk.Box(spacing=14)
+            logo = Gtk.Image.new_from_file(str(icons / "yuekey-64.png"))
+            logo.set_pixel_size(64)
+            brand.append(logo)
             title = Gtk.Label(label="粵鍵 YueKey", xalign=0)
             title.add_css_class("title-1")
-            content.append(title)
+            brand.append(title)
+            content.append(brand)
             intro = Gtk.Label(
                 label="Type the first and last Cangjie radicals.\n"
                 "取首尾碼輸入；用數字鍵選字，空白鍵確認。",

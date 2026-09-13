@@ -48,7 +48,7 @@ OutputBaseFilename=YueKey-{#AppVersion}-windows-{#AppArch}-setup
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
-SetupIconFile={#RepoRoot}\desktop\windows\assets\yuekey.ico
+SetupIconFile={#RepoRoot}\desktop\icons\yuekey.ico
 InfoBeforeFile={#RepoRoot}\desktop\windows\installer-info.txt
 
 [Files]

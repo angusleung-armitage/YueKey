@@ -145,6 +145,10 @@ def _copy_config_to_stage(source: Path, stage: Path) -> None:
 def _managed_assets(frontend: str, settings: Settings) -> dict[Path, bytes]:
     assets = desktop_directory()
     changes: dict[Path, bytes] = {}
+    icons = assets / "icons/hicolor"
+    if icons.is_dir():
+        for path in sorted(icons.rglob("*.png")):
+            changes[data_home() / "icons/hicolor" / path.relative_to(icons)] = path.read_bytes()
     if frontend == "ibus":
         # GNOME finds engine preferences by this desktop ID, not the Rime XML.
         launcher = assets / "gnome/ibus-setup-rime.desktop"

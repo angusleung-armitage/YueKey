@@ -52,8 +52,8 @@ def build_window(app, root):
                     borderwidth=0, lightcolor=c['accent'], darkcolor=c['accent'])
 
     root.title('粵鍵 YueKey')
-    assets = (Path(sys._MEIPASS) / 'windows-assets' if hasattr(sys, '_MEIPASS') else
-              Path(__file__).resolve().parents[2] / 'desktop/windows/assets')
+    assets = (Path(sys._MEIPASS) / 'app-icons' if hasattr(sys, '_MEIPASS') else
+              Path(__file__).resolve().parents[2] / 'desktop/icons')
     root.yuekey_icon = tk.PhotoImage(file=str(assets / 'yuekey.png'))
     root.iconphoto(True, root.yuekey_icon)
     root.configure(background=c['background'])
@@ -70,8 +70,9 @@ def build_window(app, root):
     sidebar.grid_rowconfigure(6, weight=1)
     brand = tk.Frame(sidebar, background=c['sidebar'])
     brand.grid(row=0, column=0, sticky='ew', padx=22, pady=(28, 26))
-    tk.Label(brand, text='粵', font=('Microsoft JhengHei UI', 24, 'bold'), width=2,
-             background=c['accent'], foreground='white').pack(anchor='w')
+    root.yuekey_brand_icon = tk.PhotoImage(file=str(assets / 'yuekey-64.png'))
+    tk.Label(brand, image=root.yuekey_brand_icon, background=c['sidebar'],
+             borderwidth=0).pack(anchor='w')
     tk.Label(brand, text='YueKey', font=('Segoe UI Semibold', 21), background=c['sidebar'],
              foreground='white').pack(anchor='w', pady=(12, 2))
     tk.Label(brand, text='打字 · 講嘢 · 隨你', font=('Segoe UI', 10), background=c['sidebar'],

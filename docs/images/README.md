@@ -25,3 +25,32 @@ on the Windows 11 ARM64 disposable GitHub runner, from commit `477d139` in
 It shows the actual bilingual interface after bundled engine installation and
 profile deployment. It is not a generated product mockup. The original app artwork
 and UI are MIT-licensed; the title bar is rendered by Windows.
+
+
+<a id="app-icon"></a>
+## App icon · 粵鍵圖示
+
+`yuekey-icon.png` is the final generated master, using Traditional Chinese
+**粵** (U+7CB5), an ivory glyph, a jade speech-key silhouette and an opaque deep
+teal tile. Generated with the **built-in image_gen tool**, then exported without
+artwork changes to PNG and ICO sizes by `tools/export_icon.py`. The original
+Y draft and simplified-character drafts are not used in the app.
+
+A typeset Noto Sans CJK HK Bold rendering of 粵 was used as a glyph reference to
+keep the Traditional form accurate. Font files are not bundled with the icon.
+The generated project artwork is distributed under this project's MIT license.
+
+### Final prompt set
+
+The existing jade key design was used as the first visual reference; the exact
+Traditional glyph was supplied as the second reference.
+
+```text
+Edit image 1, the jade YueKey icon. Image 2 is the exact required glyph reference, NOT a second icon or a background: it shows Traditional Chinese 粵 (U+7CB5). Replace the Y in image 1 with an ivory-white rendering of the EXACT outline and strokes of the glyph in image 2, preserving all details of that glyph. In particular preserve the sloping top stroke inside the upper enclosure, the OPEN bottom corners of that enclosure and separate short bottom horizontal stroke; do NOT turn it into the simplified closed-box 米 character 粤. Reproduce the reference glyph faithfully, only scaling and recoloring it, centered at roughly 65 percent of the key size, with clear spacing between strokes. Preserve the rounded jade speech-key shape, colors, depth and balanced composition of image 1. Output ONE square production PNG icon. The background outside the icon must be an actual transparent alpha channel like image 1. Do not draw checkerboard squares, a grid, gray, black or white background. No Y or other letters, no watermark, no mockup, no extra objects.
+```
+
+The final background refinement uses an opaque tile:
+
+```text
+Edit this final 粵 icon. Keep the exact Traditional Chinese glyph 粵, every stroke, its ivory color, size and position unchanged. Keep the jade key and speech-bubble outline unchanged. Replace ALL of the gray checkerboard exterior with a completely smooth solid deep ink-teal color #102F37, extending to all four edges of the square canvas. This is intentionally an OPAQUE full-bleed square app tile, NOT a transparent image. No checkerboard, no grid, no white margin, no transparency simulation, no extra text or objects. The result must be the same jade key bearing the exact 粵 glyph on an entirely solid deep-teal square background. Output one polished PNG app icon.
+```

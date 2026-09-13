@@ -106,6 +106,11 @@ def build() -> None:
     for name in ('quick_hk.schema.yaml', 'quick_hk.dict.yaml', 'quick_hk.predict.db', 'coverage.json', 'lua/quick_hk.lua'):
         copy(ROOT / 'build/data' / name, target / 'usr/share/quick-hk/rime' / name)
     copy(ROOT / 'desktop/quick-hk.desktop', target / 'usr/share/applications/quick-hk.desktop')
+    # Wayland shells associate Gtk.Application's ID with this desktop filename.
+    # Keep the existing launcher ID for pinned shortcuts; hide the matching alias.
+    (target / 'usr/share/applications/org.quick_hk.Settings.desktop').write_text(
+        (ROOT / 'desktop/quick-hk.desktop').read_text() + 'NoDisplay=true\n')
+    copy(ROOT / 'desktop/icons/hicolor', target / 'usr/share/icons/hicolor')
     for name in ('README.md', 'docs'):
         copy(ROOT / name, docs / name)
     copy(ROOT / 'data/sources.lock.json', docs / 'sources.lock.json')
@@ -128,7 +133,7 @@ def build() -> None:
         if header[:4] != b'\x7fELF' or int.from_bytes(header[18:20], 'little') != {'amd64': 62, 'arm64': 183}[architecture]:
             raise SystemExit(f'Wrong native architecture for {architecture}: {name}; use a clean native build directory')
         subprocess.run(['strip', '--strip-unneeded', str(binary)], check=True)
-    for assets in ('dictation', 'gnome', 'fcitx5'):
+    for assets in ('dictation', 'gnome', 'fcitx5', 'icons'):
         copy(ROOT / 'desktop' / assets, target / 'usr/share/quick-hk/desktop' / assets)
     copy(ROOT / 'desktop/fcitx5/yuekey-dictation.conf', target / 'usr/share/fcitx5/addon/yuekey-dictation.conf')
     copy(speech, target / 'usr/lib/yuekey/speech')
