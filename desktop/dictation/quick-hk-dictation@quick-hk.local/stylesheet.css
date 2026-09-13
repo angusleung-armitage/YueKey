@@ -2,10 +2,11 @@
     background-color: rgba(28, 28, 30, 0.96);
     color: #ffffff;
     border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 18px;
-    padding: 16px 22px;
-    spacing: 8px;
-    width: 310px;
+    border-radius: 10px;
+    padding: 7px 8px;
+    spacing: 4px;
     font-family: "Noto Sans CJK HK";
-    font-size: 15px;
+    font-size: 13px;
 }
+
+.quick-hk-dictation-level { width: 10px; }

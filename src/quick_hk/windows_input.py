@@ -139,6 +139,8 @@ class WindowsInput:
         comtypes.CoInitializeEx(0)
         try:
             module = comtypes.client.GetModule('UIAutomationCore.dll')
+            from .windows_caret import CaretReader
+            self.caret_reader = CaretReader(self.user, module)
             self.automation = comtypes.client.CreateObject(
                 '{ff48dba4-60ef-4201-aa87-54103eef594e}', interface=module.IUIAutomation)
             self.focus_ready.set()
@@ -179,11 +181,12 @@ class WindowsInput:
             if not identifier:
                 self.focus_diagnostic = 'provider returned no runtime ID'
                 return None
+            anchor = self.caret_reader.read(element, window)
             if self.activity != generation:
                 self.focus_diagnostic = 'activity changed during accessibility query'
                 return None
             self.focus_diagnostic = 'allowed'
-            return Target(int(window), process, identifier, generation)
+            return Target(int(window), process, identifier, generation, anchor)
         except Exception as error:
             self.focus_diagnostic = type(error).__name__ + ': ' + str(error)
             return None

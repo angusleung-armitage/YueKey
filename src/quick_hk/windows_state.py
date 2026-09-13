@@ -1,5 +1,5 @@
 """Platform-independent Windows gesture and result guards. SPDX-License-Identifier: MIT."""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 class DoubleControl:
@@ -40,6 +40,8 @@ class Target:
     process: int
     runtime_id: tuple[int, ...]
     activity: int
+    # Presentation only; geometry never replaces the focus/identity checks.
+    anchor: tuple[float, float, float, float] | None = field(default=None, compare=False)
 
 
 @dataclass

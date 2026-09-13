@@ -150,6 +150,16 @@ def exercise(engine, directory: Path, output: Path):
     from quick_hk.windows_weasel import deploy
     from quick_hk.windows_visual import capture_window
     original = load_settings()
+    # Weasel uses these same icon files for its TSF language bar and tray.
+    user = C.WinDLL('user32', use_last_error=True)
+    user.LoadImageW.argtypes = [W.HINSTANCE, W.LPCWSTR, W.UINT, C.c_int, C.c_int, W.UINT]
+    user.LoadImageW.restype = W.HANDLE
+    user.DestroyIcon.argtypes = [W.HICON]
+    for name in ('yuekey-hk.ico', 'yuekey-en.ico'):
+        for size in (16, 32, 48):
+            icon = user.LoadImageW(None, str(directory / 'icons' / name), 1, size, size, 0x10)
+            assert icon, f'Windows could not load {name} at {size}px'
+            user.DestroyIcon(icon)
     result = []
     try:
         for horizontal in (True, False, True):

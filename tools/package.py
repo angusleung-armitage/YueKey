@@ -94,7 +94,7 @@ def build() -> None:
         'libgoogle-glog0v6t64, libmarisa1, libglib2.0-0t64, '
         'python3 (>= 3.11), python3-yaml, python3-gi, gir1.2-gtk-4.0, '
         'librime-plugin-lua, librime-data, fonts-noto-cjk, '
-        'ibus-rime, gir1.2-ibus-1.0, fcitx5-rime, fcitx5, fcitx5-config-qt, '
+        'ibus-rime, gir1.2-ibus-1.0, gir1.2-atspi-2.0, fcitx5-rime, fcitx5, fcitx5-config-qt, '
         'fcitx5-frontend-gtk3, fcitx5-frontend-gtk4, fcitx5-frontend-qt6, '
         'libfcitx5core7 (>= 5.1.19), libfcitx5utils2 (>= 5.1.19), pipewire-bin, libnotify-bin',
         'all-in-one Cantonese Quick input and CPU dictation')

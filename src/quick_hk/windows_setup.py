@@ -14,7 +14,8 @@ import sys
 from .rime_config import configure_schema_list, schema_custom
 from .settings import Settings, load_settings
 
-FILES = ('quick_hk.schema.yaml', 'quick_hk.dict.yaml', 'lua/quick_hk.lua', 'lua/yuekey_predict.lua')
+FILES = ('quick_hk.schema.yaml', 'quick_hk.dict.yaml', 'lua/quick_hk.lua', 'lua/yuekey_predict.lua',
+         'icons/yuekey-hk.ico', 'icons/yuekey-en.ico')
 CUSTOM = 'quick_hk.windows.custom.yaml'
 
 

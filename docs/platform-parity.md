@@ -19,6 +19,7 @@ All three platforms share the Quick mappings, Cantonese continuation data and sp
 | 連按兩次 Ctrl、Esc 取消 · Double Ctrl / Esc | ✓ | ✓ | ✓ |
 | 麥克風選擇、音量提示 · Microphone selection/indicator | PipeWire | PipeWire | PortAudio |
 | 收音狀態、原欄位插入 · Status/targeted insertion | IBus + Shell | Fcitx5 event loop | UI Automation + Unicode input |
+| 輸入位置旁的小語音提示 · Small indicator near input | Caret / accessible field | Native input panel | Caret / UIA field |
 | 登入啟動 · Login startup | Enabled with speech | Enabled with speech | Optional installer task |
 | 安裝檔 · Installer | All-in-one DEB | Same all-in-one DEB | Setup EXE / ZIP |
 | CPU 架構 · Architectures | amd64 / arm64 | amd64 / arm64 | x64 / x86 / arm64 |

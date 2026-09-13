@@ -173,10 +173,14 @@ class YueKeyDictation : public fcitx::AddonInstance,
     auto* ic = target_.get();
     if (!ic || !eligible(ic) || target_generation_ != generation_) { cancel(); return; }
     if (state == "finishing") finishing_ = true;
-    std::string label = state == "recording" ? "粵鍵 · 收音 Listening " :
-                        state == "finishing" ? "粵鍵 · 辨識 Recognizing…" : "粵鍵 · 準備 Preparing…";
-    if (state == "recording") label += std::to_string(int(std::clamp(elapsed, 0.0, 120.0))) + "s · " +
-        std::to_string(int(std::clamp(level, 0.0, 1.0) * 100)) + "% · Ctrl × 2 / Esc";
+    // The input panel is positioned by Fcitx beside the active caret, including
+    // native Wayland clients. Keep the indicator compact like the other desktops.
+    std::string label = state == "recording" ? "🎙 " :
+                        state == "finishing" ? "🎙 …" : "🎙 ·";
+    if (state == "recording") {
+      const char* levels[] = {"▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"};
+      label += levels[std::min(7, int(std::clamp(level, 0.0, 1.0) * 8))];
+    }
     ic->inputPanel().setAuxUp(fcitx::Text(label));
     ic->updateUserInterface(fcitx::UserInterfaceComponent::InputPanel);
   }

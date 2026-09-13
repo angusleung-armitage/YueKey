@@ -61,13 +61,13 @@ Windows setup includes the Weasel engine and deploys Cantonese Quick automatical
 
 Choose the installer for your OS and CPU. Each Linux **all-in-one DEB** includes typing, settings, GNOME/KDE integration, the CPU speech runtime and models. APT installs the required system libraries.
 
-| 系統及 CPU · OS / CPU | 下載檔案 · Download (0.6.4) |
+| 系統及 CPU · OS / CPU | 下載檔案 · Download (0.6.5) |
 | --- | --- |
-| Ubuntu / Kubuntu 26.04 · Intel / AMD 64-bit | `yuekey_0.6.4-1_amd64.deb` |
-| Ubuntu 26.04 · ARM64 / AArch64 · GNOME 50 or KDE | `yuekey_0.6.4-1_arm64.deb` |
-| Windows · Intel / AMD 64-bit | `YueKey-0.6.4-windows-x64-setup.exe` |
-| Windows · Intel / AMD 32-bit (x86) | `YueKey-0.6.4-windows-x86-setup.exe` |
-| Windows 11 · ARM64 | `YueKey-0.6.4-windows-arm64-setup.exe` |
+| Ubuntu / Kubuntu 26.04 · Intel / AMD 64-bit | `yuekey_0.6.5-1_amd64.deb` |
+| Ubuntu 26.04 · ARM64 / AArch64 · GNOME 50 or KDE | `yuekey_0.6.5-1_arm64.deb` |
+| Windows · Intel / AMD 64-bit | `YueKey-0.6.5-windows-x64-setup.exe` |
+| Windows · Intel / AMD 32-bit (x86) | `YueKey-0.6.5-windows-x86-setup.exe` |
+| Windows 11 · ARM64 | `YueKey-0.6.5-windows-arm64-setup.exe` |
 
 **[下載安裝檔及 SHA256SUMS · Download installers and checksums](https://github.com/angusleung-armitage/YueKey/releases/latest)** · [詳細架構與驗證範圍 · Architecture and test coverage](docs/ARCHITECTURES.md)
 
@@ -87,7 +87,7 @@ Recognition can make mistakes. See the [compatibility record](docs/compatibility
 
 ```bash
 # Ubuntu / Kubuntu 26.04: chooses amd64 or arm64 automatically
-sudo apt install ./yuekey_0.6.4-1_$(dpkg --print-architecture).deb
+sudo apt install ./yuekey_0.6.5-1_$(dpkg --print-architecture).deb
 quick-hk setup
 quick-hk configure
 ```
@@ -131,6 +131,10 @@ After enabling the [bundled speech feature](docs/INSTALL.md#dictation-setup) on 
 每次最多錄音兩分鐘。可在設定選擇麥克風、左右 Ctrl 及自動標點；如左 Ctrl 已用作中英切換，語音會改用右 Ctrl。
 
 Each recording lasts up to two minutes. Choose the microphone, Ctrl key and automatic punctuation in settings. If Left Ctrl already switches Chinese/English, dictation uses Right Ctrl.
+
+收音時，小咪高峰會顯示在文字游標或輸入欄旁。若程式沒有提供位置，提示會放在目前視窗邊緣。Windows 中文模式的語言列／系統匣圖示為「港」，英文為「A」。
+
+A small microphone appears beside the caret or input field while recording. If an application provides no position, it stays near the active window's edge. Windows uses **港** for Chinese mode and **A** for English in the language bar/tray.
 
 ## 本機處理，保留私隱 · Local by design
 

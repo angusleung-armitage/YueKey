@@ -19,3 +19,11 @@ python3 tools/export_icon.py
 ```
 
 See the [artwork notes and prompts](../../docs/images/README.md#app-icon).
+
+Windows input-mode icons are separate from the app logo: `yuekey-hk.ico`
+shows **港** for Chinese, and `yuekey-en.ico` shows **A** for English in
+Weasel's language bar and tray. They contain rendered Noto Sans CJK HK Bold
+glyphs (SIL Open Font License); no font file is bundled. Regenerate with
+`python3 tools/build_status_icons.py` on a system with Noto CJK and Pillow.
+
+Windows 語言列及系統匣以「港」表示中文、以「A」表示英文；應用程式圖示仍為「粵」。

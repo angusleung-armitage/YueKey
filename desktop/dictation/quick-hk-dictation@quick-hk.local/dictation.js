@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: MIT
 // Optional dictation overlay, independent of the candidate styling extension.
 import Clutter from 'gi://Clutter';
+import Atspi from 'gi://Atspi';
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import IBus from 'gi://IBus';
 import St from 'gi://St';
 import {InjectionManager} from 'resource:///org/gnome/shell/extensions/extension.js';
+import {FocusCaretTracker} from 'resource:///org/gnome/shell/ui/focusCaretTracker.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as IBusManager from 'resource:///org/gnome/shell/misc/ibusManager.js';
 
@@ -25,6 +27,17 @@ export function allowedTarget(enabled, quickHk, locked, window, purpose, hints) 
         purpose !== 8 && purpose !== 9 && !(hints & (2048 | 4096)));
 }
 
+export function indicatorPosition(rect, area, width, height, gap = 8) {
+    let x = rect.x + rect.width + gap;
+    let y = rect.y + rect.height + gap;
+    if (x + width > area.x + area.width - gap)
+        x = rect.x - width - gap;
+    if (y + height > area.y + area.height - gap)
+        y = rect.y - height - gap;
+    return [Math.round(Math.max(area.x + gap, Math.min(x, area.x + area.width - width - gap))),
+        Math.round(Math.max(area.y + gap, Math.min(y, area.y + area.height - height - gap)))];
+}
+
 export class DictationUI {
     constructor(isQuickHk) {
         this._isQuickHk = isQuickHk;
@@ -35,14 +48,17 @@ export class DictationUI {
         this._ibus = IBus.Bus.new_async();
         this._purpose = null;
         this._hints = 0;
+        this._cursor = null;
+        this._accessible = null;
         this._keyboard = Clutter.get_default_backend().get_default_seat()
             .create_virtual_device(Clutter.InputDeviceType.KEYBOARD_DEVICE);
         this._actor = new St.BoxLayout({style_class: 'quick-hk-dictation',
-            orientation: Clutter.Orientation.VERTICAL, reactive: false,
+            orientation: Clutter.Orientation.HORIZONTAL, reactive: false,
             can_focus: false, visible: false});
-        this._label = new St.Label({text: '準備中…'});
-        this._level = new St.Label({text: '○ ○ ○ ○ ○ ○ ○ ○'});
-        this._actor.add_child(this._label);
+        this._icon = new St.Icon({icon_name: 'audio-input-microphone-symbolic', icon_size: 22});
+        this._level = new St.Label({text: '▁', y_align: Clutter.ActorAlign.CENTER,
+            style_class: 'quick-hk-dictation-level'});
+        this._actor.add_child(this._icon);
         this._actor.add_child(this._level);
         Main.layoutManager.addChrome(this._actor);
         this._object = Gio.DBusExportedObject.wrapJSObject(XML, this);
@@ -53,20 +69,35 @@ export class DictationUI {
             Gio.BusNameWatcherFlags.NONE,
             (_connection, _name, owner) => { this._controller = owner; },
             () => { this._controller = null; this._actor.hide(); });
-        this._connect(global.display, 'notify::focus-window', () => this.invalidate());
-        this._connect(global.stage, 'notify::key-focus', () => this.invalidate());
+        this._connect(global.display, 'notify::focus-window', () => this.invalidate(true));
+        this._connect(global.stage, 'notify::key-focus', () => this.invalidate(true));
         this._connect(Main.sessionMode, 'updated', () => this.invalidate());
-        this._connect(Main.layoutManager, 'monitors-changed', () => this.invalidate());
+        this._connect(Main.layoutManager, 'monitors-changed', () => this.invalidate(true));
         // The panel receives content type for direct IBus clients too; those
         // fields do not populate Main.inputMethod.currentFocus on Wayland.
         const manager = IBusManager.getIBusManager();
+        // Some direct IBus clients only publish panel geometry while composing.
+        // GNOME's accessibility tracker also covers empty editable fields.
+        this._tracker = new FocusCaretTracker();
+        for (const signal of ['focus-changed', 'caret-moved']) {
+            this._connect(this._tracker, signal, (_tracker, event) => {
+                if (signal === 'focus-changed' && event.detail1 !== 1)
+                    return;
+                this._accessible = {source: event.source,
+                    window: global.display.focus_window?.get_id()};
+                if (this._actor.visible) {
+                    this._cursor = null;
+                    this._place();
+                }
+            });
+        }
         this._connect(manager, 'set-content-type', (_manager, purpose, hints) => {
             this._purpose = purpose;
             this._hints = hints;
             this.invalidate();
         });
-        this._connect(manager, 'focus-in', () => this.invalidate());
-        this._connect(manager, 'focus-out', () => this.invalidate());
+        this._connect(manager, 'focus-in', () => this.invalidate(true));
+        this._connect(manager, 'focus-out', () => this.invalidate(true));
         this._connect(Main.inputMethod, 'surrounding-text-set', () => {
             const value = Main.inputMethod.getSurroundingText();
             if (this._surrounding && value.some((part, i) => part !== this._surrounding[i]))
@@ -76,11 +107,28 @@ export class DictationUI {
         // GNOME 50's supported injection helper reconnects GObject vfuncs.
         this._injections = new InjectionManager();
         const ui = this;
+        // Observe the same stage coordinates as GNOME's candidate panel. Shell
+        // has already converted Wayland-relative and mixed-scale coordinates.
+        // Keep the original handler and its return value intact.
+        const popup = manager._candidatePopup;
+        if (typeof popup?._setDummyCursorGeometry === 'function') {
+            this._injections.overrideMethod(Object.getPrototypeOf(popup),
+                '_setDummyCursorGeometry', original => function (x, y, width, height) {
+                    const result = original.call(this, x, y, width, height);
+                    if ([x, y, width, height].every(Number.isFinite) && width >= 0 && height > 0) {
+                        ui._cursor = {x, y, width, height,
+                            window: global.display.focus_window?.get_id()};
+                        if (ui._actor.visible)
+                            ui._place();
+                    }
+                    return result;
+                });
+        }
         const prototype = Object.getPrototypeOf(Main.inputMethod);
         for (const method of ['vfunc_focus_in', 'vfunc_focus_out', 'vfunc_reset',
             'vfunc_update_content_purpose', 'vfunc_update_content_hints']) {
             this._injections.overrideMethod(prototype, method, original => function (...args) {
-                ui.invalidate();
+                ui.invalidate(method === 'vfunc_focus_in' || method === 'vfunc_focus_out');
                 return original.call(this, ...args);
             });
         }
@@ -94,14 +142,75 @@ export class DictationUI {
         if (this._enabled !== value) {
             this._enabled = value;
             this.invalidate();
+            if (value) {
+                this._tracker.registerFocusListener();
+                this._tracker.registerCaretListener();
+            } else {
+                this._tracker.deregisterFocusListener();
+                this._tracker.deregisterCaretListener();
+                this._accessible = null;
+            }
         }
     }
 
-    invalidate() {
+    invalidate(clearCursor = false) {
+        if (clearCursor)
+            this._cursor = null;
         this._generation = (this._generation + 1) >>> 0;
         if (this._actor.visible) {
             this._actor.hide();
             this._object.emit_signal('Invalidated', null);
+        }
+    }
+
+    _place() {
+        const window = global.display.focus_window;
+        if (!window)
+            return;
+        const area = window.get_work_area_current_monitor();
+        const frame = window.get_frame_rect();
+        if (!this._cursor)
+            this._cursor = this._accessibleCursor(window);
+        const rect = this._cursor?.window === window.get_id() ? this._cursor :
+            {x: frame.x + 16, y: frame.y + frame.height - 64, width: 0, height: 0};
+        const [, width] = this._actor.get_preferred_width(-1);
+        const [, height] = this._actor.get_preferred_height(width);
+        this._actor.set_position(...indicatorPosition(rect, area, width, height));
+    }
+
+    _accessibleCursor(window) {
+        const focused = this._accessible;
+        if (!focused || focused.window !== window.get_id())
+            return null;
+        try {
+            const source = focused.source;
+            const states = source.get_state_set();
+            if (!states.contains(Atspi.StateType.FOCUSED) ||
+                !states.contains(Atspi.StateType.SHOWING) ||
+                source.get_role() === Atspi.Role.PASSWORD_TEXT ||
+                source.get_process_id() !== window.get_pid())
+                return null;
+            const text = source.get_text_iface();
+            let bounds = null;
+            try {
+                bounds = text?.get_character_extents(text.get_caret_offset(), Atspi.CoordType.WINDOW);
+            } catch {
+                // Empty text and end-of-text carets can be outside the range
+                // accepted by a provider. The field rectangle is still useful.
+            }
+            if (!bounds || bounds.height <= 0)
+                bounds = source.get_component_iface()?.get_extents(Atspi.CoordType.WINDOW);
+            if (!bounds || ![bounds.x, bounds.y, bounds.width, bounds.height].every(Number.isFinite) ||
+                bounds.width < 0 || bounds.height <= 0)
+                return null;
+            // Accessibility WINDOW coordinates are relative to client content;
+            // no document contents or surrounding text are requested here.
+            const client = window.get_client_content_rect();
+            const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+            return {x: client.x + bounds.x * scale, y: client.y + bounds.y * scale,
+                width: bounds.width * scale, height: bounds.height * scale, window: window.get_id()};
+        } catch {
+            return null;
         }
     }
 
@@ -132,16 +241,14 @@ export class DictationUI {
             const titles = {preparing: '準備中…', recording: '正在聆聽', finishing: '正在辨識…'};
             if (Object.hasOwn(titles, state)) {
                 const seconds = Math.max(0, Math.floor(elapsed));
-                this._label.text = `🎙 ${titles[state]}  ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+                this._actor.accessible_name = `${titles[state]} · ${seconds}s · Ctrl × 2 停止 · Esc 取消`;
                 const count = Math.max(0, Math.min(8, Math.round(level * 8)));
-                this._level.text = state === 'recording'
-                    ? `${'● '.repeat(count)}${'○ '.repeat(8 - count)}  ·  Ctrl × 2 停止`
-                    : 'Esc 取消';
+                this._level.text = state === 'recording' ? '▁▁▂▃▄▅▆▇█'[count] : '·';
+                this._icon.icon_name = state === 'finishing' ? 'content-loading-symbolic' :
+                    'audio-input-microphone-symbolic';
+                this._actor.set_style(`color: ${state === 'recording' ? '#78e0c2' : '#ffffff'};`);
                 this._actor.show();
-                const monitor = Main.layoutManager.focusMonitor ?? Main.layoutManager.primaryMonitor;
-                if (monitor)
-                    this._actor.set_position(Math.round(monitor.x + monitor.width / 2 - 155),
-                        monitor.y + monitor.height - 140);
+                this._place();
             }
         }
         invocation.return_value(null);
@@ -173,6 +280,9 @@ export class DictationUI {
 
     destroy() {
         this.invalidate();
+        this._tracker.deregisterFocusListener();
+        this._tracker.deregisterCaretListener();
+        this._accessible = null;
         this._injections.clear();
         for (const [object, id] of this._connections)
             object.disconnect(id);

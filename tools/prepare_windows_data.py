@@ -31,6 +31,9 @@ def prepare():
     default.write_bytes(configure_schema_list(None, default))
     shutil.copyfile(ROOT / 'build/data/quick_hk.dict.yaml', target / 'quick_hk.dict.yaml')
     (target / 'lua').mkdir(exist_ok=True)
+    (target / 'icons').mkdir(exist_ok=True)
+    for name in ('yuekey-hk.ico', 'yuekey-en.ico'):
+        shutil.copyfile(ROOT / 'desktop/icons' / name, target / 'icons' / name)
     shutil.copyfile(ROOT / 'rime/lua/quick_hk.lua', target / 'lua/quick_hk.lua')
     shutil.copyfile(ROOT / 'rime/lua/yuekey_predict.lua', target / 'lua/yuekey_predict.lua')
     shards = defaultdict(list)

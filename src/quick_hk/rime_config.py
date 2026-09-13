@@ -99,6 +99,8 @@ def schema_custom(settings: Settings, frontend: str = "ibus") -> bytes:
     if settings.dictation_enabled and frontend == "ibus":
         patch["engine/processors/@before 0"] = "quick_hk_dictation"
     if frontend == "windows":
+        patch["schema/icon"] = "icons/yuekey-hk.ico"
+        patch["schema/ascii_icon"] = "icons/yuekey-en.ico"
         colors = {"light": (0xFFFFFF, 0x242120, 0xD86607),
                   "dark": (0x302C29, 0xF7F5F5, 0xD86607)}
         for theme, (background, foreground, highlight) in colors.items():

@@ -1,17 +1,18 @@
-粵鍵 YueKey 0.6.4 修正關聯字顯示：輸入「你」後，文字欄只顯示「你」，「講」、「好」等建議只留在關聯字清單。按數字鍵或空白鍵確認後才加入文字欄。
+粵鍵 YueKey 0.6.5 改善輸入狀態及語音提示：Windows 中文模式顯示「港」圖示；雙按 Ctrl 後，小咪高峰會出現在文字游標或輸入欄旁。
 
-YueKey 0.6.4 keeps word continuations in the candidate list until you select one. After committing 你, the field remains 你; it becomes 你講 only after selecting 講. Browsing suggestions does not change the text field.
+YueKey 0.6.5 adds a 港 input-mode icon on Windows and a compact dictation indicator beside the caret or input field.
 
-- **三個平台 / All desktops:** Ubuntu GNOME, Kubuntu and Windows use list-only continuations. Number keys or Space accept a suggestion; Esc or new Quick input dismisses it.
-- **Ubuntu GNOME:** 字根及待確認文字改在候選框顯示，文字欄只顯示已確認文字。Radicals and pending composition appear in the candidate panel, keeping only confirmed text in the field.
-- **驗證 / Validation:** installed IBus, Fcitx5 and Weasel checks verify unchanged text while suggestions are shown and highlighted, explicit acceptance and cancellation. Horizontal/vertical layouts, shared settings and CPU Cantonese recognition remain covered by CI.
-- **語音 SSL / Voice HTTPS:** retains 0.6.3's native Windows certificate validation and checksum-verified model downloads.
+- **Windows 狀態 / Input mode:** language bar and tray use 港 for Chinese and A for English. The application logo remains 粵. Existing preferences and user learning are retained.
+- **語音提示 / Dictation indicator:** compact microphone and level display on GNOME, KDE and Windows. Windows uses a non-activating, click-through badge; KDE uses its native input panel. GNOME uses candidate-panel coordinates and accessibility field geometry. If the app reports no geometry, GNOME/Windows use the active window edge.
+- **Ubuntu 更新 / GNOME upgrade:** a previously loaded extension keeps its old JavaScript until the next login. Installing does not restart the desktop or sign you out.
+- **關聯字 / Continuations:** retains 0.6.4's list-only suggestions: 你 stays 你 until you explicitly select 講. Browsing does not insert the suggestion.
+- **語音 SSL / Voice HTTPS:** retains native Windows certificate validation and checksum-verified model downloads.
 
 - **Windows:** choose the `windows-x64`, `windows-x86` or `windows-arm64` setup EXE. Approve the administrator prompt if Weasel is missing; compatible existing engines are reused. Setup preserves preferences and learning, then deploys Cantonese Quick automatically. Portable ZIPs include the same prerequisite through **Overview → Set up typing**.
 - **新介面 / New interface:** Overview with readiness and a practice field; dedicated Typing, Voice and Advanced pages; branded icon; background setup and automatic deployment when saving settings.
 - **廣東話語音 / Cantonese dictation:** CPU runtime included. First enable downloads about 302 MB of verified models. Double-tap Ctrl to start/stop; recognition runs locally without a GPU.
-- **Ubuntu / Kubuntu 26.04:** choose `yuekey_0.6.4-1_amd64.deb` or `yuekey_0.6.4-1_arm64.deb`. Install with `sudo apt install ./yuekey_0.6.4-1_$(dpkg --print-architecture).deb`, then run `quick-hk setup` and `quick-hk configure`. The all-in-one DEB includes speech models; APT resolves system dependencies.
+- **Ubuntu / Kubuntu 26.04:** choose `yuekey_0.6.5-1_amd64.deb` or `yuekey_0.6.5-1_arm64.deb`. Install with `sudo apt install ./yuekey_0.6.5-1_$(dpkg --print-architecture).deb`, then run `quick-hk setup` and `quick-hk configure`. The all-in-one DEB includes speech models; APT resolves system dependencies.
 - **Limits:** no Linux i386/ARM32 packages or universal DEB for older distributions. Windows x86 is tested under WOW64, not a complete 32-bit OS. Hardware microphones and individual applications still need hands-on checks. Windows packages are not code-signed.
-- **授權 / License:** original YueKey code and artwork are MIT. Unmodified Weasel is GPL-3.0; other dictionaries, models and runtimes retain their licenses. [Weasel binary and corresponding upstream source](https://github.com/angusleung-armitage/YueKey/blob/v0.6.4/docs/WEASEL.md). Dictionary source and checksums accompany this release.
+- **授權 / License:** original YueKey code and artwork are MIT. Unmodified Weasel is GPL-3.0; other dictionaries, models and runtimes retain their licenses. [Weasel binary and corresponding upstream source](https://github.com/angusleung-armitage/YueKey/blob/v0.6.5/docs/WEASEL.md). Dictionary source and checksums accompany this release.
 
-[Linux 中英指南 / Guide](https://github.com/angusleung-armitage/YueKey/blob/v0.6.4/docs/INSTALL.md) · [Windows guide](https://github.com/angusleung-armitage/YueKey/blob/v0.6.4/docs/WINDOWS.md) · [Architecture/test coverage](https://github.com/angusleung-armitage/YueKey/blob/v0.6.4/docs/ARCHITECTURES.md)
+[Linux 中英指南 / Guide](https://github.com/angusleung-armitage/YueKey/blob/v0.6.5/docs/INSTALL.md) · [Windows guide](https://github.com/angusleung-armitage/YueKey/blob/v0.6.5/docs/WINDOWS.md) · [Architecture/test coverage](https://github.com/angusleung-armitage/YueKey/blob/v0.6.5/docs/ARCHITECTURES.md)

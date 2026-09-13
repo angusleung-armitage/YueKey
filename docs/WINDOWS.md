@@ -14,20 +14,20 @@ Check **Settings → System → About → System type** and choose `windows-x64`
 
 ## 1. 免費下載 · Free download
 
-到 [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases) 下載 **`YueKey-0.6.4-windows-x64-setup.exe`** 及 `SHA256SUMS`。開啟安裝程式，按步驟完成；之後可從開始功能表開啟 **YueKey**。程式安裝於目前使用者的 `%LOCALAPPDATA%\Programs\YueKey`，粵鍵本身採每使用者安裝；首次安裝內置小狼毫引擎時會要求 Windows 管理員權限。
+到 [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases) 下載 **`YueKey-0.6.5-windows-x64-setup.exe`** 及 `SHA256SUMS`。開啟安裝程式，按步驟完成；之後可從開始功能表開啟 **YueKey**。程式安裝於目前使用者的 `%LOCALAPPDATA%\Programs\YueKey`，粵鍵本身採每使用者安裝；首次安裝內置小狼毫引擎時會要求 Windows 管理員權限。
 
-Download **`YueKey-0.6.4-windows-x64-setup.exe`** and `SHA256SUMS` from [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases). Run setup, then open **YueKey** from the Start Menu. Installation is per user, under `%LOCALAPPDATA%\Programs\YueKey`, with an administrator prompt only when the bundled Weasel engine needs to be installed.
+Download **`YueKey-0.6.5-windows-x64-setup.exe`** and `SHA256SUMS` from [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases). Run setup, then open **YueKey** from the Start Menu. Installation is per user, under `%LOCALAPPDATA%\Programs\YueKey`, with an administrator prompt only when the bundled Weasel engine needs to be installed.
 
 在 PowerShell 檢查安裝檔的 SHA-256，與下載頁的 `SHA256SUMS` 比對：<br>
 Compare the installer's SHA-256 with `SHA256SUMS` in PowerShell:
 
 ```powershell
-Get-FileHash .\YueKey-0.6.4-windows-x64-setup.exe -Algorithm SHA256
+Get-FileHash .\YueKey-0.6.5-windows-x64-setup.exe -Algorithm SHA256
 ```
 
-亦提供 **`YueKey-0.6.4-windows-x64.zip`** 免安裝版本。解壓整個資料夾後開啟 `YueKey.exe`，保留旁邊的 `_internal` 資料夾。ZIP 與安裝版包含相同程式及 CPU 執行環境。
+亦提供 **`YueKey-0.6.5-windows-x64.zip`** 免安裝版本。解壓整個資料夾後開啟 `YueKey.exe`，保留旁邊的 `_internal` 資料夾。ZIP 與安裝版包含相同程式及 CPU 執行環境。
 
-The optional **`YueKey-0.6.4-windows-x64.zip`** is a portable edition. Extract the entire folder, keep `_internal` beside `YueKey.exe`, and open the executable. Both editions include the same application and CPU runtime.
+The optional **`YueKey-0.6.5-windows-x64.zip`** is a portable edition. Extract the entire folder, keep `_internal` beside `YueKey.exe`, and open the executable. Both editions include the same application and CPU runtime.
 
 此版本未有 Windows 程式碼簽署憑證，系統可能顯示發行者未經驗證。請只使用本專案 Release 的檔案及檢查碼。
 
@@ -47,6 +47,10 @@ This release is not code-signed; Windows may show an unverified publisher. Use t
 The portable ZIP includes the same engine installer. Choose **Overview → Set up typing** on first use. The companion is portable; Windows typing still requires system registration of its input-method engine.
 
 小狼毫提供 Windows 輸入法整合；粵鍵提供速成字典、設定介面及廣東話語音。兩者由同一安裝流程設定，各自保留原有授權。引擎版本及原始碼見 [Weasel 元件說明](WEASEL.md)。
+
+語言列／系統匣現在以「港」表示港式速成中文模式，以「A」表示英文模式。Windows 的 Win + Space 清單仍由小狼毫引擎提供；應用程式圖示為「粵」。
+
+The language bar/tray shows **港** in Chinese mode and **A** in English mode. The Win + Space list uses the registered Weasel engine; the YueKey application logo remains **粵**.
 
 Weasel provides the Windows input-method integration. YueKey supplies the Quick dictionary, settings interface and Cantonese dictation. One setup configures both, with their respective licenses retained. See the [Weasel component notice](WEASEL.md) for the pinned version and source.
 
@@ -91,6 +95,10 @@ If an older version reports `CERTIFICATE_VERIFY_FAILED: unable to get local issu
 If it still fails, the message identifies the file and download source. Check the system date/time and Windows updates; on a managed network, ask IT to check the HTTPS inspection certificate chain and trust settings. Untrusted certificates and hostname mismatches are still rejected, and model SHA-256 verification remains required.
 
 ### 使用語音 · Using dictation
+
+小咪高峰會放在文字游標旁；不提供游標座標的程式則使用輸入欄位置，最後才退回目前視窗邊緣。提示不會取得鍵盤焦點，亦支援螢幕邊界和負座標的多螢幕排列。
+
+The small microphone sits beside the caret, with the input field and then the active window edge as fallbacks. It does not take keyboard focus and stays within the monitor work area, including monitors left of the primary display.
 
 1. 在「語音 · Voice」分頁選擇麥克風，按「儲存並套用」，並在 Windows 隱私設定允許桌面應用程式使用麥克風。<br>
    Choose a microphone in the **Voice** page and click **Save changes**. Allow desktop apps to access the microphone in Windows privacy settings.

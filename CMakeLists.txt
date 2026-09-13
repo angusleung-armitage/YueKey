@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(quick_hk VERSION 0.6.4 LANGUAGES CXX)
+project(quick_hk VERSION 0.6.5 LANGUAGES CXX)
 include(GNUInstallDirs)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(RIME REQUIRED IMPORTED_TARGET rime>=1.16)

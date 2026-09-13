@@ -44,16 +44,8 @@ class Application:
         self.refresh_microphones()
         self.refresh_readiness()
         root.protocol('WM_DELETE_WINDOW', self.close)
-        # A non-activating status window: showing it must not steal the target field.
-        self.overlay = tk.Toplevel(root)
-        self.overlay.withdraw()
-        self.overlay.overrideredirect(True)
-        self.overlay.attributes('-topmost', True)
-        self.overlay.geometry(f'400x60+{max(0, root.winfo_screenwidth() // 2 - 200)}+40')
-        tk.Label(self.overlay, textvariable=self.status, bg='#173f3a', fg='white',
-                 font=('Segoe UI', 11), wraplength=380).pack(fill='both', expand=True)
-        self.overlay.update_idletasks()
-        self.overlay_id = self.backend.user.GetParent(self.overlay.winfo_id()) or self.overlay.winfo_id()
+        from .windows_overlay import DictationBadge
+        self.badge = DictationBadge(root, self.backend.user)
         root.after(20, self.tick)
         if self.settings.dictation_enabled:
             root.after(100, self.enable)
@@ -254,15 +246,19 @@ class Application:
         self.status.set('語音已啟用 · Dictation ready · CPU')
         self.refresh_readiness()
 
-    def show(self, text):
+    def show(self, text, level=0.0):
         self.status.set(text)
-        self.backend.user.ShowWindow(self.overlay_id, 4)  # SW_SHOWNOACTIVATE
+        target = self.backend.target()
+        if self.request and target != self.request.target:
+            self.badge.hide()
+            return
+        self.badge.show(target, self.request.state if self.request else 'recording', level)
 
     def cancel(self):
         if self.recording:
             self.recording.stop(cancel=True)
         self.request = None
-        self.backend.user.ShowWindow(self.overlay_id, 0)
+        self.badge.hide()
 
     def toggle(self):
         if self.busy or not self.enabled or self.backend.modifiers_down():
@@ -338,7 +334,7 @@ class Application:
                         self.show('正在辨識 · Recognizing…')
                     elif kind == 'level':
                         level = min(100, max(0, int(message.get('level', 0) * 100)))
-                        self.show(f'正在收音 · Listening… {message["elapsed"]:.0f}s · {level}%')
+                        self.show(f'正在收音 · Listening… {message["elapsed"]:.0f}s · {level}%', level / 100)
                     elif kind == 'error':
                         self.cancel()
                         self.status.set(message['message'])
@@ -348,7 +344,7 @@ class Application:
                         text = message.get('text', '')
                         inserted = allowed and self.backend.insert(text, target)
                         self.request = None
-                        self.backend.user.ShowWindow(self.overlay_id, 0)
+                        self.badge.hide()
                         self.status.set('已輸入 · Inserted' if inserted else '沒有插入文字 · No text inserted')
         except queue.Empty:
             pass
@@ -381,6 +377,9 @@ def self_test(report: Path, models: Path | None):
         import sounddevice
         import sherpa_onnx
         import tkinter as tk
+
+        from .windows_caret import enable_dpi_awareness
+        enable_dpi_awareness()
 
         assert ctypes.sizeof(Input) == (40 if ctypes.sizeof(ctypes.c_void_p) == 8 else 28)
         import ssl
@@ -520,6 +519,7 @@ def self_test(report: Path, models: Path | None):
         user.SetForegroundWindow.argtypes = [W.HWND]
         user.DestroyWindow.argtypes = [W.HWND]
         user.GetWindowTextW.argtypes = [W.HWND, W.LPWSTR, ctypes.c_int]
+        user.IsWindowVisible.argtypes = [W.HWND]
         root.withdraw()
         root.update()
         parent = user.CreateWindowExW(0, 'STATIC', 'YueKey isolated test', 0x10CF0000,
@@ -598,6 +598,7 @@ def self_test(report: Path, models: Path | None):
         result['activity'] = backend.activity
         assert target is not None, 'UI Automation did not settle on the isolated Edit control'
         assert target.window == parent, 'Accessibility target is not the isolated test window'
+        assert target.anchor is not None, 'The isolated Edit control did not report an anchor'
 
         def check_overlay(stage):
             current = backend.target()
@@ -619,9 +620,19 @@ def self_test(report: Path, models: Path | None):
             app.show('YueKey test · No microphone is open')
             settle()
             check_overlay(f'show-{cycle + 1}')
+            rect = W.RECT()
+            assert user.GetWindowRect(app.badge.hwnd, ctypes.byref(rect))
+            x, y, w, h = target.anchor
+            assert 0 <= rect.left - (x + w) <= 24, 'Badge is not beside the caret'
+            assert 0 <= rect.top - (y + h) <= 24, 'Badge is not below the caret'
+            assert rect.right - rect.left <= 112, 'Dictation badge is unexpectedly wide'
+            if cycle == 0:
+                from .windows_visual import capture_window
+                capture_window(app.badge.hwnd, report.parent / 'dictation-badge.png')
             app.cancel()
             settle()
             check_overlay(f'hide-{cycle + 1}')
+            assert not user.IsWindowVisible(app.badge.hwnd), 'Cancelled badge is still visible'
         assert backend.insert('我，𨋢', target), 'Unicode SendInput failed'
         settle()
         value = ctypes.create_unicode_buffer(100)
@@ -680,6 +691,8 @@ def main():
     from ctypes import wintypes
     import tkinter as tk
     from tkinter import messagebox
+    from .windows_caret import enable_dpi_awareness
+    enable_dpi_awareness()
     kernel = ctypes.WinDLL('kernel32', use_last_error=True)
     kernel.CreateMutexW.argtypes = [ctypes.c_void_p, wintypes.BOOL, wintypes.LPCWSTR]
     kernel.CreateMutexW.restype = wintypes.HANDLE
