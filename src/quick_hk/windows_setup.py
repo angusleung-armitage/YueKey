@@ -19,7 +19,7 @@ def data_directory() -> Path:
 
 
 def resources() -> Path:
-    return Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parents[2])) / 'windows-data'
+    return Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parents[2] / 'build')) / 'windows-data'
 
 
 def rime_directory() -> Path:

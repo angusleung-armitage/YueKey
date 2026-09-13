@@ -21,7 +21,7 @@ relicense third-party material. Dictionary sources and their licenses are listed
 | SenseVoice ONNX export | https://huggingface.co/csukuangfj/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2025-09-09 | Export by sherpa-onnx maintainers; revision and SHA-256 pinned in speech setup. |
 | sherpa-onnx runtime | https://github.com/k2-fsa/sherpa-onnx | Apache-2.0; pinned CPU wheels retain upstream notices. |
 | Silero VAD | https://github.com/snakers4/silero-vad | MIT; sherpa-compatible ONNX model downloaded separately with a pinned SHA-256. |
-| CT-Transformer punctuation | https://modelscope.cn/models/iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch | Upstream model terms apply; sherpa-onnx INT8 export is downloaded separately and checksum verified. |
+| CT-Transformer punctuation | https://modelscope.cn/models/iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch | Apache-2.0 according to the ModelScope model metadata; sherpa-onnx INT8 export is downloaded separately and checksum verified. |
 | OpenCC Python implementation | https://github.com/yichen0831/opencc-python | Apache-2.0; installed from a pinned wheel with its conversion dictionaries. |
 | NumPy | https://numpy.org | BSD-3-Clause; installed from a pinned wheel with bundled dependency notices. |
 

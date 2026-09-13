@@ -69,8 +69,9 @@ Add `--network host` to `docker run` and `--with-desktops` to the Python command
 to also install both desktop packages and resolve all their apt dependencies.
 The script refuses to run outside a root Docker container. It is intended for
 fresh disposable containers with no personal home or desktop bus mounted.
-The GitHub Actions workflow performs the full build and these checks; it has
-been added locally and has not yet run on GitHub.
+The GitHub Actions workflow performs the full build and these checks. Both
+Ubuntu and Windows jobs passed on 2026-09-13 in
+[run 34740387882](https://github.com/angusleung-armitage/ubuntu-quick-input-method/actions/runs/34740387882).
 
 ## Live release matrix — must be recorded separately
 
@@ -100,3 +101,25 @@ Headless tests alone do not establish production desktop readiness.
 Package checks include installation into an isolated Ubuntu container, setup for
 both frontend profiles, repeated deployment, and uninstall with existing custom
 configuration. A graphical login is still needed to activate desktop input.
+
+## Windows automated validation — 2026-09-13
+
+On the GitHub Windows Server 2025 x64 runner, Python 3.12.10:
+
+- All seven Windows deployment/gesture/result-guard tests passed.
+- Both x86 and x64 Rime DLLs extracted from the checksum-pinned official Weasel
+  0.17.4 installer loaded the Windows schema and passed `hi1`, `zb1`, `zd1`,
+  third-letter commit and unmatched-code checks.
+- The packaged x64 executable opened its actual bilingual setup window, checked
+  that controls fit and showed its dictation overlay without stealing focus.
+- Its keyboard/focus hooks and MTA UI Automation worker started successfully.
+- Unicode `我，𨋢` reached an isolated native Edit control exactly once.
+  A password control and the previous stale target were rejected.
+- The packaged runtime initialized the INT8 ASR, VAD and punctuation models on
+  CPU, passed a silence check and decoded a checksum-pinned public Cantonese WAV.
+- No physical microphone was opened during automated testing.
+
+The Windows 11 target still needs real microphone and application tests, including
+Weasel-active dictation in browsers, office applications and text editors.
+Windows 10, ARM64 and 32-bit companion builds are not validated. Windows typing
+does not yet include the Ubuntu native continuation-prediction plugin.
