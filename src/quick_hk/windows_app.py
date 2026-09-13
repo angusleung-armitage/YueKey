@@ -428,13 +428,31 @@ def self_test(report: Path, models: Path | None):
             result['test_activation']['clicked_own_field'] = True
         else:
             user.SetFocus(normal)
+        # UIA can report the new field before the asynchronous WinEvent and
+        # mouse hooks have delivered all notifications from our setup click.
+        # Establish a quiet baseline before testing the overlay; never replace
+        # that baseline after showing it, which would hide a focus regression.
         target = None
-        deadline = time.monotonic() + 5
-        while target is None and time.monotonic() < deadline:
+        started = stable_since = time.monotonic()
+        deadline = started + 10
+        result['focus_setup'] = []
+        while time.monotonic() < deadline:
             root.update()
             time.sleep(0.01)
             candidate = backend.target()
-            target = candidate if candidate and candidate.window == parent else None
+            candidate = candidate if candidate and candidate.window == parent else None
+            if candidate != target:
+                stable_since = time.monotonic()
+                target = candidate
+                result['focus_setup'].append({
+                    'elapsed': stable_since - started,
+                    'target': asdict(target) if target else None,
+                    'activity': backend.activity,
+                })
+            if target is not None and time.monotonic() - stable_since >= 1:
+                break
+        else:
+            target = None
         result['focus_diagnostic'] = backend.focus_diagnostic
         result['foreground_matches_test_window'] = user.GetForegroundWindow() == parent
         foreground_title = ctypes.create_unicode_buffer(256)
@@ -442,12 +460,32 @@ def self_test(report: Path, models: Path | None):
         result['test_foreground_title'] = foreground_title.value
         result['snapshot_age'] = time.monotonic() - backend.snapshot[1]
         result['activity'] = backend.activity
-        assert target is not None, 'UI Automation did not identify the isolated Edit control'
+        assert target is not None, 'UI Automation did not settle on the isolated Edit control'
         assert target.window == parent, 'Accessibility target is not the isolated test window'
-        app.show('YueKey test · No microphone is open')
-        settle()
-        assert user.GetForegroundWindow() == parent, 'Dictation overlay stole focus'
-        assert backend.target() == target, 'Dictation overlay invalidated the input field'
+
+        def check_overlay(stage):
+            current = backend.target()
+            result['overlay_checks'].append({
+                'stage': stage,
+                'expected': asdict(target),
+                'current': asdict(current) if current else None,
+                'snapshot': asdict(backend.snapshot[0]) if backend.snapshot[0] else None,
+                'snapshot_age': time.monotonic() - backend.snapshot[1],
+                'activity': backend.activity,
+                'foreground_matches': user.GetForegroundWindow() == parent,
+                'focus_diagnostic': backend.focus_diagnostic,
+            })
+            assert user.GetForegroundWindow() == parent, f'Dictation overlay stole focus ({stage})'
+            assert current == target, f'Dictation overlay invalidated the input field ({stage})'
+
+        result['overlay_checks'] = []
+        for cycle in range(5):
+            app.show('YueKey test · No microphone is open')
+            settle()
+            check_overlay(f'show-{cycle + 1}')
+            app.cancel()
+            settle()
+            check_overlay(f'hide-{cycle + 1}')
         assert backend.insert('我，𨋢', target), 'Unicode SendInput failed'
         settle()
         value = ctypes.create_unicode_buffer(100)
