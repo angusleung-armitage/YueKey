@@ -60,6 +60,26 @@ def main():
                 install(rime, app / '_internal/windows-data')
                 (app / 'user-notes.txt').write_bytes(b'user notes')
 
+        if architecture == 'arm64':
+            # The Windows 11 hosted image can show an OS first-login account
+            # prompt. Dismiss only that known prompt on this disposable CI VM;
+            # it otherwise keeps our isolated test field from gaining focus.
+            import ctypes
+            from ctypes import wintypes as W
+            user = ctypes.WinDLL('user32', use_last_error=True)
+            user.FindWindowW.argtypes = [W.LPCWSTR, W.LPCWSTR]
+            user.FindWindowW.restype = W.HWND
+            user.PostMessageW.argtypes = [W.HWND, W.UINT, W.WPARAM, W.LPARAM]
+            user.PostMessageW.restype = W.BOOL
+            prompt = user.FindWindowW(None, 'Microsoft account')
+            if prompt:
+                assert user.PostMessageW(prompt, 0x0010, 0, 0), 'Could not dismiss runner first-login prompt'
+                deadline = time.monotonic() + 10
+                while user.FindWindowW(None, 'Microsoft account') and time.monotonic() < deadline:
+                    time.sleep(0.1)
+                assert not user.FindWindowW(None, 'Microsoft account'), 'Runner first-login prompt stayed open'
+                print('Dismissed first-login account prompt on the disposable Windows ARM runner.')
+
         report = logs / 'installed-runtime.json'
         process = subprocess.run([str(app / 'YueKey.exe'), '--self-test', str(report),
                                   '--models', str(ROOT / 'build/speech-models')], timeout=600)
