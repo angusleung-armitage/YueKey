@@ -39,6 +39,16 @@ YueKey is an open-source input tool for Hong Kong Chinese and everyday Cantonese
 
 Quick codes can match several characters; frequency data and personal learning affect their order. The dictation example describes the interaction, not a guaranteed transcript.
 
+### Windows：一次安裝，準備就緒 · One setup, ready to type
+
+Windows 安裝檔已包含小狼毫引擎並自動部署速成。全新介面分為總覽、輸入、語音及進階；儲存設定時會自動套用，亦可在總覽直接試打。
+
+Windows setup includes the Weasel engine and deploys Cantonese Quick automatically. The redesigned app has Overview, Typing, Voice and Advanced pages, automatic deployment when saving, and a practice field.
+
+![Windows 安裝後的粵鍵總覽，包含速成狀態、試打欄及中英導覽。YueKey Overview after installation, with typing status, practice field and bilingual navigation.](docs/images/windows-overview.png)
+
+*實際 Windows 11 ARM64 測試截圖；視窗邊框依系統主題而異。Actual Windows 11 ARM64 test capture; window borders follow the system theme.*
+
 ## 支援平台 · Supported platforms
 
 每個平台／CPU 使用專用安裝檔。Linux 的 **all-in-one DEB** 包含速成、設定、GNOME／KDE 整合、CPU 語音執行環境及模型；安裝時由 APT 處理系統依賴。

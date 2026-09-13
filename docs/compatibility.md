@@ -213,3 +213,24 @@ These checks do not establish support for Linux i386/ARM32, older Ubuntu/Debian
 versions, every desktop/application, or every physical microphone. Windows x86
 was tested under WOW64, not a complete 32-bit Windows installation. See
 [ARCHITECTURES.md](ARCHITECTURES.md) for the exact boundaries.
+
+
+## Windows integrated setup and desktop interface — 2026-09-13
+
+At `477d139`, the Windows x64, x86 and ARM64 jobs passed in
+[run 34751815886](https://github.com/angusleung-armitage/YueKey/actions/runs/34751815886).
+Each installed the verified official Weasel prerequisite on a clean disposable
+runner, registered the Traditional Chinese input profile, and automatically
+deployed YueKey. Repair reused the engine and original backup. Removal retained
+the shared engine, existing preferences, learning and models.
+
+The installed executable exercised all four pages at two window sizes, saved a
+changed candidate count/theme and verified the compiled Rime settings, then
+restored the original settings through the same background operation. Screenshots
+were captured only from the test application's own window. CPU Cantonese decoding,
+Unicode insertion, password/stale-focus rejection and five overlay cycles also
+passed. Tests did not open a microphone.
+
+Windows x64、x86 及 ARM64 已通過內置引擎安裝、自動部署、修復沿用及資料保留測試。
+新介面四頁於兩種視窗大小均已驗證，並實際儲存、部署及還原候選字數與主題。
+上述為自動測試，未收集真實麥克風或所有應用程式的相容性結果。

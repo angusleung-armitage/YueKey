@@ -96,14 +96,20 @@ def _run_installer(path: Path) -> None:
 
     shell = C.WinDLL('shell32', use_last_error=True)
     kernel = C.WinDLL('kernel32', use_last_error=True)
-    ole = C.OleDLL('ole32')
+    ole = C.WinDLL('ole32')
     shell.ShellExecuteExW.argtypes = [C.POINTER(ShellExecuteInfo)]
     shell.ShellExecuteExW.restype = W.BOOL
     kernel.WaitForSingleObject.argtypes = [W.HANDLE, W.DWORD]
     kernel.WaitForSingleObject.restype = W.DWORD
     kernel.GetExitCodeProcess.argtypes = [W.HANDLE, C.POINTER(W.DWORD)]
     kernel.CloseHandle.argtypes = [W.HANDLE]
-    ole.CoInitializeEx(None, 2)
+    ole.CoInitializeEx.argtypes = [C.c_void_p, W.DWORD]
+    ole.CoInitializeEx.restype = C.c_long
+    ole.CoUninitialize.argtypes = []
+    ole.CoUninitialize.restype = None
+    initialized = ole.CoInitializeEx(None, 2)
+    if initialized not in (0, 1):
+        raise OSError(f'Windows could not initialize the installer thread (0x{initialized & 0xFFFFFFFF:08X}).')
     info = ShellExecuteInfo(cbSize=C.sizeof(ShellExecuteInfo), fMask=0x140,
                             lpVerb='runas', lpFile=str(path), lpParameters='/S /T',
                             lpDirectory=str(path.parent), nShow=1)

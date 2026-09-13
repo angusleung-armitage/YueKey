@@ -203,6 +203,42 @@ class WindowsTests(unittest.TestCase):
                     windows_weasel.ensure_engine()
                 run.assert_not_called()
 
+    def test_portable_installer_cleans_up_after_success_or_uac_cancellation(self):
+        import ctypes
+        from unittest.mock import MagicMock
+        for cancelled in (False, True):
+            with self.subTest(cancelled=cancelled):
+                shell, kernel, ole = MagicMock(), MagicMock(), MagicMock()
+                ole.CoInitializeEx.return_value = 0
+                kernel.WaitForSingleObject.return_value = 0
+
+                def launch(pointer):
+                    info = pointer._obj
+                    self.assertEqual(info.lpVerb, 'runas')
+                    self.assertEqual(info.lpParameters, '/S /T')
+                    if not cancelled:
+                        info.hProcess = 123
+                    return not cancelled
+
+                def exit_code(handle, pointer):
+                    pointer._obj.value = 0
+                    return True
+
+                shell.ShellExecuteExW.side_effect = launch
+                kernel.GetExitCodeProcess.side_effect = exit_code
+                libraries = {'shell32': shell, 'kernel32': kernel, 'ole32': ole}
+                with patch.object(ctypes, 'WinDLL', side_effect=lambda name, **_: libraries[name], create=True), \
+                        patch.object(ctypes, 'get_last_error', return_value=1223, create=True):
+                    if cancelled:
+                        with self.assertRaisesRegex(RuntimeError, 'Installation was cancelled'):
+                            windows_weasel._run_installer(Path('verified-weasel.exe'))
+                        kernel.CloseHandle.assert_not_called()
+                    else:
+                        windows_weasel._run_installer(Path('verified-weasel.exe'))
+                        kernel.CloseHandle.assert_called_once_with(123)
+                ole.CoUninitialize.assert_called_once_with()
+                self.assertIsNone(ole.CoUninitialize.restype)
+
     def test_weasel_detection_preserves_old_or_incomplete_installations(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

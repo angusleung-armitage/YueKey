@@ -10,6 +10,8 @@ YueKey provides native x64, x86 (32-bit) and ARM64 Windows builds: Cantonese Qui
 
 Check **Settings → System → About → System type** and choose `windows-x64`, `windows-x86` or `windows-arm64`. Filenames below use x64 as an example. Choose the ARM64 build on ARM64 Windows. Each architecture includes the CPU speech runtime.
 
+![Windows 安裝後的粵鍵總覽 · YueKey Overview after installation](images/windows-overview.png)
+
 ## 1. 免費下載 · Free download
 
 到 [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases) 下載 **`YueKey-0.6.0-windows-x64-setup.exe`** 及 `SHA256SUMS`。開啟安裝程式，按步驟完成；之後可從開始功能表開啟 **YueKey**。程式安裝於目前使用者的 `%LOCALAPPDATA%\Programs\YueKey`，粵鍵本身採每使用者安裝；首次安裝內置小狼毫引擎時會要求 Windows 管理員權限。
