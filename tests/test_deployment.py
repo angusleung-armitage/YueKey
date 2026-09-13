@@ -100,6 +100,9 @@ class DeploymentTests(unittest.TestCase):
         default = directory / "default.custom.yaml"
         original = b"# user's exact original formatting\npatch:\n  schema_list:\n    - schema: cangjie5\n  menu/page_size: 5\n"
         self.write(default, original)
+        presentation = directory / "ibus_rime.custom.yaml"
+        presentation_original = b"patch: {style/inline_preedit: true, style/color_scheme: azure}\n"
+        self.write(presentation, presentation_original)
         self.write(directory / "unrelated.schema.yaml", b"schema: {schema_id: unrelated}\n")
         self.write(directory / "quick_hk.userdb/CURRENT", b"user learning")
         d.deploy("ibus")
@@ -112,8 +115,13 @@ class DeploymentTests(unittest.TestCase):
         self.assertFalse(custom["translator/enable_user_dict"])
         self.assertEqual(custom["ascii_composer/switch_key"]["Shift_R"], "commit_code")
         self.assertEqual(custom["ascii_composer/switch_key"]["Shift_L"], "noop")
+        self.assertTrue(custom["predictor/preedit"])
+        panel = yaml.safe_load(presentation.read_bytes())["patch"]
+        self.assertFalse(panel["style/inline_preedit"])
+        self.assertEqual(panel["style/color_scheme"], "azure")
         d.uninstall("ibus")
         self.assertEqual(default.read_bytes(), original)
+        self.assertEqual(presentation.read_bytes(), presentation_original)
         self.assertEqual((directory / "quick_hk.userdb/CURRENT").read_bytes(), b"user learning")
         self.assertTrue((directory / "unrelated.schema.yaml").exists())
         self.assertFalse((directory / "quick_hk.schema.yaml").exists())

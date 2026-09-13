@@ -62,11 +62,25 @@ def main():
         drain()
         assert commits == ["你"], commits
         assert menus[-1] and "好" in menus[-1], "Native plugin failed to provide suggestions"
-        assert preedits and preedits[-1] == menus[-1][0], (preedits, menus[-1])
+        assert not preedits or not preedits[-1], (preedits, menus[-1])
+        assert ''.join(commits) + (preedits[-1] if preedits else '') == '你'
+        context.process_key_event(0xff54, 0, 0)  # Browse without previewing in the field.
+        drain()
+        assert commits == ['你'] and (not preedits or not preedits[-1])
+        choice = menus[-1].index('好') + 1
+        context.process_key_event(ord(str(choice)), 0, 0)
+        drain()
+        assert commits == ['你', '好'], commits
+        for code in 'of':
+            context.process_key_event(ord(code), 0, 0)
+            drain()
+        context.process_key_event(ord(str(menus[-1].index('你') + 1)), 0, 0)
+        drain()
+        assert commits == ['你', '好', '你'] and menus[-1], (commits, menus[-1])
         context.reset()
         drain()
         assert not menus[-1], "Reset resurrected suggestions"
-        assert not preedits[-1], "Reset left the continuation in the text field"
+        assert not preedits or not preedits[-1], "Reset left the continuation in the text field"
         context.focus_out()
         drain()
         context.focus_in()
@@ -76,7 +90,7 @@ def main():
         choice = menus[-1].index("好") + 1
         context.process_key_event(ord(str(choice)), 0, 0)
         drain()
-        assert commits == ["你", "好"], commits
+        assert commits == ["你", "好", "你", "好"], commits
         for code, punctuation in (("zb", "，"), ("zd", "。")):
             context.reset()
             drain()

@@ -14,20 +14,20 @@ Check **Settings → System → About → System type** and choose `windows-x64`
 
 ## 1. 免費下載 · Free download
 
-到 [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases) 下載 **`YueKey-0.6.3-windows-x64-setup.exe`** 及 `SHA256SUMS`。開啟安裝程式，按步驟完成；之後可從開始功能表開啟 **YueKey**。程式安裝於目前使用者的 `%LOCALAPPDATA%\Programs\YueKey`，粵鍵本身採每使用者安裝；首次安裝內置小狼毫引擎時會要求 Windows 管理員權限。
+到 [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases) 下載 **`YueKey-0.6.4-windows-x64-setup.exe`** 及 `SHA256SUMS`。開啟安裝程式，按步驟完成；之後可從開始功能表開啟 **YueKey**。程式安裝於目前使用者的 `%LOCALAPPDATA%\Programs\YueKey`，粵鍵本身採每使用者安裝；首次安裝內置小狼毫引擎時會要求 Windows 管理員權限。
 
-Download **`YueKey-0.6.3-windows-x64-setup.exe`** and `SHA256SUMS` from [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases). Run setup, then open **YueKey** from the Start Menu. Installation is per user, under `%LOCALAPPDATA%\Programs\YueKey`, with an administrator prompt only when the bundled Weasel engine needs to be installed.
+Download **`YueKey-0.6.4-windows-x64-setup.exe`** and `SHA256SUMS` from [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases). Run setup, then open **YueKey** from the Start Menu. Installation is per user, under `%LOCALAPPDATA%\Programs\YueKey`, with an administrator prompt only when the bundled Weasel engine needs to be installed.
 
 在 PowerShell 檢查安裝檔的 SHA-256，與下載頁的 `SHA256SUMS` 比對：<br>
 Compare the installer's SHA-256 with `SHA256SUMS` in PowerShell:
 
 ```powershell
-Get-FileHash .\YueKey-0.6.3-windows-x64-setup.exe -Algorithm SHA256
+Get-FileHash .\YueKey-0.6.4-windows-x64-setup.exe -Algorithm SHA256
 ```
 
-亦提供 **`YueKey-0.6.3-windows-x64.zip`** 免安裝版本。解壓整個資料夾後開啟 `YueKey.exe`，保留旁邊的 `_internal` 資料夾。ZIP 與安裝版包含相同程式及 CPU 執行環境。
+亦提供 **`YueKey-0.6.4-windows-x64.zip`** 免安裝版本。解壓整個資料夾後開啟 `YueKey.exe`，保留旁邊的 `_internal` 資料夾。ZIP 與安裝版包含相同程式及 CPU 執行環境。
 
-The optional **`YueKey-0.6.3-windows-x64.zip`** is a portable edition. Extract the entire folder, keep `_internal` beside `YueKey.exe`, and open the executable. Both editions include the same application and CPU runtime.
+The optional **`YueKey-0.6.4-windows-x64.zip`** is a portable edition. Extract the entire folder, keep `_internal` beside `YueKey.exe`, and open the executable. Both editions include the same application and CPU runtime.
 
 此版本未有 Windows 程式碼簽署憑證，系統可能顯示發行者未經驗證。請只使用本專案 Release 的檔案及檢查碼。
 
@@ -54,9 +54,9 @@ Weasel provides the Windows input-method integration. YueKey supplies the Quick 
 
 Candidate order adapts to local learning. Windows uses the shared Quick dictionary and Cantonese continuation data. After selecting 你, YueKey suggests continuations such as 好; typing a new code or pressing Esc dismisses them.
 
-Windows 會在文字欄內預覽目前選中的關聯字，與 Ubuntu 的預設顯示方式一致。預覽尚未確認；按數字鍵或空白鍵才輸入，Esc 或新速成碼會取消。
+關聯字只顯示在候選清單。選出「你」後，文字欄仍然只有「你」；「講」、「好」等建議須按數字鍵或空白鍵確認後才加入文字欄。移動候選游標不會預覽到文字欄；Esc 或新速成碼會取消建議。
 
-Windows previews the selected continuation inside the text field, matching Ubuntu's default display. It is unconfirmed text: a number key or Space accepts it; Esc or a new Quick code dismisses it.
+Continuations appear only in the candidate list. After selecting 你, the field still contains only 你. Suggestions such as 講 or 好 enter the field only when confirmed with a number key or Space. Moving the candidate highlight does not preview a suggestion in the field; Esc or a new Quick code dismisses it.
 
 在「輸入設定 · Typing」分頁可調整橫／直排、每頁字數、字體大小、淺／深色主題、學習、關聯字、候選字顯示、英文標點及中英切換鍵。按「儲存並套用」，程式會在背景自動重新部署。設定只影響港式速成，會儲存在 `%LOCALAPPDATA%\YueKey\settings.toml`。
 

@@ -32,10 +32,9 @@ an<Translation> PredictTranslator::Query(const string& input,
     size_t end = segment.end;
     for (int i = 0; i < num_candidates; ++i) {
       const auto& text = predict_engine_->candidate(i);
-      // The segment consumes no code, but frontends such as Fcitx5 need
-      // composition text to display an unconfirmed inline continuation.
+      // IBus displays this text in its panel; other frontends keep it empty.
       translation->Append(New<SimpleCandidate>("prediction", end, end,
-                                               text, "", text));
+                                               text, "", predict_engine_->preedit(text)));
       if (max_candidates > 0 && i >= max_candidates)
         break;
     }

@@ -11,7 +11,7 @@ All three platforms share the Quick mappings, Cantonese continuation data and sp
 | `zb1` → `，`, `zd1` → `。` | ✓ | ✓ | ✓ |
 | 個人學習及備份重設 · Learning and backed-up reset | ✓ | ✓ | ✓ |
 | 廣東話關聯字 · Cantonese continuations | Native Rime module | Native Rime module | Rime Lua processor |
-| 文字欄預覽關聯字 · Inline continuation preview | IBus preview | Candidate preedit | Weasel preview mode |
+| 關聯字只在清單，選取後輸入 · Continuations stay in the list until selected | ✓ | ✓ | ✓ |
 | 橫／直排、字體、主題 · Layout, font, theme | GNOME extension | Fcitx5 Classic UI | Weasel schema style |
 | 候選字顯示、每頁字數 · Candidate visibility/page size | ✓ | ✓ | ✓ |
 | 中英切換及標點偏好 · Language key/punctuation | ✓ | ✓ | ✓ |
@@ -76,11 +76,11 @@ The Fcitx5 addon uses public Fcitx5 5.1.19 interfaces. It watches the active inp
 
 The Python controller selects KDE from `XDG_CURRENT_DESKTOP` or accepts `--frontend fcitx5`. It shares the existing worker lifecycle, local models and session guards. Shared Linux service/autostart files keep one original backup and remain installed while either managed frontend needs them.
 
-Linux prediction candidates expose explicit composition text while consuming no typed code, so Fcitx5 can display and cancel the same inline continuation preview as IBus. Both installed frontends are checked for preview text and clearing after reset.
+Fcitx5 continuations have empty composition text. IBus 1.6 hides candidate lists for empty compositions, so its schema enables panel preedit and its frontend disables inline preedit; radicals and pending text appear in the candidate panel. Both installed frontends are checked for an unchanged text field while suggestions are visible or highlighted, explicit selection, and cancellation. [IBus 1.6 display implementation](https://github.com/rime/ibus-rime/blob/1.6.0/rime_engine.c).
 
 Windows uses Rime Lua for continuations from the same pre-ranked TSV input as the Linux native predictor. Data loads in bounded shards; only public dictionary data is cached. No personal text is cached between input sessions. Weasel-specific style patches live in `quick_hk.windows.custom.yaml`, preserving other schemes' appearance. The Windows companion persists the shared settings model and identifies microphones by device and host-API name, resolving the current index immediately before capture.
 
-Weasel uses `style/preedit_type: preview` with inline preedit enabled, so a zero-length continuation segment still displays its commit preview. Candidate layout writes both `style/horizontal` and `style/layout/type`; the latter takes precedence in Weasel 0.17.4. CI exercises the installed server's TSF preedit responses and its shared candidate renderer in horizontal, vertical and horizontal layouts. Preview acceptance, cancellation and new-code dismissal are checked without sending input to an application. [Weasel 0.17.4 display implementation](https://github.com/rime/weasel/blob/0.17.4/RimeWithWeasel/RimeWithWeasel.cpp).
+Weasel uses `style/preedit_type: composition` with inline preedit enabled for typed radicals; continuation segments have empty preedit and appear only in the candidate list. Candidate layout writes both `style/horizontal` and `style/layout/type`; the latter takes precedence in Weasel 0.17.4. CI exercises the installed server's TSF preedit responses and its shared candidate renderer in horizontal, vertical and horizontal layouts. List-only suggestions, highlight changes, acceptance, cancellation and new-code dismissal are checked without sending input to an application. [Weasel 0.17.4 display implementation](https://github.com/rime/weasel/blob/0.17.4/RimeWithWeasel/RimeWithWeasel.cpp).
 
 Automated checks include actual Rime candidate selection and continuation cancellation, Fcitx5 D-Bus input contexts and secure-field flags, the production KDE controller with a deterministic audio worker, Windows upgrade/preservation contracts, real Windows file locking, installer startup/repair/removal and CPU recognition of a public Cantonese WAV. Tests do not open the user's microphone.
 

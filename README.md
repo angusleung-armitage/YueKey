@@ -41,6 +41,10 @@ YueKey is an open-source input tool for Hong Kong Chinese and everyday Cantonese
 
 Quick codes can match several characters; frequency data and personal learning affect their order. The dictation example describes the interaction, not a guaranteed transcript.
 
+關聯字只顯示在清單：選出「你」後，文字欄仍然是「你」；選取「講」後才成為「你講」。可用數字鍵或 Space 確認，Esc 取消。
+
+Continuations stay in the list: after selecting 你, the field still reads 你. It becomes 你講 only after you select 講. Confirm with a number key or Space; Esc dismisses suggestions.
+
 ### Windows：一次安裝，準備就緒 · One setup, ready to type
 
 Windows 安裝檔已包含小狼毫引擎並自動部署速成。全新介面分為總覽、輸入、語音及進階；儲存設定時會自動套用，亦可在總覽直接試打。
@@ -57,13 +61,13 @@ Windows setup includes the Weasel engine and deploys Cantonese Quick automatical
 
 Choose the installer for your OS and CPU. Each Linux **all-in-one DEB** includes typing, settings, GNOME/KDE integration, the CPU speech runtime and models. APT installs the required system libraries.
 
-| 系統及 CPU · OS / CPU | 下載檔案 · Download (0.6.3) |
+| 系統及 CPU · OS / CPU | 下載檔案 · Download (0.6.4) |
 | --- | --- |
-| Ubuntu / Kubuntu 26.04 · Intel / AMD 64-bit | `yuekey_0.6.3-1_amd64.deb` |
-| Ubuntu 26.04 · ARM64 / AArch64 · GNOME 50 or KDE | `yuekey_0.6.3-1_arm64.deb` |
-| Windows · Intel / AMD 64-bit | `YueKey-0.6.3-windows-x64-setup.exe` |
-| Windows · Intel / AMD 32-bit (x86) | `YueKey-0.6.3-windows-x86-setup.exe` |
-| Windows 11 · ARM64 | `YueKey-0.6.3-windows-arm64-setup.exe` |
+| Ubuntu / Kubuntu 26.04 · Intel / AMD 64-bit | `yuekey_0.6.4-1_amd64.deb` |
+| Ubuntu 26.04 · ARM64 / AArch64 · GNOME 50 or KDE | `yuekey_0.6.4-1_arm64.deb` |
+| Windows · Intel / AMD 64-bit | `YueKey-0.6.4-windows-x64-setup.exe` |
+| Windows · Intel / AMD 32-bit (x86) | `YueKey-0.6.4-windows-x86-setup.exe` |
+| Windows 11 · ARM64 | `YueKey-0.6.4-windows-arm64-setup.exe` |
 
 **[下載安裝檔及 SHA256SUMS · Download installers and checksums](https://github.com/angusleung-armitage/YueKey/releases/latest)** · [詳細架構與驗證範圍 · Architecture and test coverage](docs/ARCHITECTURES.md)
 
@@ -83,7 +87,7 @@ Recognition can make mistakes. See the [compatibility record](docs/compatibility
 
 ```bash
 # Ubuntu / Kubuntu 26.04: chooses amd64 or arm64 automatically
-sudo apt install ./yuekey_0.6.3-1_$(dpkg --print-architecture).deb
+sudo apt install ./yuekey_0.6.4-1_$(dpkg --print-architecture).deb
 quick-hk setup
 quick-hk configure
 ```

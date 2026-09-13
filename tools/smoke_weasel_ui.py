@@ -163,11 +163,14 @@ def exercise(engine, directory: Path, output: Path):
             try:
                 client.key('h')
                 typed = client.key('i')
-                assert typed.get('ctx.preedit') == '我', typed
+                assert typed.get('ctx.preedit') == '竹戈', typed
                 predicted = client.key('1')
                 assert predicted.get('commit') == '我', predicted
                 assert predicted.get('status.composing') == '1', predicted
-                assert predicted.get('ctx.preedit') == '同', predicted
+                assert not predicted.get('ctx.preedit'), predicted
+                assert predicted.get('ctx.cand'), predicted
+                moved = client.key(0xff54)  # Down changes the highlight, not the text field.
+                assert not moved.get('ctx.preedit') and not moved.get('commit'), moved
                 cancelled = client.key(0xff1b)
                 assert not cancelled.get('commit') and cancelled.get('status.composing') == '0', cancelled
                 client.key('h'); client.key('i'); client.key('1')
@@ -191,11 +194,11 @@ def exercise(engine, directory: Path, output: Path):
                 capture_window(hwnd, output / f'candidates-{len(result)}.png', expected_pid=client.pid)
                 client.key(0xff1b)
                 result.append(dict(horizontal=horizontal, width=width, height=height,
-                                   preview=predicted['ctx.preedit']))
+                                   preedit=predicted.get('ctx.preedit', '')))
             finally:
                 client.close()
     finally:
         apply_settings(directory, original)
         deploy(engine, directory)
     (output / 'candidate-ui.json').write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding='utf-8')
-    print('PASS installed Weasel: horizontal/vertical candidates, inline prediction preview, confirm and cancel', flush=True)
+    print('PASS installed Weasel: horizontal/vertical candidates, list-only continuations, confirm and cancel', flush=True)

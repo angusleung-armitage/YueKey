@@ -3,4 +3,4 @@ commit 920bd41ebf6f9bf6855d14fbe80212e54e749791
 Changes: unique component/module names and per-engine mutable state; database shared read-only.
 Predictions require a fresh commit notification so frontend resets cannot resurrect old suggestions.
 Modified/released keys pass through prediction handling.
-Continuation candidates expose their text as preedit for inline Fcitx5 previews.
+Continuation preedit is empty by default. IBus enables panel preedit with inline display disabled so its menu stays visible.

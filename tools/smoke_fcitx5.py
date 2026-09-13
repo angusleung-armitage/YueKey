@@ -83,16 +83,25 @@ def main():
         key(str(menus[-1].index("你") + 1))
         assert commits == ["你"], commits
         assert "好" in menus[-1], "Native prediction plugin did not load"
-        assert preedits and preedits[-1] == menus[-1][0], (preedits, menus[-1])
+        assert not preedits or not preedits[-1], (preedits, menus[-1])
+        assert ''.join(commits) + (preedits[-1] if preedits else '') == '你'
+        context('ProcessKeyEvent', '(uuubu)', (0xff54, 0, 0, False, 0))
+        assert commits == ['你'] and (not preedits or not preedits[-1])
+        key(str(menus[-1].index('好') + 1))
+        assert commits == ['你', '好'], commits
+        for character in 'of':
+            key(character)
+        key(str(menus[-1].index('你') + 1))
+        assert commits == ['你', '好', '你'] and menus[-1], (commits, menus[-1])
         context("Reset")
         assert not menus[-1], "Reset resurrected suggestions"
-        assert not preedits[-1], "Reset left the continuation in the text field"
+        assert not preedits or not preedits[-1], "Reset left the continuation in the text field"
         context("FocusOut")
         context("FocusIn")
         for character in "vd":
             key(character)
         key(str(menus[-1].index("好") + 1))
-        assert commits == ["你", "好"], commits
+        assert commits == ["你", "好", "你", "好"], commits
         for code, punctuation in (("zb", "，"), ("zd", "。")):
             context("Reset")
             for character in code + "1":

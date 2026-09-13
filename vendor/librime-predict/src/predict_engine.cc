@@ -19,10 +19,12 @@ static const ResourceType kPredictDbResourceType = {"predict_db", "", ""};
 
 PredictEngine::PredictEngine(an<PredictDb> db,
                              int max_iterations,
-                             int max_candidates)
+                             int max_candidates,
+                             bool show_preedit)
     : db_(db),
       max_iterations_(max_iterations),
-      max_candidates_(max_candidates) {}
+      max_candidates_(max_candidates),
+      show_preedit_(show_preedit) {}
 
 PredictEngine::~PredictEngine() {}
 
@@ -63,7 +65,7 @@ an<Translation> PredictEngine::Translate(const Segment& segment) const {
   for (auto* it = candidates_->begin(); it != candidates_->end(); ++it) {
     const auto& text = db_->GetEntryText(*it);
     translation->Append(
-        New<SimpleCandidate>("prediction", end, end, text, "", text));
+        New<SimpleCandidate>("prediction", end, end, text, "", preedit(text)));
     i++;
     if (max_candidates_ > 0 && i >= max_candidates_)
       break;
@@ -82,8 +84,10 @@ PredictEngine* PredictEngineComponent::Create(const Ticket& ticket) {
   string db_name = "predict.db";
   int max_candidates = 0;
   int max_iterations = 0;
+  bool show_preedit = false;
   if (auto* schema = ticket.schema) {
     auto* config = schema->config();
+    config->GetBool("predictor/preedit", &show_preedit);
     if (config->GetString("predictor/db", &db_name)) {
       LOG(INFO) << "custom predictor/db: " << db_name;
     }
@@ -96,7 +100,7 @@ PredictEngine* PredictEngineComponent::Create(const Ticket& ticket) {
   }
   if (auto db = db_pool_.GetDb(db_name)) {
     if (db->IsOpen() || db->Load()) {
-      return new PredictEngine(db, max_iterations, max_candidates);
+      return new PredictEngine(db, max_iterations, max_candidates, show_preedit);
     } else {
       LOG(ERROR) << "failed to load predict db: " << db_name;
     }

@@ -221,8 +221,8 @@ def test_predictions_are_suffixes_and_sessions_are_isolated(probe):
     assert predicted["commit"] == "你"
     assert "好" in predicted["candidates"]
     assert predicted["preview"] == predicted["candidates"][0]
-    assert predicted["preedit"] == predicted["preview"], "Fcitx5 needs composition text for inline previews"
-    assert predicted["input"] == "", "A continuation is a preview, not a typed code"
+    assert predicted["preedit"] == "", "Unselected continuations must stay out of the text field"
+    assert predicted["input"] == "", "A continuation does not contain typed code"
     first_predictions = predicted["candidates"]
     probe.send("new")
     second = probe.type("vd")

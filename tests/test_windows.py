@@ -62,7 +62,7 @@ class WindowsTests(unittest.TestCase):
                     'style/horizontal': False, 'style/color_scheme': 'yuekey_dark',
                     'style/layout/type': 'vertical', 'style/vertical_text': False,
                     'style/fullscreen': False, 'style/inline_preedit': True,
-                    'style/preedit_type': 'preview',
+                    'style/preedit_type': 'composition',
                     'translator/enable_user_dict': False, 'switches/@1/reset': 0,
                     'switches/@2/reset': 1, 'quick_hk/show_candidates': False,
                     'quick_hk/dictation_key': 'Control_R'}.items():

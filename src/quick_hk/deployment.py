@@ -165,7 +165,9 @@ def _managed_assets(frontend: str, settings: Settings) -> dict[Path, bytes]:
         ).encode()
         # IBus Rime recognizes horizontal mode here; GNOME owns the font rendering.
         changes[frontend_directory(frontend) / "ibus_rime.custom.yaml"] = _merge_yaml_patch(
-            frontend_directory(frontend) / "ibus_rime.custom.yaml", {"style/horizontal": settings.horizontal}
+            frontend_directory(frontend) / "ibus_rime.custom.yaml",
+            {"style/horizontal": settings.horizontal, "style/preedit_style": "composition",
+             "style/inline_preedit": False}
         )
     else:
         for theme in ("light", "dark"):

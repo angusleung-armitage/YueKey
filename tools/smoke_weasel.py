@@ -110,16 +110,17 @@ def exercise(library: Path, preferences=False):
                 assert schema.value == b'quick_hk', schema.value
 
             assert_default(session)
-            def snapshot(current=session, *, require_prediction_preview=False):
+            def snapshot(current=session, *, require_prediction_menu=False):
                 context = Context(data_size=C.sizeof(Context) - C.sizeof(C.c_int))
                 assert call('get_context', C.c_int, [C.c_size_t, C.POINTER(Context)], current, C.byref(context))
                 values = [context.menu.candidates[n].text.decode() for n in range(context.menu.num_candidates)]
-                if require_prediction_preview:
+                if require_prediction_menu:
                     assert values and context.commit_text_preview
                     assert context.commit_text_preview.decode() == values[context.menu.highlighted_candidate_index]
                     # A zero-length composition is valid for continuations;
-                    # Weasel must display commit_text_preview in preview mode.
+                    # Keep its text out of the client preedit until selection.
                     assert context.composition.length == 0
+                    assert not context.composition.preedit
                 if values:
                     assert context.menu.page_size == (5 if preferences else 9), context.menu.page_size
                 call('free_context', C.c_int, [C.POINTER(Context)], C.byref(context))
@@ -167,7 +168,7 @@ def exercise(library: Path, preferences=False):
                 call('clear_composition', None, [C.c_size_t], session)
             key('o'); key('f')
             assert key(str(snapshot().index('你') + 1)) == '你'
-            assert '好' in snapshot(require_prediction_preview=True), ('Missing portable continuations', snapshot())
+            assert '好' in snapshot(require_prediction_menu=True), ('Missing portable continuations', snapshot())
             second = call('create_session', C.c_size_t, [])
             assert_default(second)
             assert not snapshot(second), 'Predictions leaked into a second input context'

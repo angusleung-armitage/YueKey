@@ -92,6 +92,10 @@ def schema_custom(settings: Settings, frontend: str = "ibus") -> bytes:
         "switches/@2/reset": int(settings.ascii_punctuation),
         "style/horizontal": settings.horizontal,
     }
+    if frontend in ("ibus", "fcitx5"):
+        # IBus 1.6 hides the entire menu when composition is empty. Its
+        # preedit belongs in the candidate panel, with inline_preedit off.
+        patch["predictor/preedit"] = frontend == "ibus"
     if settings.dictation_enabled and frontend == "ibus":
         patch["engine/processors/@before 0"] = "quick_hk_dictation"
     if frontend == "windows":
@@ -115,9 +119,8 @@ def schema_custom(settings: Settings, frontend: str = "ibus") -> bytes:
                       "style/color_scheme": f"yuekey_{settings.theme}",
                       "style/color_scheme_dark": f"yuekey_{settings.theme}",
                       "style/inline_preedit": True,
-                      # Predictions have empty composition text but a nonempty
-                      # commit preview. Match IBus's default preview display.
-                      "style/preedit_type": "preview",
+                      # Continuations belong in the candidate list until selected.
+                      "style/preedit_type": "composition",
                       # Weasel reads layout/type after the legacy horizontal
                       # flag, so keep both in agreement for this schema.
                       "style/layout/type": "horizontal" if settings.horizontal else "vertical",
