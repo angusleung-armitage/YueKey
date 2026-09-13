@@ -39,6 +39,8 @@ YueKey is an open-source input tool for Hong Kong Chinese and everyday Cantonese
 
 速成碼可能對應多個字，選字次序會受詞頻及個人學習影響。語音例子只說明操作方式；辨識結果會隨錄音而異。
 
+完整的 75 個傳統 `z` 符號及候選順序見[標點對照表 · Punctuation reference](docs/PUNCTUATION.md)。
+
 Quick codes can match several characters; frequency data and personal learning affect their order. The dictation example describes the interaction, not a guaranteed transcript.
 
 關聯字只顯示在清單：選出「你」後，文字欄仍然是「你」；選取「講」後才成為「你講」。可用數字鍵或 Space 確認，Esc 取消。

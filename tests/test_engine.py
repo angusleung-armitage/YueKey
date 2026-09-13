@@ -168,7 +168,9 @@ def test_invalid_code_kept_editable(probe):
 
 @pytest.mark.parametrize("code,char", [("zb", "，"), ("zc", "、"), ("zd", "。"),
                                      ("zg", "；"), ("zh", "："), ("zi", "？"),
-                                     ("zj", "！"), ("zl", "…"), ("zy", "—")])
+                                     ("zj", "！"), ("zl", "…"), ("zy", "—"),
+                                     ("zf", "‧"), ("zk", "︰"), ("zt", "﹖"), ("zu", "﹗"),
+                                     ("zo", "﹑"), ("zp", "﹒"), ("zx", "︱")])
 def test_punctuation_codes(probe, code, char):
     result = probe.type(code)
     assert result["input"] == code

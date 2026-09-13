@@ -3,10 +3,12 @@
 YueKey 0.6.5 adds a 港 input-mode icon on Windows and a compact dictation indicator beside the caret or input field.
 
 - **Windows 狀態 / Input mode:** language bar and tray use 港 for Chinese and A for English. The application logo remains 粵. Existing preferences and user learning are retained.
+- **標點補齊 / Punctuation:** restores all 75 traditional Z-code symbols from the previous 38-symbol subset, including `zf → ‧`, `zk → ︰`, `zt → ﹖`, `zu → ﹗`, and vertical forms. Default candidates follow full-code order; personal learning can change ranking. See the [symbol reference](https://github.com/angusleung200/YueKey/blob/v0.6.5/docs/PUNCTUATION.md).
 - **語音提示 / Dictation indicator:** compact microphone and level display on GNOME, KDE and Windows. Windows uses a non-activating, click-through badge; KDE uses its native input panel. GNOME uses candidate-panel coordinates and accessibility field geometry. If the app reports no geometry, GNOME/Windows use the active window edge.
 - **Ubuntu 更新 / GNOME upgrade:** a previously loaded extension keeps its old JavaScript until the next login. Installing does not restart the desktop or sign you out.
 - **關聯字 / Continuations:** retains 0.6.4's list-only suggestions: 你 stays 你 until you explicitly select 講. Browsing does not insert the suggestion.
 - **語音 SSL / Voice HTTPS:** retains native Windows certificate validation and checksum-verified model downloads.
+- **Windows 設定 / Settings:** rapid saves now invalidate Rime's whole-second configuration cache, so layout and page-size changes are applied reliably.
 
 - **Windows:** choose the `windows-x64`, `windows-x86` or `windows-arm64` setup EXE. Approve the administrator prompt if Weasel is missing; compatible existing engines are reused. Setup preserves preferences and learning, then deploys Cantonese Quick automatically. Portable ZIPs include the same prerequisite through **Overview → Set up typing**.
 - **新介面 / New interface:** Overview with readiness and a practice field; dedicated Typing, Voice and Advanced pages; branded icon; background setup and automatic deployment when saving settings.

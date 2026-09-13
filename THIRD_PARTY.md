@@ -29,10 +29,12 @@ YueKey transforms full Cangjie codes to their first and last letters, adds HK
 code alternatives, assigns Cantonese frequency weights, and builds continuation
 predictions by splitting observed words into prefix/suffix pairs. These are
 modified datasets with project-specific candidate ordering.
-Legacy `zx` punctuation codes come from the same public-domain libcangjie data,
-reduce to first/last letters (`zxab` → `zb`), and retain full-code order as their
-initial candidate ranking. The other upstream `z` symbol-category conventions
-are excluded. These symbols do not expand the prediction corpus.
+Legacy `zx` punctuation follows the traditional 75-position Big5 sequence
+`A140`–`A1AC`, decoded by Python's CP950 codec and reduced to first/last letters
+(`zxab` → `zb`). It retains full-code order and distinct small/vertical Unicode
+forms. This replaces libcangjie's incomplete 38-symbol subset. The other upstream
+`z` category conventions are excluded, and symbols do not enter predictions.
+References and mapping details are in [docs/PUNCTUATION.md](docs/PUNCTUATION.md).
 `data/sources.lock.json` records exact revisions, package versions, URLs, and
 SHA-256 hashes. `tools/fetch_sources.py` verifies all inputs before use.
 

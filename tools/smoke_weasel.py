@@ -156,7 +156,9 @@ def exercise(library: Path, preferences=False):
                 call('destroy_session', C.c_int, [C.c_size_t], session)
                 print('PASS actual Rime preferences: page size, hidden candidates, learning/prediction off, language key, English punctuation')
                 return
-            for keys, expected in [('hi1', '我'), ('zb1', '，'), ('zd1', '。'), ('hio', '我'), ('zz ', '')]:
+            for keys, expected in [('hi1', '我'), ('zb1', '，'), ('zd1', '。'),
+                                   ('zf1', '‧'), ('zk1', '︰'), ('zt1', '﹖'), ('zu1', '﹗'),
+                                   ('hio', '我'), ('zz ', '')]:
                 committed = ''
                 for letter in keys:
                     call('process_key', C.c_int, [C.c_size_t, C.c_int, C.c_int], session, ord(letter), 0)

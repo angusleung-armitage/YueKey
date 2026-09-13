@@ -104,7 +104,8 @@ def main():
             key(character)
         key(str(menus[-1].index("好") + 1))
         assert commits == ["你", "好", "你", "好"], commits
-        for code, punctuation in (("zb", "，"), ("zd", "。")):
+        for code, punctuation in (("zb", "，"), ("zd", "。"), ("zf", "‧"),
+                                  ("zk", "︰"), ("zt", "﹖"), ("zu", "﹗")):
             context("Reset")
             for character in code + "1":
                 key(character)

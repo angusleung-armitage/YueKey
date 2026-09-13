@@ -25,8 +25,14 @@ def test_generated_mappings_and_prediction_integrity():
     assert len(characters) > 29000
     assert ("𨋢", "jt") in mappings
     for char, code in [("，", "zb"), ("、", "zc"), ("。", "zd"), ("？", "zi"),
-                       ("！", "zj"), ("「", "zd"), ("」", "ze"), ("…", "zl")]:
+                       ("！", "zj"), ("「", "zd"), ("」", "ze"), ("…", "zl"),
+                       ("‧", "zf"), ("︰", "zk"), ("﹖", "zt"), ("﹗", "zu"),
+                       ("╴", "zb"), ("﹁", "zf"), ("︱", "zx"), ("﹑", "zo")]:
         assert (char, code) in mappings
+    symbols = [(char, code) for char, code in mappings if code.startswith('z')]
+    assert len(symbols) == 75
+    assert len({code for _, code in symbols}) == 25
+    assert ("﹏", "zb") not in symbols  # ZXBB is U+2574, not the wavy low line.
     assert ("ⅰ", "zb") not in mappings  # Different upstream Z-category convention.
     for line in (data / "quick_hk.predict.tsv").read_text().splitlines():
         prefix, suffix, weight = line.split("\t")

@@ -95,7 +95,8 @@ def main():
         context.process_key_event(ord(str(choice)), 0, 0)
         drain()
         assert commits == ["你", "好", "你", "好"], commits
-        for code, punctuation in (("zb", "，"), ("zd", "。")):
+        for code, punctuation in (("zb", "，"), ("zd", "。"), ("zf", "‧"),
+                                  ("zk", "︰"), ("zt", "﹖"), ("zu", "﹗")):
             context.reset()
             drain()
             for character in code + "1":

@@ -99,6 +99,25 @@ class WindowsTests(unittest.TestCase):
             resolve_microphone(value, sd)
         self.assertIsNone(resolve_microphone('default', sd))
 
+    def test_rapid_settings_saves_have_distinct_rime_timestamps(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source, target = Path(tmp) / 'source', Path(tmp) / 'user'
+            target.mkdir()
+            self.payload(source)
+            install(target, source)
+            custom = target / 'quick_hk.windows.custom.yaml'
+            stat = custom.stat()
+            # Simulate a source timestamp at/after the next save, independent
+            # of the test machine's speed and the current second boundary.
+            os.utime(custom, ns=(stat.st_atime_ns, stat.st_mtime_ns + 5_000_000_000))
+            for horizontal in (False, True, False):
+                previous = int(custom.stat().st_mtime)
+                apply_settings(target, Settings(horizontal=horizontal))
+                self.assertGreater(int(custom.stat().st_mtime), previous)
+                values = yaml.safe_load(custom.read_text(encoding='utf-8'))['patch']
+                self.assertEqual(values['style/horizontal'], horizontal)
+            self.assertEqual(uninstall(target), [])
+
     def test_wasapi_capture_converts_system_rate_without_exclusive_access(self):
         host = {'name': 'Windows WASAPI'}
         sd = SimpleNamespace(query_devices=lambda *_: {'hostapi': 0, 'default_samplerate': 48000},

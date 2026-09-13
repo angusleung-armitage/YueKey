@@ -30,6 +30,20 @@ def dictionary_rows(path: Path):
                 yield fields
 
 
+def legacy_punctuation() -> dict[str, list[str]]:
+    """Traditional ZXAA–ZXCY follows Big5 A140–A1AC, in three groups of 25.
+
+    Use CP950's Unicode mapping so A145 is ‧ and A14E is ﹑. Do not apply
+    compatibility normalization: it would erase the small/vertical forms.
+    See docs/PUNCTUATION.md for references and the default candidate table.
+    """
+    punctuation: dict[str, list[str]] = defaultdict(list)
+    for index, trail in enumerate((*range(0x40, 0x7F), *range(0xA1, 0xAD))):
+        code = 'z' + chr(ord('a') + index % 25)
+        punctuation[code].append(bytes((0xA1, trail)).decode('cp950'))
+    return punctuation
+
+
 def build() -> dict:
     lock = json.loads((ROOT / "data/sources.lock.json").read_text())
     for name, spec in lock["sources"].items():
@@ -45,24 +59,13 @@ def build() -> dict:
     extracted.mkdir(parents=True, exist_ok=True)
     subprocess.run(["dpkg-deb", "-x", str(SOURCES / "libcangjie.deb"), str(extracted)], check=True)
     db = extracted / "usr/share/libcangjie/cangjie.db"
-    punctuation: dict[str, list[str]] = defaultdict(list)
+    punctuation = legacy_punctuation()
     with sqlite3.connect(f"file:{db}?mode=ro", uri=True) as connection:
         for text, full_code in connection.execute(
             "SELECT chchar, code FROM chars JOIN codes USING(char_index) WHERE version=5 AND hkscs=1"
         ):
             if len(text) == 1 and re.fullmatch("[a-y]+", full_code):
                 codes[text].add(full_code if len(full_code) == 1 else full_code[0] + full_code[-1])
-        # Legacy ZX punctuation uses first/last codes: ZXAB -> ZB -> ，.
-        # Rime's other Z categories (e.g. ZB for Roman numerals) are a different
-        # convention and must not be folded into these Quick punctuation codes.
-        for text, full_code in connection.execute(
-            "SELECT chchar, code FROM chars JOIN codes USING(char_index) "
-            "WHERE version=5 AND code GLOB 'zx[a-z][a-z]' "
-            "AND (punct=1 OR symbol=1) ORDER BY code, chchar"
-        ):
-            short_code = full_code[0] + full_code[-1]
-            if len(text) == 1 and text not in punctuation[short_code]:
-                punctuation[short_code].append(text)
     if not punctuation["zb"] or punctuation["zb"][0] != "，":
         raise ValueError("Missing required punctuation mapping: ， zb")
 
