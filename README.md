@@ -1,13 +1,13 @@
 # 粵鍵 YueKey
 
-**在 Ubuntu 和 Windows 打速成，講廣東話。**  
-**Quick typing. Cantonese dictation. For Ubuntu and Windows.**
+**在 Ubuntu、Kubuntu 和 Windows 打速成，講廣東話。**  
+**Quick typing. Cantonese dictation. For Ubuntu, Kubuntu and Windows.**
 
 粵鍵是一套為香港用字及廣東話日常輸入而設的開源輸入工具。用熟悉的速成首尾碼打字，或連按兩次 Ctrl，直接講出你想寫的內容。打字和語音辨識都在電腦本機處理。
 
 YueKey is an open-source input tool for Hong Kong Chinese and everyday Cantonese. Type with first-and-last Cangjie codes, or double-tap Ctrl and dictate. Both typing and speech recognition run locally on your computer.
 
-[免費下載 · Free downloads](https://github.com/angusleung-armitage/YueKey/releases) · [Ubuntu 安裝](docs/INSTALL.md) · [Windows installation](docs/WINDOWS.md) · [開始使用 · Get started](#get-started) · [語音輸入 · Dictation](#dictation) · [常見問題 · Troubleshooting](docs/INSTALL.md#troubleshooting)
+[平台功能 · Platform features](docs/platform-parity.md) · [免費下載 · Free downloads](https://github.com/angusleung-armitage/YueKey/releases) · [Ubuntu 安裝](docs/INSTALL.md) · [Windows installation](docs/WINDOWS.md) · [開始使用 · Get started](#get-started) · [語音輸入 · Dictation](#dictation) · [常見問題 · Troubleshooting](docs/INSTALL.md#troubleshooting)
 
 ## 為甚麼用粵鍵？ · Why YueKey?
 
@@ -16,7 +16,7 @@ YueKey is an open-source input tool for Hong Kong Chinese and everyday Cantonese
 | ⌨️ 速成輸入 · Quick input | 首尾碼打字、數字選字、空白鍵確認，支援一碼及兩碼。 | One- and two-letter Quick codes, numbered candidates and Space to confirm. |
 | 🇭🇰 香港用字 · Hong Kong characters | 支援嘅、喺、唔、冇、咗、啲、嚟、㗎、𨋢等字。 | Includes characters used in everyday Hong Kong Chinese and Cantonese. |
 | 💬 關聯字 · Word continuations | 按廣東話詞頻提供候選字及關聯字，並在本機學習你的選字習慣。 | Cantonese frequency data, related-word suggestions and local candidate learning. |
-| 🎙️ 廣東話語音 · Cantonese dictation | GNOME／Windows 下連按兩次 Ctrl 開始／停止，輸出香港繁體字，可加入標點。 | Double Ctrl starts/stops dictation on GNOME and Windows, with HK Traditional output and optional punctuation. |
+| 🎙️ 廣東話語音 · Cantonese dictation | GNOME／KDE／Windows 下連按兩次 Ctrl 開始／停止，輸出香港繁體字，可加入標點。 | Double Ctrl starts/stops dictation on GNOME, KDE and Windows, with HK Traditional output and optional punctuation. |
 | 🖥️ 純 CPU · CPU only | 使用 SenseVoice Small Yue INT8，無需 GPU 或雲端語音帳戶。 | SenseVoice Small Yue INT8 runs on the CPU, without a GPU or cloud speech account. |
 | 🎨 可調校外觀 · Your preferred layout | 候選字橫排／直排、字體大小、每頁字數及淺色／深色主題。 | Adjust candidate orientation, font size, page size and light/dark appearance. |
 
@@ -38,19 +38,19 @@ Quick codes can match several characters; frequency data and personal learning a
 | 平台 · Platform | 速成、學習及關聯字 · Typing, learning & suggestions | 語音輸入 · Dictation |
 | --- | --- | --- |
 | Ubuntu 26.04 amd64 · GNOME Shell 50 · IBus | ✓ | ✓ · 選配／Optional |
-| Kubuntu 26.04 amd64 · KDE · Fcitx5 | ✓ | 尚未提供／Not available yet |
-| Windows 11 x64 · Weasel 0.17.4 | 速成及學習；暫無關聯字／Typing and learning; no continuations yet | 初期支援 · Initial support |
+| Kubuntu 26.04 amd64 · KDE · Fcitx5 | ✓ | ✓ · 選配／Optional |
+| Windows 11 x64 · Weasel 0.17.4 | ✓ · 包括關聯字／Including continuations | ✓ · 選配／Optional |
 
-目前為 **0.3.0 開發版本**。語音辨識、專有名詞及中英夾雜內容可能出錯；其他系統版本及個別應用程式仍需驗證。詳見[相容性紀錄](docs/compatibility.md)及[語音測試紀錄](docs/dictation-validation.md)。
+目前為 **0.4.0 開發版本**。語音辨識、專有名詞及中英夾雜內容可能出錯；其他系統版本及個別應用程式仍需驗證。詳見[相容性紀錄](docs/compatibility.md)及[語音測試紀錄](docs/dictation-validation.md)。
 
-This is the **0.3.0 development release**. Recognition may make mistakes, especially with names and mixed Cantonese/English speech. Other OS versions and individual applications need further validation. See the [compatibility record](docs/compatibility.md) and [dictation validation](docs/dictation-validation.md).
+This is the **0.4.0 development release**. Recognition may make mistakes, especially with names and mixed Cantonese/English speech. Other OS versions and individual applications need further validation. See the [compatibility record](docs/compatibility.md) and [dictation validation](docs/dictation-validation.md).
 
 <a id="get-started"></a>
 ## 開始使用 · Get started
 
-Windows：下載並執行 `YueKey-0.3.0-windows-x64-setup.exe`，從開始功能表開啟 YueKey，按照 **[Windows 雙語指南](docs/WINDOWS.md)** 安裝小狼毫及啟用語音。
+Windows：下載並執行 `YueKey-0.4.0-windows-x64-setup.exe`，從開始功能表開啟 YueKey，按照 **[Windows 雙語指南](docs/WINDOWS.md)** 安裝小狼毫及啟用語音。
 
-Windows: run `YueKey-0.3.0-windows-x64-setup.exe`, open YueKey from the Start Menu, and follow the **[Windows guide](docs/WINDOWS.md)** for Weasel and dictation setup. No separate Python installation is needed. A portable ZIP is also available.
+Windows: run `YueKey-0.4.0-windows-x64-setup.exe`, open YueKey from the Start Menu, and follow the **[Windows guide](docs/WINDOWS.md)** for Weasel and dictation setup. No separate Python installation is needed. A portable ZIP is also available.
 
 Ubuntu 完整步驟見 **[中英雙語安裝指南](docs/INSTALL.md)**，包括從原始碼建置、GNOME／KDE 安裝、語音設定及首次免登出啟用。
 
@@ -61,9 +61,9 @@ Follow the **[bilingual installation guide](docs/INSTALL.md)** for source builds
 Download the required `.deb` files from Releases into a `dist/` folder, or build them from source, then run:
 
 ```bash
-sudo apt install ./dist/quick-hk-core_0.3.0-1_all.deb \
-  ./dist/quick-hk-predict_0.3.0-1_amd64.deb \
-  ./dist/quick-hk-gnome_0.3.0-1_all.deb
+sudo apt install ./dist/quick-hk-core_0.4.0-1_all.deb \
+  ./dist/quick-hk-predict_0.4.0-1_amd64.deb \
+  ./dist/quick-hk-gnome_0.4.0-1_all.deb
 quick-hk setup --frontend ibus
 ```
 
@@ -82,11 +82,11 @@ quick-hk configure
 <a id="dictation"></a>
 ## 用廣東話講出來 · Say it in Cantonese
 
-在 GNOME 安裝[選配語音套件及模型](docs/INSTALL.md#dictation-setup)後：
+在 GNOME 或 [KDE](docs/INSTALL.md#kde) 安裝[選配語音套件及模型](docs/INSTALL.md#dictation-setup)後：
 
 For Windows, follow the [companion setup](docs/WINDOWS.md#3-廣東話語音--cantonese-dictation). The steps below describe Ubuntu.
 
-After installing the [optional speech package and models](docs/INSTALL.md#dictation-setup) on GNOME:
+After installing the [optional speech package and models](docs/INSTALL.md#dictation-setup) on GNOME or [KDE](docs/INSTALL.md#kde):
 
 1. 選擇 **港式速成**，點選文字欄，完成未確認的速成碼。  
    Select **港式速成**, focus a text field and finish any pending character code.
@@ -121,8 +121,8 @@ quick-hk doctor --frontend ibus
 quick-hk dictation status --json
 ```
 
-KDE 使用者可把 `ibus` 改成 `fcitx5`；語音診斷只適用於有安裝語音功能的 GNOME 系統。  
-KDE users can replace `ibus` with `fcitx5`; speech diagnostics apply to GNOME installations with dictation enabled.
+KDE 使用者可把 `ibus` 改成 `fcitx5`；兩個桌面均支援語音診斷。  
+KDE users can replace `ibus` with `fcitx5`; both desktops support speech diagnostics.
 
 如果粵鍵幫到你，歡迎 Star 專案、分享給有需要的朋友，或一起貢獻程式與用字資料。  
 If YueKey helps you, star the project, share it with someone who needs Cantonese input, or contribute code and vocabulary improvements.

@@ -85,27 +85,8 @@ def _read(path: Path) -> bytes | None:
 
 
 def _schema_custom(settings: Settings, frontend: str = "ibus") -> bytes:
-    patch = {
-        "menu/page_size": settings.page_size,
-        "translator/enable_user_dict": settings.learning,
-        "translator/enable_sentence": False,
-        "translator/enable_encoder": False,
-        "quick_hk/learning": settings.learning,
-        "quick_hk/show_candidates": settings.show_candidates,
-        "quick_hk/switch_key": settings.switch_key,
-        "quick_hk/dictation_enabled": settings.dictation_enabled and frontend == "ibus",
-        "quick_hk/dictation_key": settings.effective_dictation_key,
-        "ascii_composer/switch_key": {
-            key: "commit_code" if key == settings.switch_key else "noop"
-            for key in ("Shift_L", "Shift_R", "Control_L", "Control_R")
-        },
-        "switches/@1/reset": int(settings.prediction),
-        "switches/@2/reset": int(settings.ascii_punctuation),
-        "style/horizontal": settings.horizontal,
-    }
-    if settings.dictation_enabled and frontend == "ibus":
-        patch["engine/processors/@before 0"] = "quick_hk_dictation"
-    return _dump_yaml({"patch": patch})
+    from .rime_config import schema_custom
+    return schema_custom(settings, frontend)
 
 
 def _merge_yaml_patch(path: Path, updates: dict) -> bytes:
@@ -178,19 +159,6 @@ def _managed_assets(frontend: str, settings: Settings) -> dict[Path, bytes]:
             json.dumps({"theme": settings.theme, "font_size": settings.font_size,
                         "dictation_enabled": settings.dictation_enabled}, indent=2) + "\n"
         ).encode()
-        speech = assets / "dictation"
-        if speech.is_dir():
-            extension = speech / DICTATION_EXTENSION_UUID
-            if extension.is_dir():
-                for path in sorted(extension.rglob("*")):
-                    if path.is_file():
-                        changes[data_home() / "gnome-shell/extensions" / DICTATION_EXTENSION_UUID / path.relative_to(extension)] = path.read_bytes()
-            changes[data_home() / "dbus-1/services/org.quick_hk.Dictation.service"] = (
-                speech / "org.quick_hk.Dictation.service").read_bytes()
-            changes[config_home() / "autostart/quick-hk-dictation.desktop"] = (
-                (speech / "quick-hk-dictation.desktop").read_text()
-                + f"X-GNOME-Autostart-enabled={'true' if settings.dictation_enabled else 'false'}\n"
-            ).encode()
         # IBus Rime recognizes horizontal mode here; GNOME owns the font rendering.
         changes[frontend_directory(frontend) / "ibus_rime.custom.yaml"] = _merge_yaml_patch(
             frontend_directory(frontend) / "ibus_rime.custom.yaml", {"style/horizontal": settings.horizontal}
@@ -204,6 +172,20 @@ def _managed_assets(frontend: str, settings: Settings) -> dict[Path, bytes]:
                         changes[data_home() / "fcitx5/themes" / source.name / path.relative_to(source)] = path.read_bytes()
         classicui = config_home() / "fcitx5/conf/classicui.conf"
         changes[classicui] = _merge_classicui(_read(classicui), settings)
+    speech = assets / "dictation"
+    if speech.is_dir():
+        extension = speech / DICTATION_EXTENSION_UUID
+        if frontend == "ibus" and extension.is_dir():
+            for path in sorted(extension.rglob("*")):
+                if path.is_file():
+                    changes[data_home() / "gnome-shell/extensions" / DICTATION_EXTENSION_UUID / path.relative_to(extension)] = path.read_bytes()
+        changes[data_home() / "dbus-1/services/org.quick_hk.Dictation.service"] = (
+            speech / "org.quick_hk.Dictation.service").read_bytes()
+        changes[config_home() / "autostart/quick-hk-dictation.desktop"] = (
+            (speech / "quick-hk-dictation.desktop").read_text()
+            + f"Hidden={'false' if settings.dictation_enabled else 'true'}\n"
+            + f"X-GNOME-Autostart-enabled={'true' if settings.dictation_enabled else 'false'}\n"
+        ).encode()
     return changes
 
 
@@ -289,12 +271,22 @@ def _commit(plans: dict[str, dict[Path, bytes]]) -> None:
     replacements: dict[Path, bytes] = {}
     previous: dict[Path, tuple[bytes | None, int]] = {}
     backup_dir = state_home() / "backups" / uuid.uuid4().hex
+    manifests = {name: copy.deepcopy(_manifest(name)) for name in ("ibus", "fcitx5")}
     for frontend, changes in plans.items():
-        manifest = copy.deepcopy(_manifest(frontend))
+        manifest = manifests[frontend]
         for path, contents in changes.items():
             current = _read(path)
             mode = stat.S_IMODE(path.stat().st_mode) if current is not None else 0o600
             record = manifest["files"].get(str(path))
+            if record is None:
+                record = next((other["files"][str(path)] for other in manifests.values()
+                               if str(path) in other["files"]), None)
+                if record is not None:
+                    manifest["files"][str(path)] = record
+            if path in replacements:
+                if replacements[path] != contents:
+                    raise DeploymentError(f"Conflicting shared frontend settings: {path}")
+                continue
             generated = path.parent == frontend_directory(frontend) / "build"
             if record and not generated and current != contents and (
                 current is None or _hash(current) != record["last_hash"]
@@ -316,6 +308,13 @@ def _commit(plans: dict[str, dict[Path, bytes]]) -> None:
                 record["last_hash"] = _hash(contents)
             previous[path] = (current, mode)
             replacements[path] = contents
+            # Shared launchers have one original backup and one current hash.
+            for other in manifests.values():
+                if str(path) in other["files"]:
+                    other["files"][str(path)] = record
+    for frontend, manifest in manifests.items():
+        if frontend not in plans and manifest == _manifest(frontend):
+            continue
         manifest_path = state_home() / f"{frontend}.json"
         previous[manifest_path] = (_read(manifest_path), 0o600)
         replacements[manifest_path] = (json.dumps(manifest, indent=2, ensure_ascii=False) + "\n").encode()
@@ -352,12 +351,14 @@ def deploy(frontend: str = "auto", settings: Settings | None = None) -> list[str
     if missing:
         raise DeploymentError(f"Incomplete Rime data in {source}: {', '.join(missing)}. Build or install quick-hk-core first.")
     targets = resolve_frontends(frontend)
-    if settings.dictation_enabled and "ibus" in targets:
+    if settings.dictation_enabled:
         from .dictation_setup import status as dictation_status
         if not dictation_status()["ready"]:
             raise DeploymentError("Run quick-hk dictation setup before enabling dictation.")
-        if not list(Path("/usr/lib").glob("*/rime-plugins/librime-quick-hk-dictation.so")):
+        if "ibus" in targets and not list(Path("/usr/lib").glob("*/rime-plugins/librime-quick-hk-dictation.so")):
             raise DeploymentError("Install quick-hk-dictation before enabling dictation.")
+        if "fcitx5" in targets and not list(Path("/usr/lib").glob("*/fcitx5/yuekey-dictation.so")):
+            raise DeploymentError("Install quick-hk-kde before enabling dictation.")
     with _state_lock(), tempfile.TemporaryDirectory(prefix="quick-hk-deploy-") as temporary:
         plans = {}
         for name in targets:
@@ -404,6 +405,8 @@ def activation_instructions(frontends: list[str], settings: Settings | None = No
             "KDE: open Fcitx 5 Configuration, add Rime, then choose 港式速成 in Rime's F4 menu.",
             "For the supplied appearance, use Fcitx5 Classic User Interface and select a quick-hk theme; disable Kimpanel if it owns your candidate window.",
         ]
+        if settings and settings.dictation_enabled:
+            messages.append("KDE dictation: restart Fcitx5 after first installation, then run quick-hk dictation serve --frontend fcitx5. Double Ctrl starts/stops; Esc cancels.")
     return messages
 
 
@@ -411,10 +414,17 @@ def uninstall(frontend: str = "auto") -> list[str]:
     messages = []
     with _state_lock():
         plans = []
-        for name in resolve_frontends(frontend):
+        targets = resolve_frontends(frontend)
+        retained = {filename for name in ("ibus", "fcitx5") if name not in targets
+                    for filename in _manifest(name)["files"]}
+        handled = set()
+        for name in targets:
             manifest = _manifest(name)
             changes = []
             for filename, record in list(manifest["files"].items()):
+                if filename in retained or filename in handled:
+                    del manifest["files"][filename]
+                    continue
                 path = Path(filename)
                 if path.is_symlink():
                     messages.append(f"Preserved user symlink: {path}")
@@ -431,6 +441,7 @@ def uninstall(frontend: str = "auto") -> list[str]:
                 else:
                     changes.append((path, None, record["mode"]))
                 del manifest["files"][filename]
+                handled.add(filename)
             plans.append((name, manifest, changes))
         # Read all required backups, including the second frontend, before
         # deleting any live file. A damaged backup must leave typing usable.
@@ -525,12 +536,15 @@ def doctor(frontend: str = "auto") -> dict:
     try:
         settings = load_settings()
         checks["preferences"] = {"ok": True, "detail": "Settings are valid"}
-        if settings.dictation_enabled and "ibus" in targets:
+        if settings.dictation_enabled:
             from .dictation_setup import status as dictation_status
             speech = dictation_status(verify=True)
             checks["dictation_models"] = {"ok": speech["ready"], "detail": speech["model"] + " — CPU only"}
             checks["dictation_microphone"] = {"ok": bool(shutil.which("pw-record")), "detail": settings.dictation_microphone}
-            locations = list(Path("/usr/lib").glob("*/rime-plugins/librime-quick-hk-dictation.so"))
+            locations = [path for pattern in
+                         (["*/rime-plugins/librime-quick-hk-dictation.so"] if "ibus" in targets else []) +
+                         (["*/fcitx5/yuekey-dictation.so"] if "fcitx5" in targets else [])
+                         for path in Path("/usr/lib").glob(pattern)]
             checks["dictation_bridge"] = {"ok": bool(locations), "detail": ", ".join(map(str, locations)) or "Install quick-hk-dictation"}
     except (ValueError, OSError) as error:
         checks["preferences"] = {"ok": False, "detail": str(error)}

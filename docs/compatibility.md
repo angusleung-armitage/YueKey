@@ -121,8 +121,7 @@ On the GitHub Windows Server 2025 x64 runner, Python 3.12.10:
 
 The Windows 11 target still needs real microphone and application tests, including
 Weasel-active dictation in browsers, office applications and text editors.
-Windows 10, ARM64 and 32-bit companion builds are not validated. Windows typing
-does not yet include the Ubuntu native continuation-prediction plugin.
+Windows 10, ARM64 and 32-bit companion builds are not validated. The 0.2/0.3 Windows builds did not include continuations; 0.4.0 adds them through Rime Lua.
 
 ## YueKey 0.3.0 review and packaging — 2026-09-13
 
@@ -145,3 +144,19 @@ characters, running-companion rejection, and uninstall preservation. The
 installed executable passed Unicode/password/focus checks and CPU Cantonese
 fixture recognition. The Ubuntu job, including all desktop package dependencies,
 also passed. No physical microphone was opened.
+
+
+## YueKey 0.4.0 platform parity — 2026-09-13
+
+See the [bilingual feature matrix and implementation record](platform-parity.md).
+Local Ubuntu 26.04 checks passed: 89 tests, 21 subtests and one Windows-only
+file-lock test skipped. Both installed input frontends passed actual character,
+punctuation, continuation and focus/reset checks. The new Fcitx5 native bridge
+passed start/stop, Unicode once, unauthorized/replayed/premature result rejection,
+password/sensitive/disabled fields, focus/reset/cursor/key cancellation, ASCII
+mode, right Ctrl and controller-owner loss. The production KDE controller passed
+start/stop and insertion with a deterministic worker; no microphone was opened.
+Shared service files passed single-frontend and combined uninstall preservation.
+Windows release CI additionally exercises the actual Weasel 32/64-bit libraries,
+Windows file locking and the installed companion/runtime. Results are available
+with the 0.4.0 GitHub Actions release run.

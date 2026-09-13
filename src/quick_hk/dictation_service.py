@@ -1,7 +1,8 @@
-"""GNOME/IBus controller; recognition and audio capture live in a CPU worker."""
+"""GNOME/IBus and KDE/Fcitx5 controller; recognition lives in a CPU worker."""
 from __future__ import annotations
 
 import json
+import os
 import signal
 import subprocess
 import threading
@@ -25,15 +26,29 @@ XML = '''<node><interface name="org.quick_hk.Dictation">
 </interface></node>'''
 
 
-def serve() -> int:
-    import gi
-    gi.require_version('IBus', '1.0')
-    from gi.repository import Gio, GLib, IBus
+def desktop_frontend() -> str:
+    return 'fcitx5' if 'KDE' in os.environ.get('XDG_CURRENT_DESKTOP', '').upper().split(':') else 'ibus'
+
+
+def serve(frontend: str = 'auto') -> int:
+    from gi.repository import Gio, GLib
+    frontend = desktop_frontend() if frontend == 'auto' else frontend
+    if frontend not in ('ibus', 'fcitx5'):
+        raise ValueError('Unsupported dictation frontend')
+    kde = frontend == 'fcitx5'
+    bridge = desktop_name = 'org.quick_hk.FcitxDictation' if kde else BRIDGE
+    bridge_path = desktop_path = '/org/quick_hk/FcitxDictation' if kde else BRIDGE_PATH
+    if not kde:
+        import gi
+        gi.require_version('IBus', '1.0')
+        from gi.repository import IBus
+        desktop_name, desktop_path = DESKTOP, DESKTOP_PATH
 
     class Controller:
         def __init__(self):
-            IBus.init()
-            self.ibus = IBus.Bus()
+            if not kde:
+                IBus.init()
+                self.ibus = IBus.Bus()
             self.bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
             self.loop = GLib.MainLoop()
             self.session = None
@@ -48,7 +63,7 @@ def serve() -> int:
                 self.bus, NAME, Gio.BusNameOwnerFlags.NONE, self.acquired, self.lost)
             self.timer = GLib.timeout_add(150, self.tick)
             self.desktop_watch = self.bus.signal_subscribe(
-                DESKTOP, DESKTOP, 'Invalidated', DESKTOP_PATH, None,
+                desktop_name, desktop_name, 'Invalidated', desktop_path, None,
                 Gio.DBusSignalFlags.NONE, lambda *_: self.cancel())
 
         def call(self, name, path, method, arguments=None, reply=None):
@@ -67,10 +82,17 @@ def serve() -> int:
 
         def acquired(self, *_):
             try:
+                self.configure_bridge()
                 if load_settings().dictation_enabled and status()['ready']:
                     self.start_worker()
-            except (RuntimeError, ValueError, OSError):
+            except (GLib.Error, RuntimeError, ValueError, OSError):
                 self.fail('Could not load CPU speech models. Run quick-hk dictation setup.')
+
+        def configure_bridge(self):
+            if kde and self.name_owner(bridge):
+                settings = load_settings()
+                self.call(bridge, bridge_path, 'Configure', GLib.Variant('(bs)',
+                    (settings.dictation_enabled, settings.effective_dictation_key)), '(b)')
 
         def lost(self, *_):
             self.loop.quit()
@@ -79,12 +101,12 @@ def serve() -> int:
             if method == 'GetStatus':
                 invocation.return_value(GLib.Variant('(s)', (json.dumps({
                     'ready': self.ready, 'state': self.session.state if self.session else 'idle',
-                    'provider': 'cpu', 'error': self.error,
-                    'desktop_ready': bool(self.name_owner(DESKTOP)),
-                    'rime_ready': bool(self.name_owner(BRIDGE)),
+                    'provider': 'cpu', 'frontend': frontend, 'error': self.error,
+                    'desktop_ready': bool(self.name_owner(desktop_name)),
+                    'rime_ready': bool(self.name_owner(bridge)),
                 }),)))
                 return
-            if sender != self.name_owner(BRIDGE):
+            if sender != self.name_owner(bridge):
                 invocation.return_dbus_error('org.quick_hk.Error.Unauthorized', 'Rime bridge required')
                 return
             request_id = args.unpack()[0]
@@ -100,17 +122,17 @@ def serve() -> int:
             invocation.return_value(None)
 
         def desktop(self):
-            value = self.call(DESKTOP, DESKTOP_PATH, 'Snapshot', reply='(s)')
+            value = self.call(desktop_name, desktop_path, 'Snapshot', reply='(s)')
             snapshot = json.loads(value.unpack()[0])
             if not snapshot['allowed']:
                 raise RuntimeError('Focus a text field with 港式速成 selected.')
-            path = self.ibus.current_input_context()
+            path = snapshot['context'] if kde else self.ibus.current_input_context()
             if not path or path == '/':
-                raise RuntimeError('No active IBus text field.')
+                raise RuntimeError('No active input-method text field.')
             return Target(path, snapshot['generation'], snapshot['window'])
 
         def show(self, state, level=0.0, elapsed=0.0):
-            self.bus.call(DESKTOP, DESKTOP_PATH, DESKTOP, 'Show',
+            self.bus.call(desktop_name, desktop_path, desktop_name, 'Show',
                 GLib.Variant('(sdd)', (state, float(level), float(elapsed))),
                 None, Gio.DBusCallFlags.NO_AUTO_START, 500, None, None, None)
 
@@ -197,10 +219,11 @@ def serve() -> int:
                     self.start_recording()
             except (GLib.Error, RuntimeError, ValueError, OSError):
                 self.clear_bridge(request_id)
-                self.fail('Dictation is unavailable. Check quick-hk dictation status and enable YueKey Dictation in Extensions.')
+                self.fail('Dictation is unavailable. Check quick-hk dictation status and restart Fcitx5.' if kde else
+                          'Dictation is unavailable. Check quick-hk dictation status and enable YueKey Dictation in Extensions.')
 
         def clear_bridge(self, request_id):
-            self.bus.call(BRIDGE, BRIDGE_PATH, BRIDGE, 'Cancel',
+            self.bus.call(bridge, bridge_path, bridge, 'Cancel',
                 GLib.Variant('(s)', (request_id,)), None,
                 Gio.DBusCallFlags.NO_AUTO_START, 500, None, None, None)
 
@@ -243,8 +266,15 @@ def serve() -> int:
                     if not text or not self.session.consume(event['id'], target):
                         self.cancel()
                         return GLib.SOURCE_REMOVE
-                    accepted = self.call(BRIDGE, BRIDGE_PATH, 'QueueResult',
+                    accepted = self.call(bridge, bridge_path, 'QueueResult',
                         GLib.Variant('(ss)', (event['id'], text)), '(b)').unpack()[0]
+                    if kde:
+                        # Fcitx commits synchronously on its event loop and consumes
+                        # the target. A post-commit snapshot necessarily changes.
+                        self.cancel()
+                        if not accepted:
+                            self.error = 'Input field changed; no text was inserted.'
+                        return GLib.SOURCE_REMOVE
                     if not accepted or self.desktop() != target:
                         self.cancel()
                         return GLib.SOURCE_REMOVE
@@ -275,6 +305,7 @@ def serve() -> int:
 
         def tick(self):
             try:
+                self.configure_bridge()
                 enabled = load_settings().dictation_enabled
                 if not enabled:
                     self.cancel()

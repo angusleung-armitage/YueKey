@@ -60,7 +60,7 @@ jobs:
         run: >-
           docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/work:ro"
           quick-hk-dev:26.04 lintian --tag-display-limit 0 dist/*.deb
-      - name: Install and exercise both frontends
+      - name: Install and exercise IBus, Fcitx5 and KDE dictation
         run: >-
           docker run --rm --init --network host -v "$PWD:/work:ro"
           quick-hk-dev:26.04 python3 tools/test_packages.py --with-desktops
@@ -102,7 +102,7 @@ jobs:
       - name: Install hash-locked build and CPU runtime dependencies
         run: >-
           python -m pip install --require-hashes --only-binary=:all: -r desktop/windows/requirements.txt
-      - name: Test Windows deployment, gesture and focus guards
+      - name: Test Windows upgrades, settings, learning locks, microphones and focus guards
         run: python -m pytest tests/test_windows.py -q
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         id: python32

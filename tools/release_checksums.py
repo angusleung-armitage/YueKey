@@ -9,7 +9,7 @@ version = (Path(__file__).resolve().parents[1] / 'VERSION').read_text().strip()
 expected = {f'YueKey-{version}-windows-x64.zip', f'YueKey-{version}-windows-x64-setup.exe',
             f'YueKey-{version}-source.tar.gz'}
 expected.update(f'quick-hk-{name}_{version}-1_{architecture}.deb' for name, architecture in (
-    ('core', 'all'), ('gnome', 'all'), ('kde', 'all'), ('dictation', 'amd64'), ('predict', 'amd64')))
+    ('core', 'all'), ('gnome', 'all'), ('kde', 'amd64'), ('dictation', 'amd64'), ('predict', 'amd64')))
 assets = sorted(p for p in root.iterdir() if p.is_file() and p.suffix in ('.deb', '.zip', '.gz', '.exe'))
 if {p.name for p in assets} != expected:
     raise SystemExit('Release needs exactly the current five DEBs, Windows setup EXE, ZIP and source archive')

@@ -1,6 +1,6 @@
 # Dictation validation
 
-Implementation target: Ubuntu 26.04, GNOME Shell 50, IBus Rime. Selected model:
+Implementation targets: Ubuntu 26.04 GNOME Shell 50/IBus, Kubuntu 26.04 KDE/Fcitx5, and Windows 11 x64. The historical desktop measurements below used GNOME/IBus. Selected model:
 SenseVoice Small Yue INT8, sherpa export 2025-09-09. All speech models use the
 CPU provider, with four recognition threads and one punctuation/VAD thread.
 
@@ -72,3 +72,19 @@ focus changes in the applications used daily. Check GTK, Qt, browsers, terminals
 XWayland, password/private fields, screen locking, microphone unplugging,
 long recordings, and Cantonese/English mixtures. Recognition-only measurements
 above do not substitute for this desktop verification.
+
+
+## KDE and Windows in 0.4.0
+
+`tools/smoke_fcitx5.py`, called by installed-package CI, now validates the native
+KDE dictation bridge and production controller with a deterministic worker.
+It checks complete Ctrl gestures, direct Unicode commits once, replay and
+unauthorized-call rejection, password/sensitive/disabled flags, input activity,
+focus, cursor changes, right Ctrl and controller loss. The full shared model
+pipeline remains CPU-only. This D-Bus frontend test does not claim that a real
+KWin Wayland desktop or microphone has been exercised.
+
+The Windows job runs the installed EXE with a public Cantonese WAV, validates
+Unicode insertion, UI Automation password/focus guards and the nonactivating
+indicator, and tests microphone disconnect/shutdown and stable device selection.
+See [platform-parity.md](platform-parity.md) for the feature matrix and limits.

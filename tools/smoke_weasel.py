@@ -27,6 +27,24 @@ class Commit(C.Structure):
     _fields_ = [('data_size', C.c_int), ('text', C.c_char_p)]
 
 
+class Composition(C.Structure):
+    _fields_ = [(name, C.c_int) for name in ('length', 'cursor_pos', 'sel_start', 'sel_end')] + [('preedit', C.c_char_p)]
+
+
+class Candidate(C.Structure):
+    _fields_ = [('text', C.c_char_p), ('comment', C.c_char_p), ('reserved', C.c_void_p)]
+
+
+class Menu(C.Structure):
+    _fields_ = [(name, C.c_int) for name in ('page_size', 'page_no', 'is_last_page', 'highlighted_candidate_index', 'num_candidates')] + [
+        ('candidates', C.POINTER(Candidate)), ('select_keys', C.c_char_p)]
+
+
+class Context(C.Structure):
+    _fields_ = [('data_size', C.c_int), ('composition', Composition), ('menu', Menu),
+                ('commit_text_preview', C.c_char_p), ('select_labels', C.POINTER(C.c_char_p))]
+
+
 # The versioned C API's stable prefix, through select_schema. Unused slots retain
 # their pointer width; sizeof is checked before any optional field is accessed.
 class Api(C.Structure):
@@ -74,20 +92,56 @@ def exercise(library: Path):
             call('join_maintenance_thread', None, [])
             session = call('create_session', C.c_size_t, [])
             assert session and call('select_schema', C.c_int, [C.c_size_t, C.c_char_p], session, b'quick_hk')
+            def snapshot(current=session):
+                context = Context(data_size=C.sizeof(Context) - C.sizeof(C.c_int))
+                assert call('get_context', C.c_int, [C.c_size_t, C.POINTER(Context)], current, C.byref(context))
+                values = [context.menu.candidates[n].text.decode() for n in range(context.menu.num_candidates)]
+                call('free_context', C.c_int, [C.POINTER(Context)], C.byref(context))
+                return values
+
+            def key(value, modifiers=0, current=session):
+                call('process_key', C.c_int, [C.c_size_t, C.c_int, C.c_int], current,
+                     ord(value) if isinstance(value, str) else value, modifiers)
+                commit = Commit(data_size=C.sizeof(Commit) - C.sizeof(C.c_int))
+                text = ''
+                if call('get_commit', C.c_int, [C.c_size_t, C.POINTER(Commit)], current, C.byref(commit)):
+                    text = commit.text.decode()
+                    call('free_commit', C.c_int, [C.POINTER(Commit)], C.byref(commit))
+                return text
             for keys, expected in [('hi1', '我'), ('zb1', '，'), ('zd1', '。'), ('hio', '我'), ('zz ', '')]:
                 committed = ''
-                for key in keys:
-                    call('process_key', C.c_int, [C.c_size_t, C.c_int, C.c_int], session, ord(key), 0)
+                for letter in keys:
+                    call('process_key', C.c_int, [C.c_size_t, C.c_int, C.c_int], session, ord(letter), 0)
                     commit = Commit(data_size=C.sizeof(Commit) - C.sizeof(C.c_int))
                     if call('get_commit', C.c_int, [C.c_size_t, C.POINTER(Commit)], session, C.byref(commit)):
                         committed += commit.text.decode()
                         call('free_commit', C.c_int, [C.POINTER(Commit)], C.byref(commit))
                 assert committed == expected, (keys, committed, expected)
                 call('clear_composition', None, [C.c_size_t], session)
+            key('o'); key('f')
+            assert key(str(snapshot().index('你') + 1)) == '你'
+            assert '好' in snapshot(), ('Missing portable continuations', snapshot())
+            second = call('create_session', C.c_size_t, [])
+            assert call('select_schema', C.c_int, [C.c_size_t, C.c_char_p], second, b'quick_hk')
+            assert not snapshot(second), 'Predictions leaked into a second input context'
+            assert key(str(snapshot().index('好') + 1)) == '好'
+            assert not snapshot(), 'Prediction chaining did not stop at one continuation'
+            key('o'); key('f'); key(str(snapshot().index('你') + 1))
+            assert '好' in snapshot()
+            key(0xff1b)
+            assert not snapshot(), 'Escape resurrected predictions'
+            key('o'); key('f'); key(str(snapshot().index('你') + 1))
+            assert '好' in snapshot()
+            assert key('z') == '' and key('b') == '' and key('1') == '，'
+            assert not snapshot(), 'Punctuation produced predictions'
+            call('set_option', None, [C.c_size_t, C.c_char_p, C.c_int], session, b'prediction', 0)
+            key('o'); key('f'); key(str(snapshot().index('你') + 1))
+            assert not snapshot(), 'Disabled predictions were shown'
+            call('destroy_session', C.c_int, [C.c_size_t], second)
             call('destroy_session', C.c_int, [C.c_size_t], session)
         finally:
             call('finalize', None, [])
-    print('PASS actual Weasel Rime runtime: hi1, zb1, zd1, Lua schema loading')
+    print('PASS actual Rime runtime: hi1, zb1, zd1, continuations, reset, cancellation, settings and session isolation')
 
 
 def main():

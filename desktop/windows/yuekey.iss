@@ -40,6 +40,10 @@ Source: "{#RepoRoot}\build\windows-dist\YueKey\*"; DestDir: "{app}"; Flags: igno
 [Icons]
 Name: "{group}\YueKey"; Filename: "{app}\YueKey.exe"; WorkingDir: "{app}"
 Name: "{group}\Installation guide"; Filename: "{app}\docs\WINDOWS.md"
+Name: "{userstartup}\YueKey"; Filename: "{app}\YueKey.exe"; Parameters: "--background"; WorkingDir: "{app}"; Tasks: startup
+
+[Tasks]
+Name: "startup"; Description: "Start YueKey at login / 登入時啟動粵鍵"; Flags: unchecked
 
 [Run]
 Filename: "{app}\YueKey.exe"; Description: "Open YueKey / 開啟粵鍵"; Flags: nowait postinstall skipifsilent

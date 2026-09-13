@@ -31,7 +31,8 @@ def main():
     data = Path(os.environ['LOCALAPPDATA']) / 'YueKey'
     rime = Path(os.environ['APPDATA']) / 'Rime'
     shortcut = Path(os.environ['APPDATA']) / 'Microsoft/Windows/Start Menu/Programs/YueKey/YueKey.lnk'
-    assert not any(path.exists() for path in (data, rime, shortcut)), 'Expected a clean disposable profile'
+    startup = Path(os.environ['APPDATA']) / 'Microsoft/Windows/Start Menu/Programs/Startup/YueKey.lnk'
+    assert not any(path.exists() for path in (data, rime, shortcut, startup)), 'Expected a clean disposable profile'
     logs = ROOT / 'build/windows-installer'
     logs.mkdir(parents=True, exist_ok=True)
     setup = ROOT / f'dist/YueKey-{VERSION}-windows-x64-setup.exe'
@@ -39,12 +40,13 @@ def main():
     with tempfile.TemporaryDirectory(prefix='YueKey installer ') as temporary:
         app = Path(temporary) / '粵鍵 user programs'
         for step in ('install', 'repair'):
-            subprocess.run([str(setup), *quiet, f'/DIR={app}', f'/LOG={logs / (step + ".log")}'],
+            subprocess.run([str(setup), *quiet, '/TASKS=startup', f'/DIR={app}', f'/LOG={logs / (step + ".log")}'],
                            check=True, timeout=180)
             with installed() as registration:
                 assert winreg.QueryValueEx(registration, 'DisplayVersion')[0] == VERSION
                 assert Path(winreg.QueryValueEx(registration, 'InstallLocation')[0]) == app
             assert (app / 'YueKey.exe').is_file() and shortcut.is_file()
+            assert startup.is_file()
             if step == 'install':
                 # Check that repair and uninstall leave files created by the
                 # user alone, including typing configuration and learning.
@@ -82,7 +84,7 @@ def main():
         subprocess.run([str(app / 'unins000.exe'), *quiet, f'/LOG={logs / "uninstall.log"}'],
                        check=True, timeout=180)
         assert not (app / 'YueKey.exe').exists()
-        assert not shortcut.exists() and installed() is None
+        assert not shortcut.exists() and not startup.exists() and installed() is None
         assert (app / 'user-notes.txt').read_bytes() == b'user notes'
         assert (data / 'dictation/models/keep.txt').read_bytes() == b'model sentinel'
         assert (rime / 'quick_hk.userdb').read_bytes() == b'learning sentinel'

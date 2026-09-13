@@ -29,6 +29,9 @@ def main():
     else:
         core = [package for package in packages if package.name.startswith(("quick-hk-core_", "quick-hk-predict_"))]
         run("dpkg", "-i", *map(str, core))
+        for package in packages:
+            if package.name.startswith(("quick-hk-kde_", "quick-hk-dictation_")):
+                run("dpkg-deb", "--extract", str(package), "/")
 
     profiles = [Path.home() / ".config/ibus/rime", Path.home() / ".local/share/fcitx5/rime"]
     original = b"# Existing user preference; retain on uninstall.\npatch:\n  menu/page_size: 7\n"

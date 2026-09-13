@@ -102,7 +102,7 @@ def build() -> None:
     finish(core, "all")
 
     speech = control("quick-hk-dictation", architecture,
-                     f"quick-hk-core (= {VERSION}), quick-hk-gnome (= {VERSION}), libglib2.0-0t64, librime1t64 (= {rime_version}), libc6 (>= 2.43), libstdc++6 (>= 15), pipewire-bin, gir1.2-ibus-1.0, libnotify-bin",
+                     f"quick-hk-core (= {VERSION}), quick-hk-gnome (= {VERSION}) | quick-hk-kde (= {VERSION}), libglib2.0-0t64, librime1t64 (= {rime_version}), libc6 (>= 2.43), libstdc++6 (>= 15), pipewire-bin, gir1.2-ibus-1.0, libnotify-bin",
                      "Offline CPU-only Cantonese dictation with double Ctrl")
     copy(ROOT / "build/native/librime-quick-hk-dictation.so", speech / f"usr/lib/{multiarch}/rime-plugins/librime-quick-hk-dictation.so")
     subprocess.run(["strip", "--strip-unneeded", str(speech / f"usr/lib/{multiarch}/rime-plugins/librime-quick-hk-dictation.so")], check=True)
@@ -113,9 +113,17 @@ def build() -> None:
         ("gnome", "ibus-rime, gnome-shell (>= 50), gnome-shell (<< 51)", "gnome"),
         ("kde", "fcitx5-rime, fcitx5, fcitx5-config-qt, fcitx5-frontend-gtk3, fcitx5-frontend-gtk4, fcitx5-frontend-qt6", "fcitx5"),
     ):
-        target = control(f"quick-hk-{desktop}", "all", f"quick-hk-core (= {VERSION}), {dependency}", f"港式速成 integration for {desktop.upper()}")
+        package_arch = architecture if desktop == "kde" else "all"
+        if desktop == "kde":
+            dependency += ", libfcitx5core7 (>= 5.1.19), libfcitx5utils2 (>= 5.1.19), libglib2.0-0t64, libc6 (>= 2.43), libstdc++6 (>= 15)"
+        target = control(f"quick-hk-{desktop}", package_arch, f"quick-hk-core (= {VERSION}), {dependency}", f"港式速成 integration for {desktop.upper()}")
         copy(ROOT / "desktop" / assets, target / "usr/share/quick-hk/desktop" / assets)
-        finish(target, "all")
+        if desktop == "kde":
+            binary = target / f"usr/lib/{multiarch}/fcitx5/yuekey-dictation.so"
+            copy(ROOT / "build/native/yuekey-dictation.so", binary)
+            subprocess.run(["strip", "--strip-unneeded", str(binary)], check=True)
+            copy(ROOT / "desktop/fcitx5/yuekey-dictation.conf", target / "usr/share/fcitx5/addon/yuekey-dictation.conf")
+        finish(target, package_arch)
     checksums = [f"{hashlib.sha256(file.read_bytes()).hexdigest()}  {file.name}" for file in sorted(DIST.glob(f"*_{VERSION}_*.deb"))]
     (DIST / "SHA256SUMS").write_text("\n".join(checksums) + "\n")
 

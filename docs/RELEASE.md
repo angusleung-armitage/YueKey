@@ -1,19 +1,19 @@
-粵鍵 YueKey 0.3.0：新增 Windows 安裝程式，修正設定及語音停止問題，專案正式改名為 YueKey。
+粵鍵 YueKey 0.4.0：Kubuntu 加入廣東話語音；Windows 加入關聯字及完整設定。
 
-YueKey 0.3.0 adds a Windows setup installer, fixes configuration and microphone shutdown errors, and moves the repository to `angusleung-armitage/YueKey`.
+YueKey 0.4.0 adds Kubuntu Cantonese dictation and brings word continuations and the complete settings interface to Windows.
 
-- **Windows 安裝 · Setup:** download `YueKey-0.3.0-windows-x64-setup.exe`, run it, then open YueKey from the Start Menu. Install official Weasel 0.17.4 separately for typing. [中英安裝指南 · Bilingual guide](https://github.com/angusleung-armitage/YueKey/blob/v0.3.0/docs/WINDOWS.md).
-- **Windows 免安裝 · Portable:** `YueKey-0.3.0-windows-x64.zip` contains the same program and CPU runtime.
-- **Ubuntu GNOME:** download the `core`, `predict`, and `gnome` `.deb` files; add `dictation` for speech. [安裝指令 · Install commands](https://github.com/angusleung-armitage/YueKey/blob/v0.3.0/docs/INSTALL.md).
-- **Kubuntu KDE:** use `core`, `predict`, and `kde`; dictation is currently unavailable on KDE.
-- **修正 · Fixes:** Windows setup rejects duplicate/ambiguous YAML before writing. Removal checks backups and the complete manifest before deleting files. Microphone shutdown failures release capture/decoding without leaving dictation stuck.
-- **資料保留 · Preservation:** setup updates the companion; app removal retains Rime configuration, learning, backups and downloaded models. There is no typing-data change requiring redeployment for this release.
-- **原始碼 · Source:** `YueKey-0.3.0-source.tar.gz` includes build scripts and checksum-pinned dictionary inputs. `SHA256SUMS` covers every package and source archive.
+- **Kubuntu 26.04 amd64:** install the `core`, `predict`, `kde` and optional `dictation` DEBs. Fcitx5 handles double Ctrl, the recording indicator and direct insertion into the original field. [中英指南 · Guide](https://github.com/angusleung-armitage/YueKey/blob/v0.4.0/docs/INSTALL.md#kde).
+- **Windows 11 x64:** run `YueKey-0.4.0-windows-x64-setup.exe`; Weasel 0.17.4 is installed separately. A portable ZIP is also available. [中英指南 · Guide](https://github.com/angusleung-armitage/YueKey/blob/v0.4.0/docs/WINDOWS.md).
+- **Windows 設定 · Settings:** candidate orientation, page/font size, light/dark themes, learning, continuations, candidate visibility, punctuation, language switching, microphone selection and speech preferences persist across launches. Learning reset backs up the database and refuses while it is locked. Optional login startup is available in the installer.
+- **Windows 升級 · Upgrade:** close YueKey and install the new EXE, then click **Install / Update typing** and redeploy Weasel. This installs the new continuation data while keeping original backups and learned words. Externally edited managed files stop the update before writing.
+- **Ubuntu GNOME:** use `core`, `predict`, `gnome` and optional `dictation`. Existing features remain available. Install matching 0.4.0 packages together.
+- **純 CPU · CPU only:** all platforms use SenseVoice Small Yue INT8, local punctuation and HK Traditional output. First use downloads approximately 302 MB of verified models. No GPU or speech cloud account is required.
+- **下載 · Downloads:** five DEBs, Windows setup EXE, portable ZIP, corresponding source archive and `SHA256SUMS` are built by GitHub Actions. The KDE package is now `amd64` because it includes the native Fcitx5 bridge.
 
-原創程式採 MIT 授權。字典、第三方程式及模型保留原有授權，詳見 `THIRD_PARTY.md` 及各下載內的授權檔案。所有下載免費。
+原創程式採 MIT 授權，所有下載免費。字典、第三方程式及模型保留原有授權，詳見 `THIRD_PARTY.md`。
 
-Original code is MIT-licensed. Dictionaries, third-party code and models retain their original licenses; see `THIRD_PARTY.md` and the included license files. All downloads are free.
+Original code is MIT-licensed and downloads are free. Dictionaries, third-party code and models retain their original licenses; see `THIRD_PARTY.md`.
 
-Windows 版暫未包含 Ubuntu 的原生關聯字插件，未有程式碼簽署憑證。Windows 11 真實麥克風及個別應用程式仍需使用者測試；語音辨識可能出錯。
+Windows 安裝檔未有程式碼簽署。自動測試涵蓋實際 Rime／Fcitx5 引擎、Windows 安裝及 CPU 模型；真實麥克風與個別應用程式仍需按相容性紀錄驗證。密碼及無法安全識別的欄位不會接受語音。
 
-The Windows build does not yet include Ubuntu's native continuation-prediction plugin and is not code-signed. Real Windows 11 microphone and individual application compatibility need user testing. Speech recognition can make mistakes.
+The Windows installer is unsigned. Automated checks cover actual Rime/Fcitx5 engines, Windows installation and CPU models; real microphones and individual applications need the checks listed in the compatibility record. Password and unsupported fields are excluded from dictation.

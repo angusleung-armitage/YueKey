@@ -3,6 +3,8 @@ from pathlib import Path
 
 import yaml
 
+from .settings import Settings
+
 
 class DeploymentError(RuntimeError):
     """A deployment could not safely complete."""
@@ -69,3 +71,48 @@ def merge_schema_list(raw: bytes | None, path: Path) -> bytes:
     return _dump_yaml(document)
 
 
+
+def schema_custom(settings: Settings, frontend: str = "ibus") -> bytes:
+    patch = {
+        "menu/page_size": settings.page_size,
+        "translator/enable_user_dict": settings.learning,
+        "translator/enable_sentence": False,
+        "translator/enable_encoder": False,
+        "quick_hk/learning": settings.learning,
+        "quick_hk/show_candidates": settings.show_candidates,
+        "quick_hk/switch_key": settings.switch_key,
+        "quick_hk/dictation_enabled": settings.dictation_enabled and frontend == "ibus",
+        "quick_hk/dictation_key": settings.effective_dictation_key,
+        "ascii_composer/switch_key": {
+            key: "commit_code" if key == settings.switch_key else "noop"
+            for key in ("Shift_L", "Shift_R", "Control_L", "Control_R")
+        },
+        "switches/@1/reset": int(settings.prediction),
+        "switches/@2/reset": int(settings.ascii_punctuation),
+        "style/horizontal": settings.horizontal,
+    }
+    if settings.dictation_enabled and frontend == "ibus":
+        patch["engine/processors/@before 0"] = "quick_hk_dictation"
+    if frontend == "windows":
+        colors = {"light": (0xFFFFFF, 0x242120, 0xD86607),
+                  "dark": (0x302C29, 0xF7F5F5, 0xD86607)}
+        for theme, (background, foreground, highlight) in colors.items():
+            patch[f"preset_color_schemes/yuekey_{theme}"] = {
+                "name": f"YueKey {theme}", "author": "YueKey contributors",
+                "back_color": background, "border_color": background,
+                "text_color": foreground, "candidate_text_color": foreground,
+                "label_color": foreground, "comment_text_color": foreground,
+                "hilited_text_color": 0xFFFFFF, "hilited_back_color": highlight,
+                "hilited_candidate_text_color": 0xFFFFFF,
+                "hilited_candidate_back_color": highlight,
+                "hilited_label_color": 0xFFFFFF, "hilited_comment_text_color": 0xFFFFFF,
+            }
+        patch.update({"style/font_face": "Microsoft JhengHei",
+                      "style/font_point": settings.font_size,
+                      "style/label_font_point": settings.font_size,
+                      "style/comment_font_point": settings.font_size,
+                      "style/color_scheme": f"yuekey_{settings.theme}",
+                      "style/color_scheme_dark": f"yuekey_{settings.theme}",
+                      "style/inline_preedit": True,
+                      "style/layout/corner_radius": 8})
+    return _dump_yaml({"patch": patch})

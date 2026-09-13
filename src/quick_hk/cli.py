@@ -21,6 +21,7 @@ def _parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", required=True)
     speech = subparsers.add_parser("dictation", help="Set up or inspect CPU-only Cantonese dictation")
     speech.add_argument("action", choices=("setup", "status", "serve"))
+    speech.add_argument("--frontend", choices=("auto", "ibus", "fcitx5"), default="auto")
     speech.add_argument("--json", action="store_true")
     for name, help_text in (
         ("setup", "Stage, compile, and install per-user Rime configuration"),
@@ -71,7 +72,7 @@ def main(argv: list[str] | None = None) -> int:
                 return 0
             if args.action == "serve":
                 from .dictation_service import serve
-                return serve()
+                return serve(args.frontend)
             from .dictation_service import live_status
             status = dictation_setup.status(verify=True)
             status["service"] = live_status()
@@ -82,7 +83,7 @@ def main(argv: list[str] | None = None) -> int:
                 print("Models: " + ("ready" if status["ready"] else "run quick-hk dictation setup"))
                 print("Service: " + status["service"]["state"])
                 if status["service"].get("desktop_ready") is False:
-                    print("Desktop: sign out and back in, then enable YueKey Dictation in Extensions.")
+                    print("Desktop: restart Fcitx5; run quick-hk dictation serve --frontend fcitx5." if status["service"].get("frontend") == "fcitx5" else "Desktop: sign out and back in, then enable YueKey Dictation in Extensions.")
                 if status["service"].get("error"):
                     print(status["service"]["error"])
             return 0 if status["ready"] else 1

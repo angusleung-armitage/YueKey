@@ -67,6 +67,22 @@ class DeploymentTests(unittest.TestCase):
         result = yaml.safe_load(d.merge_schema_list(None, path))
         self.assertEqual(result["patch"]["schema_list/+"], [{"schema": "quick_hk"}])
 
+    def test_shared_assets_survive_one_frontend_removal_and_restore_once(self):
+        shared = self.root / 'data/dbus-1/services/org.quick_hk.Dictation.service'
+        original = b'original service'
+        self.write(shared, original)
+        with d._state_lock():
+            d._commit({'ibus': {shared: b'version one'}, 'fcitx5': {shared: b'version one'}})
+            d._commit({'fcitx5': {shared: b'version two'}})
+        d.uninstall('ibus')
+        self.assertEqual(shared.read_bytes(), b'version two')
+        d.uninstall('fcitx5')
+        self.assertEqual(shared.read_bytes(), original)
+        with d._state_lock():
+            d._commit({'ibus': {shared: b'version three'}, 'fcitx5': {shared: b'version three'}})
+        d.uninstall('both')
+        self.assertEqual(shared.read_bytes(), original)
+
     def test_rejects_ambiguous_yaml_without_changing_it(self):
         for raw in (
             b"patch:\n  schema_list: []\n  schema_list/+: []\n",

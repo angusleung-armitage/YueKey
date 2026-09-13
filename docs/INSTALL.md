@@ -2,9 +2,9 @@
 
 [← 返回介紹 · Back to README](../README.md)
 
-本指南適用於 Ubuntu 26.04 amd64（GNOME Shell 50／IBus）及 Kubuntu 26.04 amd64（KDE／Fcitx5）。Ubuntu 語音輸入支援 GNOME／IBus。Windows 使用者請看 [Windows 安裝指南](WINDOWS.md)。
+本指南適用於 Ubuntu 26.04 amd64（GNOME Shell 50／IBus）及 Kubuntu 26.04 amd64（KDE／Fcitx5）。語音輸入支援 GNOME／IBus 及 KDE／Fcitx5。Windows 使用者請看 [Windows 安裝指南](WINDOWS.md)。
 
-This guide targets Ubuntu 26.04 amd64 with GNOME Shell 50/IBus and Kubuntu 26.04 amd64 with KDE/Fcitx5. Ubuntu dictation supports GNOME/IBus. For Windows, see the [Windows guide](WINDOWS.md).
+This guide targets Ubuntu 26.04 amd64 with GNOME Shell 50/IBus and Kubuntu 26.04 amd64 with KDE/Fcitx5. Dictation supports GNOME/IBus and KDE/Fcitx5. For Windows, see the [Windows guide](WINDOWS.md).
 
 產品名稱為 **粵鍵 YueKey**；本版本套件及指令仍使用 `quick-hk`，Rime 方案名稱仍是 **港式速成**。所有 `quick-hk` 指令都應以桌面使用者執行；只有系統套件安裝／移除需要 `sudo`。
 
@@ -38,11 +38,11 @@ After the build, `dist/` should contain these files for this version:
 
 | 套件 · Package | 用途 · Purpose |
 | --- | --- |
-| `quick-hk-core_0.3.0-1_all.deb` | 速成資料、設定及部署工具／Scheme data, settings and deployment |
-| `quick-hk-predict_0.3.0-1_amd64.deb` | 關聯字插件及編譯工具／Prediction plugin and deployer |
-| `quick-hk-gnome_0.3.0-1_all.deb` | GNOME／IBus 整合／integration |
-| `quick-hk-kde_0.3.0-1_all.deb` | KDE／Fcitx5 整合／integration |
-| `quick-hk-dictation_0.3.0-1_amd64.deb` | GNOME 選配語音輸入／Optional GNOME dictation |
+| `quick-hk-core_0.4.0-1_all.deb` | 速成資料、設定及部署工具／Scheme data, settings and deployment |
+| `quick-hk-predict_0.4.0-1_amd64.deb` | 關聯字插件及編譯工具／Prediction plugin and deployer |
+| `quick-hk-gnome_0.4.0-1_all.deb` | GNOME／IBus 整合／integration |
+| `quick-hk-kde_0.4.0-1_amd64.deb` | KDE／Fcitx5 整合及語音橋接／Integration and dictation bridge |
+| `quick-hk-dictation_0.4.0-1_amd64.deb` | GNOME／KDE 選配語音輸入／Optional GNOME/KDE dictation |
 | `SHA256SUMS` | 套件檢查碼／Package checksums |
 
 可在 `dist/` 核對檔案完整性：  
@@ -62,9 +62,9 @@ If you already have these packages, continue below. Docker is used for building;
 Run from the project root:
 
 ```bash
-sudo apt install ./dist/quick-hk-core_0.3.0-1_all.deb \
-  ./dist/quick-hk-predict_0.3.0-1_amd64.deb \
-  ./dist/quick-hk-gnome_0.3.0-1_all.deb
+sudo apt install ./dist/quick-hk-core_0.4.0-1_all.deb \
+  ./dist/quick-hk-predict_0.4.0-1_amd64.deb \
+  ./dist/quick-hk-gnome_0.4.0-1_all.deb
 quick-hk setup --frontend ibus
 ```
 
@@ -99,7 +99,7 @@ Older packages may show the previous settings-window name; the command is the sa
 After installing the GNOME typing packages, install the optional speech package:
 
 ```bash
-sudo apt install ./dist/quick-hk-dictation_0.3.0-1_amd64.deb
+sudo apt install ./dist/quick-hk-dictation_0.4.0-1_amd64.deb
 ```
 
 語音設定需要 `uv` 建立獨立 Python 3.12 執行環境。如尚未安裝，可使用 [uv 官方 Linux 安裝方式](https://docs.astral.sh/uv/getting-started/installation/)，無需 `sudo`：
@@ -168,9 +168,9 @@ This method cannot replace JavaScript already imported during the current sessio
 ## 5. Kubuntu KDE：安裝速成 · Install Quick input
 
 ```bash
-sudo apt install ./dist/quick-hk-core_0.3.0-1_all.deb \
-  ./dist/quick-hk-predict_0.3.0-1_amd64.deb \
-  ./dist/quick-hk-kde_0.3.0-1_all.deb
+sudo apt install ./dist/quick-hk-core_0.4.0-1_all.deb \
+  ./dist/quick-hk-predict_0.4.0-1_amd64.deb \
+  ./dist/quick-hk-kde_0.4.0-1_amd64.deb
 quick-hk setup --frontend fcitx5
 ```
 
@@ -178,9 +178,45 @@ quick-hk setup --frontend fcitx5
 
 In KDE Wayland settings, select **Fcitx 5** as the virtual keyboard/input method, then sign out and back in. Open Fcitx 5 Configuration, add Rime, and select **港式速成** through F4 in a text field.
 
-使用 **Classic User Interface**，選 **YueKey Light** 或 **YueKey Dark**。如候選窗由 Kimpanel 接管，先停用 Kimpanel 才能使用 Classic UI 主題。此版本 KDE 尚未提供語音輸入。
+使用 **Classic User Interface**，選 **YueKey Light** 或 **YueKey Dark**。如候選窗由 Kimpanel 接管，先停用 Kimpanel 才能使用 Classic UI 主題。外觀、選字學習、關聯字、標點及中英切換均可在 `quick-hk configure --frontend fcitx5` 設定。
 
-Use **Classic User Interface** with **YueKey Light** or **YueKey Dark**. If Kimpanel controls the candidate window, disable it to use Classic UI themes. Dictation is not available on KDE in this version.
+Use **Classic User Interface** with **YueKey Light** or **YueKey Dark**. If Kimpanel controls the candidate window, disable it to use Classic UI themes. Use `quick-hk configure --frontend fcitx5` for appearance, learning, continuations, punctuation and language switching.
+
+### KDE 廣東話語音 · KDE Cantonese dictation
+
+先完成上述 KDE 安裝，再執行：  
+After completing the KDE typing installation:
+
+```bash
+sudo apt install ./dist/quick-hk-dictation_0.4.0-1_amd64.deb
+quick-hk dictation setup
+quick-hk configure --frontend fcitx5 --set dictation_enabled=true
+```
+
+完成正在組合的文字後，在 Fcitx5 系統匣選單選「重新啟動」。首次安裝原生橋接需要重新啟動 Fcitx5；現有 KDE 桌面毋須登出。若尚未將 KDE 的輸入法設定為 Fcitx5，先完成上一節的桌面設定。
+
+Finish any active composition, then choose **Restart** from Fcitx5's tray menu. Restarting Fcitx5 loads the newly installed bridge; an existing KDE session does not need to sign out. If Fcitx5 is not yet configured as KDE's input method, complete the desktop setup above first.
+
+開始本次登入的語音服務：  
+Start the speech service for the current login:
+
+```bash
+quick-hk dictation serve --frontend fcitx5
+```
+
+這個指令會持續執行；保持終端開啟。之後每次登入，已啟用的語音服務會自動啟動。也可從 KDE 的「自動啟動」設定啟動 **YueKey Dictation**。
+
+This command stays running; leave its terminal open. With dictation enabled, the service starts automatically on subsequent logins. You can also launch **YueKey Dictation** from KDE's Autostart settings.
+
+選擇港式速成並點選文字欄，連按兩次 Ctrl 開始／停止；Esc 取消。候選窗會顯示收音狀態及音量。語音直接交由 Fcitx5 插入原欄位，毋須 GNOME 擴充功能或剪貼簿。密碼／敏感欄位及無法提供欄位安全資訊的 XIM 程式不會啟動語音；Qt／GTK 的 Fcitx5 整合及原生 Wayland 是支援路徑。
+
+Select 港式速成 and focus a text field. Double Ctrl starts/stops; Esc cancels. The candidate panel shows recording status and microphone level. Fcitx5 inserts the result into the original field directly. No GNOME extension or clipboard is required. Password/sensitive fields and XIM clients that cannot report field security are excluded; use Qt/GTK Fcitx5 integration or native Wayland.
+
+```bash
+quick-hk dictation status
+quick-hk configure --frontend fcitx5
+```
+
 
 ## 6. 常用操作與設定 · Everyday use and settings
 
@@ -192,7 +228,7 @@ Use **Classic User Interface** with **YueKey Light** or **YueKey Dark**. If Kimp
 | Backspace | 修改速成碼／Edit the code |
 | Esc | 取消組字或語音／Cancel composition or dictation |
 | 左 Shift · Left Shift | 中英切換，可設定／Toggle Chinese/English; configurable |
-| 左 Ctrl 連按兩次 · Double Left Ctrl | GNOME 語音開始／停止／Start/stop GNOME dictation |
+| 左 Ctrl 連按兩次 · Double Left Ctrl | 語音開始／停止／Start/stop dictation |
 
 | 標點碼 · Code | 符號 · Symbol | 標點碼 · Code | 符號 · Symbol |
 | --- | --- | --- | --- |
@@ -274,7 +310,7 @@ KDE 移除／Remove the KDE installation：
 
 ```bash
 quick-hk uninstall --frontend fcitx5
-sudo apt remove quick-hk-kde quick-hk-core quick-hk-predict
+sudo apt remove quick-hk-kde quick-hk-dictation quick-hk-core quick-hk-predict
 ```
 
 如兩個前端都已安裝，先分別解除部署，再移除共用套件。解除部署只還原未被修改的受管理檔案，保留使用者修改、學習資料及已下載模型；最後重新載入 Rime 或在方便時重新登入。

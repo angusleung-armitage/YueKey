@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 import tempfile
 import tomllib
 from dataclasses import asdict, dataclass, fields
@@ -20,7 +21,11 @@ def config_home() -> Path:
 
 def settings_path() -> Path:
     override = os.environ.get("QUICK_HK_CONFIG")
-    return Path(override).expanduser() if override else config_home() / "quick-hk/settings.toml"
+    if override:
+        return Path(override).expanduser()
+    if sys.platform == 'win32':
+        return Path(os.environ['LOCALAPPDATA']) / 'YueKey/settings.toml'
+    return config_home() / "quick-hk/settings.toml"
 
 
 @dataclass(frozen=True)
@@ -57,7 +62,7 @@ class Settings:
         if self.dictation_key not in ("Control_L", "Control_R"):
             raise SettingsError("dictation_key must be Control_L or Control_R")
         if not isinstance(self.dictation_microphone, str) or not self.dictation_microphone or len(self.dictation_microphone) > 512 or any(ord(c) < 32 for c in self.dictation_microphone):
-            raise SettingsError("dictation_microphone must be a PipeWire node name or default")
+            raise SettingsError("dictation_microphone must be a microphone name or default")
 
     @property
     def effective_dictation_key(self) -> str:
