@@ -339,7 +339,7 @@ def self_test(report: Path, models: Path | None):
         import sherpa_onnx
         import tkinter as tk
 
-        assert ctypes.sizeof(Input) == 40
+        assert ctypes.sizeof(Input) == (40 if ctypes.sizeof(ctypes.c_void_p) == 8 else 28)
         root = tk.Tk()
         root.title('YueKey isolated Windows smoke test')
         root.update()
@@ -430,7 +430,9 @@ def self_test(report: Path, models: Path | None):
             assert '企鵝' in text, 'Public Cantonese sample did not decode correctly'
             result['cpu_models'] = True
             result['cantonese_fixture'] = True
-        result.update(ok=True, input_size=ctypes.sizeof(Input), rime_payload=True)
+        from .windows_arch import package_architecture
+        result.update(ok=True, input_size=ctypes.sizeof(Input), rime_payload=True,
+                      architecture=package_architecture())
         from .windows_setup import resources, FILES
         assert all((resources() / name).is_file() for name in FILES)
     except Exception as error:

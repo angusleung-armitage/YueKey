@@ -1,3 +1,3 @@
 """港式速成 — local Rime configuration and desktop integration."""
 
-__version__ = "0.4.1"
+__version__ = "0.5.0"

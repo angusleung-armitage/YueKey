@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -22,16 +23,42 @@ def main():
         raise SystemExit("Run as root only inside a disposable Docker container; see docs/compatibility.md")
     version = (ROOT / 'VERSION').read_text().strip()
     packages = sorted((ROOT / "dist").glob(f"*_{version}-1_*.deb"))
-    assert len(packages) == 5, "Build the five Debian packages first"
+    architecture = subprocess.check_output(['dpkg', '--print-architecture'], text=True).strip()
+    packages = [ROOT / f'dist/yuekey_{version}-1_{architecture}.deb']
+    assert packages[0].is_file(), 'Build the all-in-one DEB first'
+    # Model the old five-package ownership/dependency graph. apt must replace
+    # them in one transaction without conflicting files or leftover packages.
+    legacy = ['quick-hk-' + name for name in ('predict', 'core', 'gnome', 'kde', 'dictation')]
     if args.with_desktops:
         run("apt-get", "-o", "Acquire::ForceIPv4=true", "update")
+        with tempfile.TemporaryDirectory(prefix='yuekey-upgrade-') as temporary:
+            for name in legacy:
+                stage = Path(temporary) / name
+                (stage / 'DEBIAN').mkdir(parents=True)
+                dependency = '' if name == 'quick-hk-predict' else 'Depends: quick-hk-predict (= 0.4.1-1)\n'
+                (stage / 'DEBIAN/control').write_text(
+                    f'Package: {name}\nVersion: 0.4.1-1\nArchitecture: {architecture}\n'
+                    f'Maintainer: Test <test@example.invalid>\n{dependency}Description: upgrade fixture\n')
+                if name == 'quick-hk-core':
+                    overlap = stage / 'usr/bin/quick-hk'
+                    overlap.parent.mkdir(parents=True)
+                    overlap.write_text('#!/bin/sh\nexit 0\n')
+                    overlap.chmod(0o755)
+                run('dpkg-deb', '--build', str(stage), str(stage) + '.deb')
+            run('dpkg', '-i', *map(str, Path(temporary).glob('*.deb')))
         run("apt-get", "install", "-y", "--no-install-recommends", *map(str, packages))
+        for name in legacy:
+            state = subprocess.run(['dpkg-query', '-W', '-f=${db:Status-Status}', name], capture_output=True, text=True)
+            assert state.stdout != 'installed', f'Legacy package survived migration: {name}'
+        assert subprocess.check_output(['dpkg-query', '-S', '/usr/bin/quick-hk'], text=True).startswith('yuekey:')
     else:
-        core = [package for package in packages if package.name.startswith(("quick-hk-core_", "quick-hk-predict_"))]
-        run("dpkg", "-i", *map(str, core))
-        for package in packages:
-            if package.name.startswith(("quick-hk-kde_", "quick-hk-dictation_")):
-                run("dpkg-deb", "--extract", str(package), "/")
+        run('dpkg-deb', '--extract', str(packages[0]), '/')
+
+    # The installed speech worker and weights run with the container network
+    # unavailable too; this command never opens an audio device.
+    run('/usr/lib/yuekey/speech/yuekey-speech', '--models', '/usr/share/yuekey/models', '--check')
+    speech = json.loads(subprocess.check_output(['quick-hk', 'dictation', 'status', '--json']))
+    assert speech['ready'] and speech['bundled'] and speech['provider'] == 'cpu'
 
     profiles = [Path.home() / ".config/ibus/rime", Path.home() / ".local/share/fcitx5/rime"]
     original = b"# Existing user preference; retain on uninstall.\npatch:\n  menu/page_size: 7\n"

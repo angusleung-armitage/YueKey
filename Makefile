@@ -2,7 +2,7 @@ PYTHON ?= python3
 BUILD_DIR ?= build
 .DEFAULT_GOAL := all
 
-.PHONY: all fetch data native prediction test packages clean
+.PHONY: all fetch data native prediction test packages speech clean
 all: prediction
 fetch:
 	$(PYTHON) tools/fetch_sources.py
@@ -15,6 +15,8 @@ prediction: data native
 	$(BUILD_DIR)/native/quick-hk-build-predict $(BUILD_DIR)/data/quick_hk.predict.db < $(BUILD_DIR)/data/quick_hk.predict.tsv
 test:
 	PYTHONPATH=src xvfb-run -a $(PYTHON) -m pytest -q
+speech:
+	$(PYTHON) tools/package_linux_speech.py
 packages: all
 	$(PYTHON) tools/package.py
 clean:

@@ -17,6 +17,7 @@ def main():
         raise SystemExit('Only run this integration test on a disposable Windows Actions runner.')
     import winreg
     from quick_hk.windows_setup import install, uninstall
+    from quick_hk.windows_arch import package_architecture
 
     key = r'Software\Microsoft\Windows\CurrentVersion\Uninstall\YueKey.Companion_is1'
     access = winreg.KEY_READ | winreg.KEY_WOW64_64KEY
@@ -35,7 +36,8 @@ def main():
     assert not any(path.exists() for path in (data, rime, shortcut, startup)), 'Expected a clean disposable profile'
     logs = ROOT / 'build/windows-installer'
     logs.mkdir(parents=True, exist_ok=True)
-    setup = ROOT / f'dist/YueKey-{VERSION}-windows-x64-setup.exe'
+    architecture = package_architecture()
+    setup = ROOT / f'dist/YueKey-{VERSION}-windows-{architecture}-setup.exe'
     quiet = ['/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-']
     with tempfile.TemporaryDirectory(prefix='YueKey installer ') as temporary:
         app = Path(temporary) / '粵鍵 user programs'
@@ -64,6 +66,7 @@ def main():
         result = json.loads(report.read_text(encoding='utf-8'))
         print(json.dumps(result, indent=2))
         assert result['ok']
+        assert result['architecture'] == architecture
         # Simulate a companion in use: setup must reject repair instead of
         # overwriting a running app or forcing it closed.
         import ctypes

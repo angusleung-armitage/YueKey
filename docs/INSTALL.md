@@ -2,22 +2,22 @@
 
 [← 返回介紹 · Back to README](../README.md)
 
-本指南適用於 Ubuntu 26.04 amd64（GNOME Shell 50／IBus）及 Kubuntu 26.04 amd64（KDE／Fcitx5）。語音輸入支援 GNOME／IBus 及 KDE／Fcitx5。Windows 使用者請看 [Windows 安裝指南](WINDOWS.md)。
+本指南適用於 Ubuntu 26.04 amd64／arm64（GNOME Shell 50／IBus）及 Kubuntu 26.04 amd64／arm64（KDE／Fcitx5）。語音輸入支援 GNOME／IBus 及 KDE／Fcitx5。Windows 使用者請看 [Windows 安裝指南](WINDOWS.md)。
 
-This guide targets Ubuntu 26.04 amd64 with GNOME Shell 50/IBus and Kubuntu 26.04 amd64 with KDE/Fcitx5. Dictation supports GNOME/IBus and KDE/Fcitx5. For Windows, see the [Windows guide](WINDOWS.md).
+This guide targets Ubuntu 26.04 amd64／arm64 with GNOME Shell 50/IBus and Kubuntu 26.04 amd64／arm64 with KDE/Fcitx5. Dictation supports GNOME/IBus and KDE/Fcitx5. For Windows, see the [Windows guide](WINDOWS.md).
 
-產品名稱為 **粵鍵 YueKey**；本版本套件及指令仍使用 `quick-hk`，Rime 方案名稱仍是 **港式速成**。所有 `quick-hk` 指令都應以桌面使用者執行；只有系統套件安裝／移除需要 `sudo`。
+產品名稱為 **粵鍵 YueKey**；本版本套件為 `yuekey`，指令仍使用 `quick-hk`，Rime 方案名稱仍是 **港式速成**。所有 `quick-hk` 指令都應以桌面使用者執行；只有系統套件安裝／移除需要 `sudo`。
 
-The product is **YueKey**; this version keeps the `quick-hk` package/command names and the **港式速成** Rime scheme name. Run all `quick-hk` commands as your desktop user. Only system package installation/removal needs `sudo`.
+The product is **YueKey**; the package is `yuekey` and commands remain `quick-hk` and the **港式速成** Rime scheme name. Run all `quick-hk` commands as your desktop user. Only system package installation/removal needs `sudo`.
 
 [建置 · Build](#build) · [GNOME](#gnome) · [語音 · Dictation](#dictation-setup) · [免登出 · Without signing out](#live-activation) · [KDE](#kde) · [排解問題 · Troubleshooting](#troubleshooting) · [移除 · Uninstall](#uninstall)
 
 <a id="build"></a>
 ## 1. 準備安裝套件 · Prepare the packages
 
-可先到 [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases) 免費下載本平台所需的 `.deb` 及 `SHA256SUMS`，放入 `dist/` 資料夾，然後跳到 GNOME／KDE 安裝步驟。只核對已下載的檔案時可用 `sha256sum --check --ignore-missing SHA256SUMS`。
+可先到 [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases) 免費下載本平台單一 all-in-one `.deb` 及 `SHA256SUMS`，放入 `dist/` 資料夾，然後跳到 GNOME／KDE 安裝步驟。只核對已下載的檔案時可用 `sha256sum --check --ignore-missing SHA256SUMS`。
 
-Download the required `.deb` files and `SHA256SUMS` for free from [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases), place them in a `dist/` folder, then continue to GNOME/KDE installation. To verify only the files you downloaded, use `sha256sum --check --ignore-missing SHA256SUMS`.
+Download the single all-in-one `.deb` and `SHA256SUMS` for free from [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases), place them in a `dist/` folder, then continue to GNOME/KDE installation. To verify only the files you downloaded, use `sha256sum --check --ignore-missing SHA256SUMS`.
 
 以下由原始碼建置本機 `.deb`。先安裝 [Docker Engine](https://docs.docker.com/engine/install/ubuntu/)，確認 `docker version` 能連接 Docker，再在包含 `Dockerfile.dev` 的專案根目錄執行：
 
@@ -26,7 +26,11 @@ The following steps build local `.deb` packages from source. Install [Docker Eng
 ```bash
 docker build -f Dockerfile.dev -t yuekey-dev:26.04 .
 docker run --rm --init --user "$(id -u):$(id -g)" \
-  -v "$PWD:/work" yuekey-dev:26.04 make all test packages
+  -v "$PWD:/work" yuekey-dev:26.04 bash -c '
+  python3 -m venv build/linux-venv &&
+  build/linux-venv/bin/python -m pip install --require-hashes --only-binary=:all: -r desktop/linux/requirements.txt &&
+  build/linux-venv/bin/python tools/package_linux_speech.py &&
+  make all test packages' 
 ```
 
 首次建置需要網絡。若 Docker 的 bridge 網絡無法連接套件來源，可按網絡環境嘗試在 `docker build` 及 `docker run` 加上 `--network host`。這不是所有網絡問題的通用修復。
@@ -38,12 +42,12 @@ After the build, `dist/` should contain these files for this version:
 
 | 套件 · Package | 用途 · Purpose |
 | --- | --- |
-| `quick-hk-core_0.4.1-1_all.deb` | 速成資料、設定及部署工具／Scheme data, settings and deployment |
-| `quick-hk-predict_0.4.1-1_amd64.deb` | 關聯字插件及編譯工具／Prediction plugin and deployer |
-| `quick-hk-gnome_0.4.1-1_all.deb` | GNOME／IBus 整合／integration |
-| `quick-hk-kde_0.4.1-1_amd64.deb` | KDE／Fcitx5 整合及語音橋接／Integration and dictation bridge |
-| `quick-hk-dictation_0.4.1-1_amd64.deb` | GNOME／KDE 選配語音輸入／Optional GNOME/KDE dictation |
+| `yuekey_0.5.0-1_amd64.deb` **或 / or** `yuekey_0.5.0-1_arm64.deb` | 一個檔案包含全部 YueKey 元件及 CPU 語音模型／All YueKey components and CPU speech models |
 | `SHA256SUMS` | 套件檢查碼／Package checksums |
+
+建置使用主機的 CPU 架構；各架構須分別建置。執行 `dpkg --print-architecture` 選擇對應檔案。此版本不提供 Linux i386／ARM32；亦不支援以強制架構選項安裝錯誤 DEB。詳見[架構指南](ARCHITECTURES.md)。
+
+Builds use the host CPU architecture; build each architecture separately. Select the matching file with `dpkg --print-architecture`. Linux i386/ARM32 packages are unavailable. Do not force installation of a mismatched DEB. See the [architecture guide](ARCHITECTURES.md).
 
 可在 `dist/` 核對檔案完整性：  
 Check file integrity inside `dist/`:
@@ -62,9 +66,7 @@ If you already have these packages, continue below. Docker is used for building;
 Run from the project root:
 
 ```bash
-sudo apt install ./dist/quick-hk-core_0.4.1-1_all.deb \
-  ./dist/quick-hk-predict_0.4.1-1_amd64.deb \
-  ./dist/quick-hk-gnome_0.4.1-1_all.deb
+sudo apt install ./dist/yuekey_0.5.0-1_$(dpkg --print-architecture).deb
 quick-hk setup --frontend ibus
 ```
 
@@ -95,32 +97,18 @@ Older packages may show the previous settings-window name; the command is the sa
 <a id="dictation-setup"></a>
 ## 3. GNOME：加入廣東話語音 · Add Cantonese dictation
 
-先完成 GNOME 速成安裝，再安裝選配套件：  
-After installing the GNOME typing packages, install the optional speech package:
+all-in-one DEB 已包含 SenseVoice Small Yue INT8、Silero VAD、CT-Transformer INT8 標點模型、OpenCC 及獨立 CPU 執行環境。毋須安裝 uv／Python 或另行下載模型。`setup` 會核對已安裝檔案並測試靜音，不會開啟麥克風。
 
-```bash
-sudo apt install ./dist/quick-hk-dictation_0.4.1-1_amd64.deb
-```
-
-語音設定需要 `uv` 建立獨立 Python 3.12 執行環境。如尚未安裝，可使用 [uv 官方 Linux 安裝方式](https://docs.astral.sh/uv/getting-started/installation/)，無需 `sudo`：
-
-Speech setup uses `uv` to create an isolated Python 3.12 runtime. If it is missing, use the [official uv Linux installation instructions](https://docs.astral.sh/uv/getting-started/installation/), without `sudo`:
-
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-下載及驗證模型，然後開啟語音功能：  
-Download and verify the models, then enable dictation:
+The all-in-one DEB includes SenseVoice Small Yue INT8, Silero VAD, CT-Transformer INT8 punctuation, OpenCC and an isolated CPU runtime. No uv, separate Python setup or model download is needed. `setup` verifies installed files and checks silence without opening the microphone.
 
 ```bash
 quick-hk dictation setup
 quick-hk configure --set dictation_enabled=true --frontend ibus
 ```
 
-設定會準備 **SenseVoice Small Yue INT8**、Silero VAD、CT-Transformer INT8 標點模型及 OpenCC 轉換工具。首次下載需要網絡；辨識時只使用 CPU，無需 GPU、API key 或訂閱。
+語音預設關閉；啟用後仍須連按 Ctrl 才開始收音。安裝 DEB 時 APT 可能需要下載系統依賴；安裝完成後語音可完全離線使用。
 
-Setup prepares **SenseVoice Small Yue INT8**, Silero VAD, the CT-Transformer INT8 punctuation model and OpenCC conversion. Initial downloads need Internet access. Recognition uses only the CPU, with no GPU, API key or subscription.
+Dictation is disabled by default and only records after the Ctrl gesture. APT may download system dependencies during DEB installation; speech works fully offline afterward.
 
 用[免登出步驟](#live-activation)或重新登入載入新元件，再在 Extensions 啟用 **粵鍵 YueKey · Dictation**。選擇 **港式速成**，點選文字欄並完成待確認的速成碼後，連按兩次 **左 Ctrl** 開始，再連按兩次停止並插入文字；**Esc** 取消。每次最多兩分鐘。
 
@@ -145,8 +133,8 @@ GNOME 尚未發現新擴充功能時，按 **Alt+F2**，輸入 `lg`，按 Enter�
 
 If GNOME has not discovered the new extensions, press **Alt+F2**, enter `lg` and press Enter. **Paste each line below separately and press Enter after each one.** Copy each line intact; do not add spaces inside strings.
 
-第一行啟用候選字外觀；已安裝語音套件才執行第二行。已載入的擴充功能會沿用現有實例：  
-The first command activates candidate styling. Run the second only if you installed dictation. An already loaded extension reuses its existing instance:
+第一行啟用候選字外觀；已啟用語音才執行第二行。已載入的擴充功能會沿用現有實例：  
+The first command activates candidate styling. Run the second only if you enabled dictation. An already loaded extension reuses its existing instance:
 
 ```javascript
 const u='quick-hk@quick-hk.local'; const m=Main.extensionManager; m.lookup(u) ? m.enableExtension(u) : await m.loadExtension(m.createExtensionObject(u, Gio.File.new_for_path(global.userdatadir).get_child('extensions').get_child(u), 2))
@@ -168,9 +156,7 @@ This method cannot replace JavaScript already imported during the current sessio
 ## 5. Kubuntu KDE：安裝速成 · Install Quick input
 
 ```bash
-sudo apt install ./dist/quick-hk-core_0.4.1-1_all.deb \
-  ./dist/quick-hk-predict_0.4.1-1_amd64.deb \
-  ./dist/quick-hk-kde_0.4.1-1_amd64.deb
+sudo apt install ./dist/yuekey_0.5.0-1_$(dpkg --print-architecture).deb
 quick-hk setup --frontend fcitx5
 ```
 
@@ -188,7 +174,6 @@ Use **Classic User Interface** with **YueKey Light** or **YueKey Dark**. If Kimp
 After completing the KDE typing installation:
 
 ```bash
-sudo apt install ./dist/quick-hk-dictation_0.4.1-1_amd64.deb
 quick-hk dictation setup
 quick-hk configure --frontend fcitx5 --set dictation_enabled=true
 ```
@@ -303,14 +288,14 @@ For removal on GNOME, first disable both YueKey extensions in Extensions, then r
 
 ```bash
 quick-hk uninstall --frontend ibus
-sudo apt remove quick-hk-dictation quick-hk-gnome quick-hk-core quick-hk-predict
+sudo apt remove yuekey
 ```
 
 KDE 移除／Remove the KDE installation：
 
 ```bash
 quick-hk uninstall --frontend fcitx5
-sudo apt remove quick-hk-kde quick-hk-dictation quick-hk-core quick-hk-predict
+sudo apt remove yuekey
 ```
 
 如兩個前端都已安裝，先分別解除部署，再移除共用套件。解除部署只還原未被修改的受管理檔案，保留使用者修改、學習資料及已下載模型；最後重新載入 Rime 或在方便時重新登入。

@@ -36,7 +36,15 @@ jobs:
           if-no-files-found: error
 
   ubuntu:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            arch: amd64
+          - runner: ubuntu-24.04-arm
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -44,6 +52,12 @@ jobs:
           persist-credentials: false
       - name: Build Ubuntu environment
         run: docker build --network host -f Dockerfile.dev -t quick-hk-dev:26.04 .
+      - name: Freeze and validate bundled CPU speech and models
+        run: >-
+          docker run --rm --init --user "$(id -u):$(id -g)" --network host -v "$PWD:/work"
+          quick-hk-dev:26.04 bash -c 'python3 -m venv build/linux-venv &&
+          build/linux-venv/bin/python -m pip install --require-hashes --only-binary=:all: -r desktop/linux/requirements.txt &&
+          build/linux-venv/bin/python tools/package_linux_speech.py'
       - name: Build, test and package
         run: >-
           docker run --rm --init --user "$(id -u):$(id -g)" -v "$PWD:/work"
@@ -65,11 +79,12 @@ jobs:
           docker run --rm --init --network host -v "$PWD:/work:ro"
           quick-hk-dev:26.04 python3 tools/test_packages.py --with-desktops
       - name: Package corresponding source
+        if: matrix.arch == 'amd64'
         run: python3 tools/package_source.py
       - name: Keep development packages
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: release-ubuntu
+          name: release-ubuntu-${{ matrix.arch }}
           path: |
             dist/*.deb
             dist/*-source.tar.gz
@@ -78,7 +93,17 @@ jobs:
 
   windows:
     needs: typing-data
-    runs-on: windows-2025
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-2025
+            arch: x64
+          - runner: windows-2025
+            arch: x86
+          - runner: windows-11-arm
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     env:
       PYTHONUTF8: '1'
@@ -89,10 +114,10 @@ jobs:
         with:
           persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        id: python64
+        id: runtime-python
         with:
           python-version: '3.12'
-          architecture: x64
+          architecture: ${{ matrix.arch }}
           cache: pip
           cache-dependency-path: desktop/windows/requirements.txt
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -105,32 +130,31 @@ jobs:
       - name: Test Windows upgrades, settings, learning locks, microphones and focus guards
         run: python -m pytest tests/test_windows.py -q
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        id: python32
+        id: rime-python
         with:
           python-version: '3.12'
-          architecture: x86
+          # Official Weasel uses its x64 Rime server on Windows 11 ARM64.
+          architecture: ${{ matrix.arch == 'x86' && 'x86' || 'x64' }}
       - name: Test typing in the official Weasel runtime
         run: |
-          & "${{ steps.python32.outputs.python-path }}" tools/smoke_weasel.py
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          & "${{ steps.python64.outputs.python-path }}" tools/smoke_weasel.py
+          & "${{ steps.rime-python.outputs.python-path }}" tools/smoke_weasel.py
       - name: Package setup EXE and portable application
-        run: '& "${{ steps.python64.outputs.python-path }}" tools/package_windows.py'
+        run: '& "${{ steps.runtime-python.outputs.python-path }}" tools/package_windows.py'
       - name: Test installer, repair, CPU runtime and uninstall without a microphone
-        run: '& "${{ steps.python64.outputs.python-path }}" tools/test_windows_installer.py'
+        run: '& "${{ steps.runtime-python.outputs.python-path }}" tools/test_windows_installer.py'
       - name: Keep installer diagnostics
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: windows-installer-diagnostics
+          name: windows-installer-diagnostics-${{ matrix.arch }}
           path: build/windows-installer/
           if-no-files-found: ignore
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: release-windows
+          name: release-windows-${{ matrix.arch }}
           path: |
-            dist/YueKey-*-windows-x64.zip
-            dist/YueKey-*-windows-x64-setup.exe
+            dist/YueKey-*-windows-${{ matrix.arch }}.zip
+            dist/YueKey-*-windows-${{ matrix.arch }}-setup.exe
           if-no-files-found: error
 
   release:

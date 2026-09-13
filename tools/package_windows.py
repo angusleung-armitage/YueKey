@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the Windows x64 setup EXE and portable ZIP on a Windows runner."""
+"""Build native Windows x86, x64 or ARM64 setup EXE and portable ZIP."""
 from importlib import metadata
 import os
 from pathlib import Path
@@ -9,11 +9,14 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 VERSION = (ROOT / 'VERSION').read_text().strip()
+sys.path.insert(0, str(ROOT / 'src'))
+from quick_hk.windows_arch import package_architecture
 
 
 def build():
-    if sys.platform != 'win32' or sys.maxsize <= 2**32:
-        raise SystemExit('Build this package on Windows with Python 3.12 x64.')
+    if sys.platform != 'win32':
+        raise SystemExit('Build this package on Windows with Python 3.12.')
+    architecture = package_architecture()
     compiler = shutil.which('ISCC.exe') or str(
         Path(os.environ.get('ProgramFiles(x86)', r'C:\Program Files (x86)')) / 'Inno Setup 6/ISCC.exe')
     if not Path(compiler).is_file():
@@ -55,9 +58,9 @@ def build():
         licenses.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(python_license, licenses / 'PYTHON-LICENSE.txt')
     (ROOT / 'dist').mkdir(exist_ok=True)
-    shutil.make_archive(str(ROOT / 'dist' / f'YueKey-{VERSION}-windows-x64'), 'zip', bundle.parent, bundle.name)
+    shutil.make_archive(str(ROOT / 'dist' / f'YueKey-{VERSION}-windows-{architecture}'), 'zip', bundle.parent, bundle.name)
     subprocess.run([
-        compiler, '/Qp', f'/DAppVersion={VERSION}', f'/DRepoRoot={ROOT}',
+        compiler, '/Qp', f'/DAppVersion={VERSION}', f'/DRepoRoot={ROOT}', f'/DAppArch={architecture}',
         str(ROOT / 'desktop/windows/yuekey.iss'),
     ], check=True)
 

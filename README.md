@@ -1,5 +1,9 @@
 # 粵鍵 YueKey
 
+![粵鍵 YueKey — 打字・講嘢・隨你。Cantonese, at your fingertips.](docs/images/yuekey-hero.png)
+
+[![Build and release](https://github.com/angusleung-armitage/YueKey/actions/workflows/ci.yml/badge.svg)](https://github.com/angusleung-armitage/YueKey/actions/workflows/ci.yml) [![License: MIT code](https://img.shields.io/badge/code-MIT-16705b)](LICENSE)
+
 **在 Ubuntu、Kubuntu 和 Windows 打速成，講廣東話。**  
 **Quick typing. Cantonese dictation. For Ubuntu, Kubuntu and Windows.**
 
@@ -22,6 +26,8 @@ YueKey is an open-source input tool for Hong Kong Chinese and everyday Cantonese
 
 ### 用你的方式輸入 · Choose how to write
 
+![快速上手：hi1 選我，zb1 輸入逗號，連按兩次 Ctrl 開始／停止語音。Quick reference for typing, punctuation and dictation.](docs/images/yuekey-quick-reference.png)
+
 ```text
 速成 Quick        hi → 選擇／select 我
 香港用字 HK       rf → 選擇／select 喺
@@ -35,37 +41,46 @@ Quick codes can match several characters; frequency data and personal learning a
 
 ## 支援平台 · Supported platforms
 
-| 平台 · Platform | 速成、學習及關聯字 · Typing, learning & suggestions | 語音輸入 · Dictation |
-| --- | --- | --- |
-| Ubuntu 26.04 amd64 · GNOME Shell 50 · IBus | ✓ | ✓ · 選配／Optional |
-| Kubuntu 26.04 amd64 · KDE · Fcitx5 | ✓ | ✓ · 選配／Optional |
-| Windows 11 x64 · Weasel 0.17.4 | ✓ · 包括關聯字／Including continuations | ✓ · 選配／Optional |
+每個平台／CPU 使用專用安裝檔。Linux 的 **all-in-one DEB** 包含速成、設定、GNOME／KDE 整合、CPU 語音執行環境及模型；安裝時由 APT 處理系統依賴。
 
-目前為 **0.4.1 開發版本**。語音辨識、專有名詞及中英夾雜內容可能出錯；其他系統版本及個別應用程式仍需驗證。詳見[相容性紀錄](docs/compatibility.md)及[語音測試紀錄](docs/dictation-validation.md)。
+Choose the installer for your OS and CPU. Each Linux **all-in-one DEB** includes typing, settings, GNOME/KDE integration, the CPU speech runtime and models. APT installs the required system libraries.
 
-This is the **0.4.1 development release**. Recognition may make mistakes, especially with names and mixed Cantonese/English speech. Other OS versions and individual applications need further validation. See the [compatibility record](docs/compatibility.md) and [dictation validation](docs/dictation-validation.md).
+| 系統及 CPU · OS / CPU | 下載檔案 · Download (0.5.0) |
+| --- | --- |
+| Ubuntu / Kubuntu 26.04 · Intel / AMD 64-bit | `yuekey_0.5.0-1_amd64.deb` |
+| Ubuntu 26.04 · ARM64 / AArch64 · GNOME 50 or KDE | `yuekey_0.5.0-1_arm64.deb` |
+| Windows · Intel / AMD 64-bit | `YueKey-0.5.0-windows-x64-setup.exe` |
+| Windows · Intel / AMD 32-bit (x86) | `YueKey-0.5.0-windows-x86-setup.exe` |
+| Windows 11 · ARM64 | `YueKey-0.5.0-windows-arm64-setup.exe` |
+
+**[下載安裝檔及 SHA256SUMS · Download installers and checksums](https://github.com/angusleung-armitage/YueKey/releases/latest)** · [詳細架構與驗證範圍 · Architecture and test coverage](docs/ARCHITECTURES.md)
+
+Linux 可執行 `dpkg --print-architecture` 選檔；Windows 到「設定 → 系統 → 關於 → 系統類型」。Ubuntu 26.04 沒有 32-bit x86 桌面版本；目前不提供 Linux i386 或 ARM32 安裝檔。此 DEB 針對 26.04，不適用於所有 Ubuntu／Debian 版本。
+
+On Linux, use `dpkg --print-architecture`. On Windows, check **Settings → System → About → System type**. Ubuntu 26.04 has no 32-bit x86 desktop edition. Linux i386 and ARM32 installers are currently unavailable. These DEBs target 26.04; they are not universal across Ubuntu/Debian releases.
+
+語音辨識可能出錯；完整桌面及應用程式的驗證範圍見[相容性紀錄](docs/compatibility.md)。Windows 需要另行安裝 Weasel，並於首次啟用語音時下載模型。
+
+Recognition can make mistakes. See the [compatibility record](docs/compatibility.md) for desktop/application coverage. Windows requires a separate Weasel installation and a model download when enabling speech for the first time.
 
 <a id="get-started"></a>
 ## 開始使用 · Get started
 
-Windows：下載並執行 `YueKey-0.4.1-windows-x64-setup.exe`，從開始功能表開啟 YueKey，按照 **[Windows 雙語指南](docs/WINDOWS.md)** 安裝小狼毫及啟用語音。
-
-Windows: run `YueKey-0.4.1-windows-x64-setup.exe`, open YueKey from the Start Menu, and follow the **[Windows guide](docs/WINDOWS.md)** for Weasel and dictation setup. No separate Python installation is needed. A portable ZIP is also available.
-
-Ubuntu 完整步驟見 **[中英雙語安裝指南](docs/INSTALL.md)**，包括從原始碼建置、GNOME／KDE 安裝、語音設定及首次免登出啟用。
-
-Follow the **[bilingual installation guide](docs/INSTALL.md)** for source builds, GNOME/KDE installation, speech setup and first-time activation without signing out.
-
-由 Releases 下載所需 `.deb` 到 `dist/` 資料夾，或自行建置後，可執行以下 GNOME 安裝指令：
-
-Download the required `.deb` files from Releases into a `dist/` folder, or build them from source, then run:
+1. **下載 · Download** — 由 Releases 選擇上表對應安裝檔，核對 `SHA256SUMS`。Choose your installer above and verify its checksum.
+2. **安裝 · Install** — Windows 執行 EXE，再依 [Windows 指南](docs/WINDOWS.md) 設定 Weasel。Linux 在下載目錄執行下列指令。On Windows, run the EXE and follow the [Weasel setup guide](docs/WINDOWS.md). On Linux, run these commands in your downloads folder:
 
 ```bash
-sudo apt install ./dist/quick-hk-core_0.4.1-1_all.deb \
-  ./dist/quick-hk-predict_0.4.1-1_amd64.deb \
-  ./dist/quick-hk-gnome_0.4.1-1_all.deb
-quick-hk setup --frontend ibus
+# Ubuntu / Kubuntu 26.04: chooses amd64 or arm64 automatically
+sudo apt install ./yuekey_0.5.0-1_$(dpkg --print-architecture).deb
+quick-hk setup
+quick-hk configure
 ```
+
+3. **開始打字／講嘢 · Start writing** — 選 Rime → 港式速成。在設定啟用語音後，連按兩次 Ctrl 開始／停止。Select Rime → 港式速成. Enable dictation in settings, then double-tap Ctrl to start/stop.
+
+GNOME 使用 `--frontend ibus`；KDE 使用 `--frontend fcitx5` 可明確指定桌面。詳細啟用及[首次免登出步驟](docs/INSTALL.md#live-activation)見[中英安裝指南](docs/INSTALL.md)。
+
+Use `--frontend ibus` for GNOME or `--frontend fcitx5` for KDE to choose explicitly. See the [bilingual Linux guide](docs/INSTALL.md) for activation and [first-time setup without signing out](docs/INSTALL.md#live-activation).
 
 在 **設定 → 鍵盤 → 輸入來源** 加入 **Chinese (Rime)**，切換至 Rime，點選文字欄後按 **F4**，選擇 **港式速成**。設定介面可用以下指令開啟：
 
@@ -76,17 +91,17 @@ quick-hk configure
 ```
 
 > **名稱與相容性 · Naming and compatibility**  
-> 產品名稱為 **粵鍵 YueKey**。現有套件及指令沿用 `quick-hk`，Rime 選單中的方案名稱沿用 **港式速成**，讓既有設定及學習資料繼續使用。  
-> The product is **YueKey**. Package names and commands remain `quick-hk`, and the Rime scheme remains **港式速成**, preserving compatibility with existing settings and learned data.
+> 產品名稱為 **粵鍵 YueKey**。新套件名稱為 `yuekey`；指令沿用 `quick-hk`，Rime 選單中的方案名稱沿用 **港式速成**，讓既有設定及學習資料繼續使用。  
+> The product is **YueKey**. The package is now `yuekey`; commands remain `quick-hk`, and the Rime scheme remains **港式速成**, preserving compatibility with existing settings and learned data.
 
 <a id="dictation"></a>
 ## 用廣東話講出來 · Say it in Cantonese
 
-在 GNOME 或 [KDE](docs/INSTALL.md#kde) 安裝[選配語音套件及模型](docs/INSTALL.md#dictation-setup)後：
+在 GNOME 或 [KDE](docs/INSTALL.md#kde) 啟用[已包含的語音功能](docs/INSTALL.md#dictation-setup)後：
 
 For Windows, follow the [companion setup](docs/WINDOWS.md#3-廣東話語音--cantonese-dictation). The steps below describe Ubuntu.
 
-After installing the [optional speech package and models](docs/INSTALL.md#dictation-setup) on GNOME or [KDE](docs/INSTALL.md#kde):
+After enabling the [bundled speech feature](docs/INSTALL.md#dictation-setup) on GNOME or [KDE](docs/INSTALL.md#kde):
 
 1. 選擇 **港式速成**，點選文字欄，完成未確認的速成碼。  
    Select **港式速成**, focus a text field and finish any pending character code.
@@ -103,8 +118,8 @@ Each recording lasts up to two minutes. Choose the microphone, Ctrl key and auto
 
 ## 本機處理，保留私隱 · Local by design
 
-- 打字、選字學習及語音辨識均在本機進行；首次下載套件、執行環境及模型需要網絡。  
-  Typing, candidate learning and recognition are local. Initial package, runtime and model downloads require Internet access.
+- 打字、選字學習及語音辨識均在本機進行；下載安裝檔及系統依賴需要網絡；Linux DEB 已包含模型。Windows 首次啟用另需下載模型。  
+  Typing, candidate learning and recognition are local. Downloading installers and system dependencies needs Internet access. Linux DEBs include models; Windows downloads models on first speech setup.
 - 語音錄音及待插入的辨識文字只在記憶體暫存，工具不會將它們寫入記錄檔。  
   Captured audio and pending transcripts stay in memory; the tool does not log them.
 - 無按鍵遙測，無網絡預測。部署會備份設定；解除部署會保留學習資料及使用者修改。  

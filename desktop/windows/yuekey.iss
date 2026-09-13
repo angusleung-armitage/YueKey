@@ -6,6 +6,9 @@
 #ifndef RepoRoot
   #error RepoRoot is required
 #endif
+#ifndef AppArch
+  #error AppArch is required
+#endif
 
 [Setup]
 AppId=YueKey.Companion
@@ -19,16 +22,29 @@ DefaultDirName={localappdata}\Programs\YueKey
 DefaultGroupName=YueKey
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
-ArchitecturesAllowed=x64compatible and not arm64
-ArchitecturesInstallIn64BitMode=x64compatible
+#if AppArch == "arm64"
+ArchitecturesAllowed=arm64
+ArchitecturesInstallIn64BitMode=arm64
 MinVersion=10.0.22000
+#elif AppArch == "x64"
+ArchitecturesAllowed=x64os
+ArchitecturesInstallIn64BitMode=x64os
+MinVersion=10.0.19041
+#elif AppArch == "x86"
+ArchitecturesAllowed=x86compatible and not arm64
+; Keep the same uninstall registry view on 64-bit Windows during x86/x64 upgrades.
+ArchitecturesInstallIn64BitMode=x64os
+MinVersion=10.0.19041
+#else
+  #error Unsupported AppArch
+#endif
 AppMutex=Local\YueKey.Companion
 SetupMutex=Local\YueKey.Setup
 CloseApplications=no
 RestartApplications=no
 UninstallDisplayIcon={app}\YueKey.exe
 OutputDir={#RepoRoot}\dist
-OutputBaseFilename=YueKey-{#AppVersion}-windows-x64-setup
+OutputBaseFilename=YueKey-{#AppVersion}-windows-{#AppArch}-setup
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern

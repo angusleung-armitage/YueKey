@@ -1,4 +1,4 @@
-# YueKey 0.4.0 平台功能 · Platform features
+# YueKey 0.5.0 平台功能 · Platform features
 
 三個平台共用速成碼表、廣東話關聯字資料及語音模型；桌面整合按各平台處理。
 
@@ -18,7 +18,9 @@ All three platforms share the Quick mappings, Cantonese continuation data and sp
 | 麥克風選擇、音量提示 · Microphone selection/indicator | PipeWire | PipeWire | PortAudio |
 | 收音狀態、原欄位插入 · Status/targeted insertion | IBus + Shell | Fcitx5 event loop | UI Automation + Unicode input |
 | 登入啟動 · Login startup | Enabled with speech | Enabled with speech | Optional installer task |
-| 安裝檔 · Installer | DEB | DEB | Setup EXE / ZIP |
+| 安裝檔 · Installer | All-in-one DEB | Same all-in-one DEB | Setup EXE / ZIP |
+| CPU 架構 · Architectures | amd64 / arm64 | amd64 / arm64 | x64 / x86 / arm64 |
+| 語音模型 · Speech models | Bundled | Bundled | Download on first setup |
 
 設定介面：Linux 執行 `quick-hk configure`；Windows 開啟 YueKey 的 Typing／Speech 分頁。設定需重新部署 Rime 才會影響輸入法。
 
@@ -39,3 +41,5 @@ The shared implementation covers the feature list above. This does not establish
 上述功能已在程式及安裝流程提供；測試範圍不等同所有應用程式均已驗證。KDE 的 XIM 欄位及 Windows 無法識別／較高權限欄位不支援語音。真實麥克風、完整 KDE Wayland 桌面及 Windows 11 應用程式仍需實機檢查。
 
 API references: [Fcitx addon tutorial](https://fcitx-im.org/wiki/Develop_an_simple_input_method), [Fcitx5 5.1.19 source](https://github.com/fcitx/fcitx5/tree/5.1.19), [Weasel schema style loading](https://github.com/rime/weasel/blob/0.17.4/RimeWithWeasel/RimeWithWeasel.cpp), [Windows file sharing](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew), [PortAudio device selection](https://python-sounddevice.readthedocs.io/en/latest/api/checking-hardware.html).
+
+Architecture-specific validation and OS limits are recorded in [ARCHITECTURES.md](ARCHITECTURES.md).

@@ -20,8 +20,8 @@ relicense third-party material. Dictionary sources and their licenses are listed
 | SenseVoice Small Yue | https://huggingface.co/ASLP-lab/WSYue-ASR | Apache-2.0 model card; ASLP-lab Cantonese fine-tune of SenseVoice Small. |
 | SenseVoice ONNX export | https://huggingface.co/csukuangfj/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2025-09-09 | Export by sherpa-onnx maintainers; revision and SHA-256 pinned in speech setup. |
 | sherpa-onnx runtime | https://github.com/k2-fsa/sherpa-onnx | Apache-2.0; pinned CPU wheels retain upstream notices. |
-| Silero VAD | https://github.com/snakers4/silero-vad | MIT; sherpa-compatible ONNX model downloaded separately with a pinned SHA-256. |
-| CT-Transformer punctuation | https://modelscope.cn/models/iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch | Apache-2.0 according to the ModelScope model metadata; sherpa-onnx INT8 export is downloaded separately and checksum verified. |
+| Silero VAD | https://github.com/snakers4/silero-vad | MIT; sherpa-compatible ONNX model pinned by SHA-256; MIT text retained in LICENSES/Silero-VAD-MIT.txt. |
+| CT-Transformer punctuation | https://modelscope.cn/models/iic/punc_ct-transformer_zh-cn-common-vocab272727-pytorch | Apache-2.0 according to the ModelScope model metadata; sherpa-onnx INT8 export is checksum verified; Apache-2.0 text retained in LICENSES/Apache-2.0.txt. |
 | OpenCC Python implementation | https://github.com/yichen0831/opencc-python | Apache-2.0; installed from a pinned wheel with its conversion dictionaries. |
 | NumPy | https://numpy.org | BSD-3-Clause; installed from a pinned wheel with bundled dependency notices. |
 
@@ -60,10 +60,15 @@ Windows distribution additions:
 | CFFI | https://cffi.readthedocs.io/ | MIT. |
 
 Windows ZIPs include wheel license/notice files in `LICENSES/runtime`, in addition
-to the dependency lock. Speech weights are downloaded separately and are not
-embedded in release packages. The corresponding source archive includes all
+to the dependency lock. Windows downloads speech weights separately. The Linux all-in-one DEBs bundle
+the verified speech weights and frozen CPU worker, with dependency notices in
+`/usr/lib/yuekey/speech/LICENSES` and model notices in `/usr/share/doc/yuekey`.
+Model files retain their upstream names, authors and licenses listed above;
+ONNX quantized exports are upstream transformations, not new YueKey models. The corresponding source archive includes all
 checksum-pinned dictionary inputs under `build/sources/` and the transformation
 scripts, alongside the full GPL, LGPL and CC-BY texts. The generated character
 dictionary retains the upstream GPL table notice; its supplemental mappings and
 frequency inputs retain the LGPL/CC-BY terms above. These datasets are distributed
 separately from the MIT tool code and are not relicensed by the root LICENSE.
+
+Bundled model license texts were obtained from the [Apache license](https://www.apache.org/licenses/LICENSE-2.0.txt) and [Silero VAD v6.2](https://github.com/snakers4/silero-vad/blob/v6.2/LICENSE). README illustrations were generated for YueKey; prompt records are in `docs/images/README.md`.

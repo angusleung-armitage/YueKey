@@ -327,8 +327,12 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--models', type=Path, required=True)
     parser.add_argument('--wav', type=Path, help='Transcribe a supplied 16 kHz mono PCM WAV instead of listening')
+    parser.add_argument('--check', action='store_true', help='Initialize CPU models and check silence without a microphone')
     args = parser.parse_args()
-    if args.wav:
+    if args.check:
+        assert Recognizer(args.models).transcribe_pcm(bytes(RATE * 2)) == ''
+        print(json.dumps({'ready': True, 'provider': 'cpu'}))
+    elif args.wav:
         with wave.open(str(args.wav)) as source:
             if (source.getframerate(), source.getnchannels(), source.getsampwidth()) != (RATE, 1, 2):
                 parser.error('Expected 16 kHz mono 16-bit PCM WAV')

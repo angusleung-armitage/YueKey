@@ -14,6 +14,27 @@ import yaml
 
 
 class DictationTests(unittest.TestCase):
+    def test_bundled_setup_is_offline_and_rejects_corrupt_models(self):
+        from quick_hk import dictation_setup as setup
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'yuekey-speech').touch()
+            (root / 'model').write_bytes(b'verified')
+            with patch.object(setup, 'BUNDLED_RUNTIME', root), patch.object(setup, 'BUNDLED_MODELS', root), \
+                    patch.object(setup, 'model_hashes', return_value={'model': digest(root / 'model')}), \
+                    patch.object(setup.os, 'geteuid', return_value=1000), \
+                    patch.object(setup.subprocess, 'run') as execute, \
+                    patch.object(setup, 'prepare_models') as download_models:
+                self.assertTrue(setup.status(verify=True)['ready'])
+                setup.setup()
+                self.assertEqual(execute.call_args.args[0], [str(root / 'yuekey-speech'), '--models', str(root), '--check'])
+                download_models.assert_not_called()
+                (root / 'model').write_bytes(b'corrupt')
+                self.assertFalse(setup.status(verify=True)['ready'])
+                with self.assertRaisesRegex(RuntimeError, 'Reinstall'):
+                    setup.setup()
+                self.assertEqual(execute.call_count, 1)
+
     def test_result_requires_same_request_field_and_finishing_state(self):
         target = Target('/field/1', 8, 42)
         session = Session('request', target)

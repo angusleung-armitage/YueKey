@@ -1,4 +1,4 @@
-.TH QUICK-HK 1 "September 2026" "YueKey 0.4.1"
+.TH QUICK-HK 1 "September 2026" "YueKey 0.5.0"
 .SH NAME
 quick-hk \- configure and deploy Cantonese Quick input
 .SH SYNOPSIS
@@ -28,7 +28,9 @@ Back up and remove YueKey learning. Stop the selected frontend first.
 .TP
 .B dictation setup
 Download and verify SenseVoice Small Yue INT8, punctuation and VAD models;
-prepare an isolated Python 3.12 CPU runtime using uv. Run as the desktop user.
+verify the bundled CPU runtime and models without downloading or recording audio.
+Source-only installations can prepare an isolated Python 3.12 runtime using uv.
+Run as the desktop user.
 .TP
 .B dictation status [--json]
 Show model readiness and the local dictation service state.
@@ -54,4 +56,4 @@ Preferences (honors XDG_CONFIG_HOME).
 Backups and manifests (honors XDG_STATE_HOME).
 .SH NOTES
 Run as your desktop user. Activate Chinese (Rime) and choose the YueKey scheme
-after setup. Desktop instructions are in /usr/share/doc/quick-hk-core/README.md.
+after setup. Desktop instructions are in /usr/share/doc/yuekey/README.md.

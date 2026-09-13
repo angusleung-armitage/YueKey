@@ -14,12 +14,26 @@ from .deployment import data_home, _atomic_write, _state_lock
 
 from .speech_assets import ASSETS, PUNCT_HASH, digest, download, model_hashes, prepare_models
 
+BUNDLED_RUNTIME = Path('/usr/lib/yuekey/speech')
+BUNDLED_MODELS = Path('/usr/share/yuekey/models')
+
+
+def bundled() -> bool:
+    return (BUNDLED_RUNTIME / 'yuekey-speech').is_file()
+
 
 def runtime_directory() -> Path:
     return data_home() / "quick-hk/dictation"
 
 
 def status(*, verify: bool = False) -> dict:
+    if bundled():
+        checks = {name: (BUNDLED_MODELS / name).is_file() and (
+            not verify or digest(BUNDLED_MODELS / name) == expected)
+            for name, expected in model_hashes().items()}
+        return {'ready': all(checks.values()), 'model': 'SenseVoice Small Yue INT8 (2025-09-09)',
+                'provider': 'cpu', 'directory': str(BUNDLED_MODELS), 'models': checks,
+                'bundled': True}
     root = runtime_directory()
     checks = {}
     for name, expected in model_hashes().items():
@@ -40,6 +54,13 @@ def status(*, verify: bool = False) -> dict:
 def setup() -> list[str]:
     if os.geteuid() == 0:
         raise RuntimeError('Run dictation setup as your desktop user, without sudo.')
+    if bundled():
+        if not status(verify=True)['ready']:
+            raise RuntimeError('Bundled speech models are missing or damaged. Reinstall the YueKey DEB.')
+        subprocess.run([*worker_command(), '--check'], check=True,
+                       env=worker_environment(), timeout=120)
+        return ['Bundled CPU speech is ready; no download is needed.',
+                'Enable 語音輸入 in quick-hk configure, then reload Rime.']
     root = runtime_directory()
     uv = shutil.which('uv') or str(Path.home() / '.local/bin/uv')
     if not Path(uv).is_file():
@@ -74,6 +95,8 @@ def worker_environment() -> dict[str, str]:
 
 
 def worker_command() -> list[str]:
+    if bundled():
+        return [str(BUNDLED_RUNTIME / 'yuekey-speech'), '--models', str(BUNDLED_MODELS)]
     root = runtime_directory()
     return [str(root / 'venv/bin/python'), '-I', str(Path(__file__).with_name('dictation_worker.py')),
             '--models', str(root / 'models')]

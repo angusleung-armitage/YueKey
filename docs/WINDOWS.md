@@ -2,26 +2,30 @@
 
 [← 返回介紹 · Back to README](../README.md)
 
-支援 Windows 11 x64：港式速成、標點符號、本機選字學習、關聯字、完整輸入設定，以及選配的純 CPU 廣東話語音輸入。ARM64、32 位元及 Windows 10 尚未驗證。
+提供 Windows x64、x86（32 位元）及 ARM64 安裝檔：港式速成、標點符號、本機選字學習、關聯字、完整輸入設定，以及選配的純 CPU 廣東話語音輸入。x64／x86 最低為 Windows 10 2004；ARM64 最低為 Windows 11。測試範圍見[架構指南](ARCHITECTURES.md)。
 
-YueKey supports Windows 11 x64: Cantonese Quick typing, punctuation, local candidate learning, word continuations, typing settings and optional CPU-only Cantonese dictation. ARM64, 32-bit Windows and Windows 10 have not been validated.
+YueKey provides native x64, x86 (32-bit) and ARM64 Windows builds: Cantonese Quick typing, punctuation, local candidate learning, word continuations, typing settings and optional CPU-only Cantonese dictation. x64/x86 installers require Windows 10 2004 or newer; ARM64 requires Windows 11. See the [architecture guide](ARCHITECTURES.md) for test coverage.
+
+「設定 → 系統 → 關於 → 系統類型」會顯示處理器架構。選擇 `windows-x64`、`windows-x86` 或 `windows-arm64`。下方檔名以 x64 為例；ARM64 必須使用 ARM64 安裝檔。每種架構都包含 CPU 語音執行環境。
+
+Check **Settings → System → About → System type** and choose `windows-x64`, `windows-x86` or `windows-arm64`. Filenames below use x64 as an example. Choose the ARM64 build on ARM64 Windows. Each architecture includes the CPU speech runtime.
 
 ## 1. 免費下載 · Free download
 
-到 [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases) 下載 **`YueKey-0.4.1-windows-x64-setup.exe`** 及 `SHA256SUMS`。開啟安裝程式，按步驟完成；之後可從開始功能表開啟 **YueKey**。程式安裝於目前使用者的 `%LOCALAPPDATA%\Programs\YueKey`，無需系統管理員權限。
+到 [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases) 下載 **`YueKey-0.5.0-windows-x64-setup.exe`** 及 `SHA256SUMS`。開啟安裝程式，按步驟完成；之後可從開始功能表開啟 **YueKey**。程式安裝於目前使用者的 `%LOCALAPPDATA%\Programs\YueKey`，無需系統管理員權限。
 
-Download **`YueKey-0.4.1-windows-x64-setup.exe`** and `SHA256SUMS` from [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases). Run setup, then open **YueKey** from the Start Menu. Installation is per user, under `%LOCALAPPDATA%\Programs\YueKey`, without an administrator prompt.
+Download **`YueKey-0.5.0-windows-x64-setup.exe`** and `SHA256SUMS` from [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases). Run setup, then open **YueKey** from the Start Menu. Installation is per user, under `%LOCALAPPDATA%\Programs\YueKey`, without an administrator prompt.
 
 在 PowerShell 檢查安裝檔的 SHA-256，與下載頁的 `SHA256SUMS` 比對：  
 Compare the installer's SHA-256 with `SHA256SUMS` in PowerShell:
 
 ```powershell
-Get-FileHash .\YueKey-0.4.1-windows-x64-setup.exe -Algorithm SHA256
+Get-FileHash .\YueKey-0.5.0-windows-x64-setup.exe -Algorithm SHA256
 ```
 
-亦提供 **`YueKey-0.4.1-windows-x64.zip`** 免安裝版本。解壓整個資料夾後開啟 `YueKey.exe`，保留旁邊的 `_internal` 資料夾。ZIP 與安裝版包含相同程式及 CPU 執行環境。
+亦提供 **`YueKey-0.5.0-windows-x64.zip`** 免安裝版本。解壓整個資料夾後開啟 `YueKey.exe`，保留旁邊的 `_internal` 資料夾。ZIP 與安裝版包含相同程式及 CPU 執行環境。
 
-The optional **`YueKey-0.4.1-windows-x64.zip`** is a portable edition. Extract the entire folder, keep `_internal` beside `YueKey.exe`, and open the executable. Both editions include the same application and CPU runtime.
+The optional **`YueKey-0.5.0-windows-x64.zip`** is a portable edition. Extract the entire folder, keep `_internal` beside `YueKey.exe`, and open the executable. Both editions include the same application and CPU runtime.
 
 此版本未有 Windows 程式碼簽署憑證，系統可能顯示發行者未經驗證。請只使用本專案 Release 的檔案及檢查碼。
 
@@ -100,9 +104,9 @@ When moving from the older ZIP edition, close it and install into a separate emp
 
 ## 從原始碼建置 · Build from source
 
-先在 Ubuntu 按[建置指南](INSTALL.md#build)產生字典，執行 `python3 tools/prepare_windows_data.py`，把 `build/windows-data` 複製到 Windows checkout 的相同位置。安裝官方 [Inno Setup 6.7 或更新版本](https://jrsoftware.org/isdl.php)，然後在 Windows x64／Python 3.12 執行：
+先在 Ubuntu 按[建置指南](INSTALL.md#build)產生字典，執行 `python3 tools/prepare_windows_data.py`，把 `build/windows-data` 複製到 Windows checkout 的相同位置。安裝官方 [Inno Setup 6.7 或更新版本](https://jrsoftware.org/isdl.php)，然後使用對應架構的 Windows Python 3.12（x64／x86／ARM64）執行：
 
-Generate the dictionary on Ubuntu using the [build guide](INSTALL.md#build), run `python3 tools/prepare_windows_data.py`, and copy `build/windows-data` to the same location in a Windows checkout. Install official [Inno Setup 6.7 or newer](https://jrsoftware.org/isdl.php). On Windows x64 with Python 3.12:
+Generate the dictionary on Ubuntu using the [build guide](INSTALL.md#build), run `python3 tools/prepare_windows_data.py`, and copy `build/windows-data` to the same location in a Windows checkout. Install official [Inno Setup 6.7 or newer](https://jrsoftware.org/isdl.php). Use Python 3.12 matching the desired package architecture (x64, x86 or ARM64):
 
 ```powershell
 py -3.12 -m venv .venv
