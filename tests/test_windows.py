@@ -102,7 +102,7 @@ class WindowsTests(unittest.TestCase):
                     reset_learning(target)
                 self.assertEqual((database / 'data.ldb').read_bytes(), b'learned words')
             backup = reset_learning(target)
-            self.assertFalse(database.exists())
+            self.assertEqual([path.name for path in database.iterdir()], ['LOCK'])
             self.assertEqual((backup / 'data.ldb').read_bytes(), b'learned words')
 
     def test_windows_settings_location_uses_localappdata(self):

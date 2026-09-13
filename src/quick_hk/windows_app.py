@@ -181,11 +181,14 @@ class Application:
 
     def enable(self):
         if self.enabled:
-            self.persist_enabled(False)
             self.enabled = False
             self.cancel()
             self.enable_button.configure(text='啟用語音 · Enable dictation')
             self.status.set('語音已停用 · Dictation disabled')
+            try:
+                self.persist_enabled(False)
+            except (OSError, ValueError) as error:
+                self.status.set('語音已停用，未能儲存 · Disabled; could not save: ' + str(error))
             return
         if self.loading:
             return
@@ -344,6 +347,17 @@ def self_test(report: Path, models: Path | None):
         backend = app.backend
         root.update()
         assert root.winfo_height() >= root.winfo_reqheight(), 'Setup controls do not fit in the window'
+        assert root.winfo_width() >= root.winfo_reqwidth(), 'Setup controls exceed the window width'
+        assert set(asdict(Settings())) == set(app.variables) | {'dictation_enabled', 'dictation_microphone'}
+        original = app.read_settings()
+        app.variables['switch_key'].set('Control_L')
+        app.variables['page_size'].set('5')
+        app.variables['theme'].set('dark')
+        chosen = app.read_settings()
+        assert chosen.effective_dictation_key == 'Control_R' and chosen.page_size == 5 and chosen.theme == 'dark'
+        for name, variable in app.variables.items():
+            variable.set(getattr(original, name))
+        result['settings_controls'] = True
         assert backend.thread.is_alive()
         assert backend.automation is not None
         assert sounddevice.get_portaudio_version()

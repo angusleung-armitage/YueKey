@@ -153,7 +153,7 @@ def apply_settings(destination: Path, settings: Settings) -> None:
 
 @contextmanager
 def learning_lock(database: Path):
-    """Use the same byte-range lock as LevelDB; allow renaming while it is held."""
+    """Use the same exclusive byte-range lock as LevelDB."""
     import ctypes
     from ctypes import wintypes as W
     class Overlapped(ctypes.Structure):
@@ -191,10 +191,24 @@ def reset_learning(destination: Path) -> Path | None:
         raise ValueError('The learning database is not a directory.')
     backup = destination / 'yuekey-backups' / ('learning-' + datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ'))
     with learning_lock(database):
-        backup.parent.mkdir(parents=True, exist_ok=True)
         if not backup.resolve().is_relative_to(destination):
             raise ValueError('Invalid backup location')
-        database.rename(backup)
+        files = [path for path in database.iterdir() if path.name != 'LOCK']
+        if any(path.is_symlink() or not path.is_file() for path in files):
+            raise ValueError('Unexpected learning database files; leaving the database unchanged.')
+        backup.mkdir(parents=True)
+        # Windows cannot rename a directory containing an open LOCK handle.
+        # Keep that lock held while moving the other files; LevelDB cannot open
+        # a partly reset database. The empty directory/LOCK is reusable.
+        moved = []
+        try:
+            for path in files:
+                path.rename(backup / path.name)
+                moved.append(path)
+        except Exception:
+            for path in reversed(moved):
+                (backup / path.name).rename(path)
+            raise
     return backup
 
 
