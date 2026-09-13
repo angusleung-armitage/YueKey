@@ -2,6 +2,8 @@
 
 YueKey 0.6.2 makes Cantonese Quick the default and only selectable Rime scheme on Ubuntu, Kubuntu and Windows. No F4 selection is needed. Existing learned words are preserved. All 13 preferences now share bilingual labels, choices and numeric ranges; Linux also gains microphone refresh. See the [menu audit](https://github.com/angusleung-armitage/YueKey/blob/v0.6.2/docs/platform-parity.md).
 
+- **Kubuntu:** 關聯字亦會在文字欄預覽，取消後會清除。Continuations now expose preedit text for Fcitx5 inline previews and clear on cancellation.
+
 - **Windows 顯示修正 / Display fixes:** 關聯字會在文字欄預覽，按數字／空白鍵確認，Esc 或新碼取消。橫／直排設定會同時更新小狼毫的兩個排列設定。Windows now previews continuations inline and applies both candidate-layout settings together. Confirm with a number/Space or dismiss with Esc/new input.
 
 - **Windows:** choose the `windows-x64`, `windows-x86` or `windows-arm64` setup EXE. Approve the administrator prompt if Weasel is missing; compatible existing engines are reused. Setup preserves preferences and learning, then deploys Cantonese Quick automatically. Portable ZIPs include the same prerequisite through **Overview → Set up typing**.

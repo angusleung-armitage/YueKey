@@ -31,8 +31,11 @@ an<Translation> PredictTranslator::Query(const string& input,
     auto translation = New<FifoTranslation>();
     size_t end = segment.end;
     for (int i = 0; i < num_candidates; ++i) {
+      const auto& text = predict_engine_->candidate(i);
+      // The segment consumes no code, but frontends such as Fcitx5 need
+      // composition text to display an unconfirmed inline continuation.
       translation->Append(New<SimpleCandidate>("prediction", end, end,
-                                               predict_engine_->candidate(i)));
+                                               text, "", text));
       if (max_candidates > 0 && i >= max_candidates)
         break;
     }

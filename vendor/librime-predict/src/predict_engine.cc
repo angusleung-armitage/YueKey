@@ -61,8 +61,9 @@ an<Translation> PredictEngine::Translate(const Segment& segment) const {
   size_t end = segment.end;
   int i = 0;
   for (auto* it = candidates_->begin(); it != candidates_->end(); ++it) {
+    const auto& text = db_->GetEntryText(*it);
     translation->Append(
-        New<SimpleCandidate>("prediction", end, end, db_->GetEntryText(*it)));
+        New<SimpleCandidate>("prediction", end, end, text, "", text));
     i++;
     if (max_candidates_ > 0 && i >= max_candidates_)
       break;

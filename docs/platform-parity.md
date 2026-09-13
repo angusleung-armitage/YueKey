@@ -11,7 +11,7 @@ All three platforms share the Quick mappings, Cantonese continuation data and sp
 | `zb1` → `，`, `zd1` → `。` | ✓ | ✓ | ✓ |
 | 個人學習及備份重設 · Learning and backed-up reset | ✓ | ✓ | ✓ |
 | 廣東話關聯字 · Cantonese continuations | Native Rime module | Native Rime module | Rime Lua processor |
-| 文字欄預覽關聯字 · Inline continuation preview | Default IBus preview | Frontend presentation | Weasel preview mode |
+| 文字欄預覽關聯字 · Inline continuation preview | IBus preview | Candidate preedit | Weasel preview mode |
 | 橫／直排、字體、主題 · Layout, font, theme | GNOME extension | Fcitx5 Classic UI | Weasel schema style |
 | 候選字顯示、每頁字數 · Candidate visibility/page size | ✓ | ✓ | ✓ |
 | 中英切換及標點偏好 · Language key/punctuation | ✓ | ✓ | ✓ |
@@ -54,6 +54,8 @@ Both settings windows offer **Refresh microphones**, preserve a disconnected mic
 
 兩個設定視窗均提供「重新整理麥克風」，保留暫未連接的裝置選擇，並說明左 Ctrl 衝突時改用右 Ctrl。「儲存並套用」與「備份並重設學習」名稱亦一致。
 
+![Windows typing settings with shared menu labels](images/windows-typing-v0.6.2.png)
+
 The Rime scheme menu uses the same three switches: **中文 / English**, **關聯字關 / 關聯字開**, and **。， / .,**. System tray and desktop input-source menus belong to IBus, Fcitx5 or Weasel and include their own deployment, exit and system-settings commands; those menus are not identical across operating systems.
 
 Rime 方案選單共用三個切換項：「中文／English」、「關聯字關／關聯字開」及「。，／.,」。系統匣及桌面輸入來源選單由 IBus、Fcitx5 或小狼毫提供，其部署、退出及系統設定指令會因平台而異。
@@ -73,6 +75,8 @@ Rime configuration reference: [customizing the schema menu](https://github.com/r
 The Fcitx5 addon uses public Fcitx5 5.1.19 interfaces. It watches the active input context, secure-field capabilities and input activity on the Fcitx event loop. Only the owner of `org.quick_hk.Dictation` may configure it or submit a result. Focus, cursor, surrounding-text, input-method, capability and key changes invalidate the request. A result consumes its request before reset and commit; KDE uses neither a synthetic wake key nor the clipboard.
 
 The Python controller selects KDE from `XDG_CURRENT_DESKTOP` or accepts `--frontend fcitx5`. It shares the existing worker lifecycle, local models and session guards. Shared Linux service/autostart files keep one original backup and remain installed while either managed frontend needs them.
+
+Linux prediction candidates expose explicit composition text while consuming no typed code, so Fcitx5 can display and cancel the same inline continuation preview as IBus. Both installed frontends are checked for preview text and clearing after reset.
 
 Windows uses Rime Lua for continuations from the same pre-ranked TSV input as the Linux native predictor. Data loads in bounded shards; only public dictionary data is cached. No personal text is cached between input sessions. Weasel-specific style patches live in `quick_hk.windows.custom.yaml`, preserving other schemes' appearance. The Windows companion persists the shared settings model and identifies microphones by device and host-API name, resolving the current index immediately before capture.
 

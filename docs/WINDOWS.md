@@ -10,7 +10,7 @@ YueKey provides native x64, x86 (32-bit) and ARM64 Windows builds: Cantonese Qui
 
 Check **Settings → System → About → System type** and choose `windows-x64`, `windows-x86` or `windows-arm64`. Filenames below use x64 as an example. Choose the ARM64 build on ARM64 Windows. Each architecture includes the CPU speech runtime.
 
-![Windows 安裝後的粵鍵總覽 · YueKey Overview after installation](images/windows-overview-v0.6.1.png)
+![Windows 安裝後的粵鍵總覽 · YueKey Overview after installation](images/windows-overview-v0.6.2.png)
 
 ## 1. 免費下載 · Free download
 

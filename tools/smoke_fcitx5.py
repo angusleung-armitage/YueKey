@@ -45,7 +45,7 @@ def main():
                 time.sleep(0.1)
         else:
             raise AssertionError("Fcitx5 D-Bus frontend did not start")
-        commits, menus, events = [], [], []
+        commits, menus, events, preedits = [], [], [], []
         def signal(_bus, _sender, _path, _interface, name, parameters, _data):
             values = parameters.unpack()
             events.append((name, values))
@@ -53,6 +53,8 @@ def main():
                 commits.append(values[0])
             elif name == "UpdateClientSideUI":
                 menus.append([text for _label, text in values[4]])
+            elif name == "UpdateFormattedPreedit":
+                preedits.append(''.join(text for text, _format in values[0]))
         token = bus.signal_subscribe(SERVICE, INTERFACE, None, path, None,
                                      Gio.DBusSignalFlags.NONE, signal, None)
         def context(method, signature=None, args=()):
@@ -81,8 +83,10 @@ def main():
         key(str(menus[-1].index("你") + 1))
         assert commits == ["你"], commits
         assert "好" in menus[-1], "Native prediction plugin did not load"
+        assert preedits and preedits[-1] == menus[-1][0], (preedits, menus[-1])
         context("Reset")
         assert not menus[-1], "Reset resurrected suggestions"
+        assert not preedits[-1], "Reset left the continuation in the text field"
         context("FocusOut")
         context("FocusIn")
         for character in "vd":

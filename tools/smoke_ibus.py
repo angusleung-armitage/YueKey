@@ -36,7 +36,10 @@ def main():
         context = bus.create_input_context("quick-hk-package-smoke")
         commits = []
         menus = []
+        preedits = []
         context.connect("commit-text", lambda _, text: commits.append(text.get_text()))
+        context.connect("update-preedit-text", lambda _, text, cursor, visible: preedits.append(text.get_text() if visible else ''))
+        context.connect("hide-preedit-text", lambda _: preedits.append(''))
         context.connect("update-lookup-table", lambda _, table, visible: menus.append(
             [table.get_candidate(i).get_text() for i in range(table.get_number_of_candidates())] if visible else []))
         context.connect("hide-lookup-table", lambda _: menus.append([]))
@@ -59,9 +62,11 @@ def main():
         drain()
         assert commits == ["你"], commits
         assert menus[-1] and "好" in menus[-1], "Native plugin failed to provide suggestions"
+        assert preedits and preedits[-1] == menus[-1][0], (preedits, menus[-1])
         context.reset()
         drain()
         assert not menus[-1], "Reset resurrected suggestions"
+        assert not preedits[-1], "Reset left the continuation in the text field"
         context.focus_out()
         drain()
         context.focus_in()

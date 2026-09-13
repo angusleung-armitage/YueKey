@@ -63,3 +63,12 @@ Windows Server 2025 x64 disposable runner at `69ef2b4` in
 [release run 34753111328](https://github.com/angusleung-armitage/YueKey/actions/runs/34753111328).
 It shows the final Traditional 粵 icon in the sidebar and title bar. The older
 `windows-overview.png` remains an archived 0.6.0 capture.
+
+
+## Windows 0.6.2 settings audit captures
+
+`windows-overview-v0.6.2.png` and `windows-typing-v0.6.2.png` are unedited
+captures of the installed application on the disposable Windows Server 2025
+x64 runner, commit `6680c60`,
+[run 34755990578](https://github.com/angusleung-armitage/YueKey/actions/runs/34755990578).
+The Typing capture shows the shared labels and the horizontal-candidates option.
