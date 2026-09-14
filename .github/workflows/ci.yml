@@ -25,10 +25,11 @@ jobs:
       - name: Prepare verified cross-platform typing data
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3-yaml
+          sudo apt-get install -y python3-yaml binutils-mingw-w64-i686
           /usr/bin/python3 tools/fetch_sources.py
           /usr/bin/python3 tools/build_data.py
           /usr/bin/python3 tools/prepare_windows_data.py
+          /usr/bin/python3 tools/build_keyboard_resource.py
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: windows-data

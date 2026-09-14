@@ -14,20 +14,20 @@ Check **Settings → System → About → System type** and choose `windows-x64`
 
 ## 1. 免費下載 · Free download
 
-到 [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases) 下載 **`YueKey-0.6.8-windows-x64-setup.exe`** 及 `SHA256SUMS`。開啟安裝程式，按步驟完成；之後可從開始功能表開啟 **YueKey**。程式安裝於目前使用者的 `%LOCALAPPDATA%\Programs\YueKey`，粵鍵本身採每使用者安裝；首次安裝內置小狼毫引擎時會要求 Windows 管理員權限。
+到 [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases) 下載 **`YueKey-0.6.9-windows-x64-setup.exe`** 及 `SHA256SUMS`。開啟安裝程式，按步驟完成；之後可從開始功能表開啟 **YueKey**。程式安裝於目前使用者的 `%LOCALAPPDATA%\Programs\YueKey`；安裝內置小狼毫引擎及設定共用鍵盤識別圖示時會要求 Windows 管理員權限。已有相同設定時不會再次要求。
 
-Download **`YueKey-0.6.8-windows-x64-setup.exe`** and `SHA256SUMS` from [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases). Run setup, then open **YueKey** from the Start Menu. Installation is per user, under `%LOCALAPPDATA%\Programs\YueKey`, with an administrator prompt only when the bundled Weasel engine needs to be installed.
+Download **`YueKey-0.6.9-windows-x64-setup.exe`** and `SHA256SUMS` from [GitHub Releases](https://github.com/angusleung-armitage/YueKey/releases). Run setup, then open **YueKey** from the Start Menu. The app installs per user under `%LOCALAPPDATA%\Programs\YueKey`. Administrator prompts install the shared Weasel engine and keyboard identifier. Existing, matching installations are reused.
 
 在 PowerShell 檢查安裝檔的 SHA-256，與下載頁的 `SHA256SUMS` 比對：<br>
 Compare the installer's SHA-256 with `SHA256SUMS` in PowerShell:
 
 ```powershell
-Get-FileHash .\YueKey-0.6.8-windows-x64-setup.exe -Algorithm SHA256
+Get-FileHash .\YueKey-0.6.9-windows-x64-setup.exe -Algorithm SHA256
 ```
 
-亦提供 **`YueKey-0.6.8-windows-x64.zip`** 免安裝版本。解壓整個資料夾後開啟 `YueKey.exe`，保留旁邊的 `_internal` 資料夾。ZIP 與安裝版包含相同程式及 CPU 執行環境。
+亦提供 **`YueKey-0.6.9-windows-x64.zip`** 免安裝版本。解壓整個資料夾後開啟 `YueKey.exe`，保留旁邊的 `_internal` 資料夾。ZIP 與安裝版包含相同程式及 CPU 執行環境。
 
-The optional **`YueKey-0.6.8-windows-x64.zip`** is a portable edition. Extract the entire folder, keep `_internal` beside `YueKey.exe`, and open the executable. Both editions include the same application and CPU runtime.
+The optional **`YueKey-0.6.9-windows-x64.zip`** is a portable edition. Extract the entire folder, keep `_internal` beside `YueKey.exe`, and open the executable. Both editions include the same application and CPU runtime.
 
 此版本未有 Windows 程式碼簽署憑證，系統可能顯示發行者未經驗證。請只使用本專案 Release 的檔案及檢查碼。
 
@@ -48,9 +48,13 @@ The portable ZIP includes the same engine installer. Choose **Overview → Set u
 
 小狼毫提供 Windows 輸入法整合；粵鍵提供速成字典、設定介面及廣東話語音。兩者由同一安裝流程設定，各自保留原有授權。引擎版本及原始碼見 [Weasel 元件說明](WEASEL.md)。
 
-語言列／系統匣現在以「港」表示港式速成中文模式，以「A」表示英文模式。Windows 的 Win + Space 清單仍由小狼毫引擎提供；應用程式圖示為「粵」。
+語言列／系統匣左邊以「港」表示港式速成中文模式，以「A」表示英文模式。右邊鍵盤識別以「中」取代小狼毫的 W；英文鍵盤在這個位置顯示 ENG。Win + Space 清單仍使用小狼毫的名稱；應用程式圖示為「粵」。
 
-The language bar/tray shows **港** in Chinese mode and **A** in English mode. The Win + Space list uses the registered Weasel engine; the YueKey application logo remains **粵**.
+The language bar/tray shows **港** in Chinese mode and **A** in English mode. The separate keyboard identifier on its right replaces Weasel's **W** with **中**, where an English keyboard shows **ENG**. Win + Space retains the registered Weasel name; the YueKey application logo remains **粵**.
+
+此圖示由安裝流程內置的 **YueKey Keyboard Icon** 元件設定，影響同一部電腦已註冊的小狼毫語言設定，會先備份原本的圖示路徑及索引。它不會修改小狼毫的 DLL。升級後如 Windows 仍快取舊圖示，先切換至其他鍵盤再切回；必要時在方便的時候登出再登入，程式不會自動結束工作階段。
+
+The bundled **YueKey Keyboard Icon** component updates the shared Weasel language registrations on this computer, backing up their original icon paths and indices. Weasel binaries are unchanged. If Windows caches the old icon after upgrading, switch to another keyboard and back; if necessary, sign out and back in when convenient. YueKey never ends your session automatically.
 
 Weasel provides the Windows input-method integration. YueKey supplies the Quick dictionary, settings interface and Cantonese dictation. One setup configures both, with their respective licenses retained. See the [Weasel component notice](WEASEL.md) for the pinned version and source.
 
@@ -131,6 +135,8 @@ Windows dictation is a separate companion that can work alongside different inpu
   **Remove typing:** choose **Advanced → Remove YueKey typing**; deployment is automatic. Unmodified installation files are restored; later user edits and learning are retained.
 - **移除程式與模型：** 關閉粵鍵，在 Windows「設定 → 應用程式 → 已安裝的應用程式」解除安裝 YueKey。免安裝版本則刪除解壓資料夾。解除安裝會保留共用的小狼毫引擎、設定、學習資料及模型。模型另存於 `%LOCALAPPDATA%\YueKey\dictation\models`，可自行刪除。備份存於小狼毫資料夾內的 `yuekey-backups`。<br>
   **Remove the app/models:** close YueKey, then uninstall it from Windows Settings → Apps → Installed apps. For the portable edition, delete its extracted folder. The uninstaller preserves the shared Weasel engine, settings, learned data and models. Models live separately at `%LOCALAPPDATA%\YueKey\dictation\models`; backups are in `yuekey-backups` inside the Weasel user folder.
+- **還原鍵盤識別：** 在 Windows「已安裝的應用程式」移除 **YueKey Keyboard Icon**，即可還原未經後續修改的原有小狼毫圖示。粵鍵主程式解除安裝會保留此共用元件，避免影響其他使用者；鍵盤圖示備份存於 `HKLM\Software\YueKey\KeyboardIcon` 的 32 位元登錄檢視。<br>
+  **Restore the keyboard identifier:** uninstall **YueKey Keyboard Icon** from Windows Installed apps. It restores the original Weasel icons while preserving later customizations. Removing the per-user YueKey app retains this shared component for other users. Icon backups use the 32-bit registry view of `HKLM\Software\YueKey\KeyboardIcon`.
 
 ## 升級 · Upgrading
 

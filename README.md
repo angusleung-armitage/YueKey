@@ -73,13 +73,13 @@ Linux and Windows share four pages, the dark green sidebar and settings cards. A
 
 Choose the installer for your OS and CPU. Each Linux **all-in-one DEB** includes typing, settings, GNOME/KDE integration, the CPU speech runtime and models. APT installs the required system libraries.
 
-| 系統及 CPU · OS / CPU | 下載檔案 · Download (0.6.8) |
+| 系統及 CPU · OS / CPU | 下載檔案 · Download (0.6.9) |
 | --- | --- |
-| Ubuntu / Kubuntu 26.04 · Intel / AMD 64-bit | `yuekey_0.6.8-1_amd64.deb` |
-| Ubuntu 26.04 · ARM64 / AArch64 · GNOME 50 or KDE | `yuekey_0.6.8-1_arm64.deb` |
-| Windows · Intel / AMD 64-bit | `YueKey-0.6.8-windows-x64-setup.exe` |
-| Windows · Intel / AMD 32-bit (x86) | `YueKey-0.6.8-windows-x86-setup.exe` |
-| Windows 11 · ARM64 | `YueKey-0.6.8-windows-arm64-setup.exe` |
+| Ubuntu / Kubuntu 26.04 · Intel / AMD 64-bit | `yuekey_0.6.9-1_amd64.deb` |
+| Ubuntu 26.04 · ARM64 / AArch64 · GNOME 50 or KDE | `yuekey_0.6.9-1_arm64.deb` |
+| Windows · Intel / AMD 64-bit | `YueKey-0.6.9-windows-x64-setup.exe` |
+| Windows · Intel / AMD 32-bit (x86) | `YueKey-0.6.9-windows-x86-setup.exe` |
+| Windows 11 · ARM64 | `YueKey-0.6.9-windows-arm64-setup.exe` |
 
 **[下載安裝檔及 SHA256SUMS · Download installers and checksums](https://github.com/angusleung-armitage/YueKey/releases/latest)** · [詳細架構與驗證範圍 · Architecture and test coverage](docs/ARCHITECTURES.md)
 
@@ -95,11 +95,11 @@ Recognition can make mistakes. See the [compatibility record](docs/compatibility
 ## 開始使用 · Get started
 
 1. **下載 · Download** — 由 Releases 選擇上表對應安裝檔，核對 `SHA256SUMS`。Choose your installer above and verify its checksum.
-2. **安裝 · Install** — Windows 執行 EXE；如未安裝小狼毫，允許一次管理員提示。詳見 [Windows 指南](docs/WINDOWS.md)。Linux 在下載目錄執行下列指令。On Windows, run the EXE and approve the administrator prompt if Weasel is missing. See the [Windows guide](docs/WINDOWS.md). On Linux, run these commands in your downloads folder:
+2. **安裝 · Install** — Windows 執行 EXE，允許安裝小狼毫及設定鍵盤識別圖示所需的管理員提示。詳見 [Windows 指南](docs/WINDOWS.md)。Linux 在下載目錄執行下列指令。On Windows, run the EXE and approve the administrator prompts for the typing engine and shared keyboard icon. See the [Windows guide](docs/WINDOWS.md). On Linux, run these commands in your downloads folder:
 
 ```bash
 # Ubuntu / Kubuntu 26.04: chooses amd64 or arm64 automatically
-sudo apt install ./yuekey_0.6.8-1_$(dpkg --print-architecture).deb
+sudo apt install ./yuekey_0.6.9-1_$(dpkg --print-architecture).deb
 quick-hk setup
 quick-hk configure
 ```
@@ -147,6 +147,10 @@ Each recording lasts up to two minutes. Choose the microphone, Ctrl key and auto
 收音時，小咪高峰會顯示在文字游標或輸入欄旁。若程式沒有提供位置，提示會放在目前視窗邊緣。Windows 中文模式的語言列／系統匣圖示為「港」，英文為「A」。
 
 A small microphone appears beside the caret or input field while recording. If an application provides no position, it stays near the active window's edge. Windows uses **港** for Chinese mode and **A** for English in the language bar/tray.
+
+Windows 右邊的鍵盤識別圖示為「中」（英文鍵盤在這個位置顯示 ENG）；左邊「港／A」表示目前輸入模式。
+
+The separate Windows keyboard identifier shows **中**, in the position where an English keyboard shows **ENG**. The **港/A** icon beside it indicates the current input mode.
 
 ## 本機處理，保留私隱 · Local by design
 

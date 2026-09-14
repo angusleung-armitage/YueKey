@@ -4,6 +4,9 @@ Cantonese Quick input and local dictation
 一次安裝，即可使用速成。此安裝檔已包含官方小狼毫 0.17.4；如尚未安裝，Windows 會要求管理員權限。已安裝的相容版本會沿用。粵鍵本身為每使用者安裝，並加入開始功能表及解除安裝項目。
 One setup prepares Cantonese Quick typing. Official Weasel 0.17.4 is included; Windows requests administrator approval if the engine is missing. Compatible existing installations are reused. YueKey itself installs for the current user with a Start Menu shortcut and an uninstaller.
 
+安裝流程亦會設定共用的「中」鍵盤識別圖示，取代右邊的 W；左邊「港／A」不變。首次設定或修復此圖示需要管理員權限。原有圖示會先備份；如要還原，可在 Windows 已安裝的應用程式移除 YueKey Keyboard Icon。
+Setup also replaces the shared W keyboard identifier with 中, keeping the 港/A mode icon. Installing or repairing this icon requires administrator approval. Originals are backed up; uninstall YueKey Keyboard Icon from Windows Installed apps to restore them.
+
 安裝程式會備份原有設定，保留學習資料，並把港式速成設為預設及唯一可選方案。完成後按 Win + Space 選小狼毫，即可輸入。移除粵鍵方案時可還原未經修改的原有設定。
 Setup backs up existing preferences, preserves learned words and makes Cantonese Quick the default and only selectable scheme. Select Weasel with Win + Space to type. Removing YueKey typing restores unchanged original settings.
 

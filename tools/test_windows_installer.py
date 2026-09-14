@@ -19,6 +19,7 @@ def main():
     from quick_hk.windows_setup import uninstall
     from quick_hk.windows_arch import package_architecture
     from quick_hk.windows_weasel import detect, verify_installer, INSTALLER_NAME
+    from smoke_keyboard_icon import backups, verify_visuals, verify_restore
     import hashlib
 
     key = r'Software\Microsoft\Windows\CurrentVersion\Uninstall\YueKey.Companion_is1'
@@ -62,6 +63,11 @@ def main():
             result = json.loads(report.read_text(encoding='utf-8'))
             assert result['ok'] and Path(result['user_directory']) == rime
             assert result['input_profile'].startswith('0404:'), 'Fresh setup should register Traditional Chinese'
+            assert result['keyboard_icon']['ready'] and result['keyboard_icon']['glyph'] == '中'
+            if step == 'install':
+                original_icons = backups()
+            else:
+                assert backups() == original_icons, 'Repair must preserve the first icon backups'
             engine = detect()
             assert engine and engine.version == '0.17.4.0'
             verify_installer(app / '_internal/prerequisites' / INSTALLER_NAME)
@@ -108,6 +114,7 @@ def main():
                 print('Dismissed first-login account prompt on the disposable Windows ARM runner.')
 
         from smoke_weasel_ui import exercise as exercise_candidates
+        verify_visuals(logs)
         exercise_candidates(engine, rime, logs)
 
         report = logs / 'installed-runtime.json'
@@ -146,6 +153,7 @@ def main():
         assert (rime / 'yuekey-install.json').is_file()
         assert uninstall(rime) == []
         assert (rime / 'default.custom.yaml').read_bytes() == original
+        verify_restore(logs, original_icons)
         # The uninstaller removes its own executable asynchronously.
         deadline = time.monotonic() + 10
         while (app / 'unins000.exe').exists() and time.monotonic() < deadline:

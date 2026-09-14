@@ -1,7 +1,8 @@
 """Install the official Windows IME and deploy YueKey for the current user.
 
 Weasel is an unmodified, separately licensed prerequisite. Only its own
-installer is elevated; profile writes and deployment stay in the user's session.
+installer and the keyboard-icon installer are elevated; Rime files and
+deployment stay in the user's session.
 SPDX-License-Identifier: MIT
 """
 from __future__ import annotations
@@ -83,7 +84,7 @@ def fetch_installer(path: Path) -> None:
     verify_installer(path)
 
 
-def _run_installer(path: Path) -> None:
+def _run_installer(path: Path, *, parameters='/S /T', component='Weasel') -> None:
     import ctypes as C
     from ctypes import wintypes as W
 
@@ -111,7 +112,7 @@ def _run_installer(path: Path) -> None:
     if initialized not in (0, 1):
         raise OSError(f'Windows could not initialize the installer thread (0x{initialized & 0xFFFFFFFF:08X}).')
     info = ShellExecuteInfo(cbSize=C.sizeof(ShellExecuteInfo), fMask=0x140,
-                            lpVerb='runas', lpFile=str(path), lpParameters='/S /T',
+                            lpVerb='runas', lpFile=str(path), lpParameters=parameters,
                             lpDirectory=str(path.parent), nShow=1)
     try:
         if not shell.ShellExecuteExW(C.byref(info)):
@@ -128,7 +129,7 @@ def _run_installer(path: Path) -> None:
         if not kernel.GetExitCodeProcess(info.hProcess, C.byref(code)):
             raise C.WinError(C.get_last_error())
         if code.value != 0:
-            raise RuntimeError(f'Weasel setup returned {code.value}. Run YueKey setup again.')
+            raise RuntimeError(f'{component} setup returned {code.value}. Run YueKey setup again.')
     finally:
         if info.hProcess:
             kernel.CloseHandle(info.hProcess)
@@ -227,9 +228,11 @@ def deploy(engine: Installation, destination: Path, *, require_yuekey=True) -> N
 
 def configure_typing(settings=None, progress=lambda message: None, *, install_missing=True) -> dict:
     from .windows_setup import install, rime_directory
+    from .windows_keyboard import ensure as ensure_keyboard_icon
     engine = ensure_engine(progress) if install_missing else detect()
     if engine is None:
         raise RuntimeError('The bundled Weasel prerequisite did not finish. Run YueKey setup again.')
+    keyboard_icon = ensure_keyboard_icon(progress, install_missing=install_missing)
     destination = rime_directory().resolve()
     destination.mkdir(parents=True, exist_ok=True)
     progress('正在備份及設定速成… · Preparing your typing profile…')
@@ -239,4 +242,5 @@ def configure_typing(settings=None, progress=lambda message: None, *, install_mi
     subprocess.Popen([str(engine.root / 'WeaselServer.exe')], cwd=engine.root,
                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, creationflags=0x08000000)
     return dict(ok=True, engine_version=engine.version, engine_root=str(engine.root),
-                user_directory=str(destination), backup=str(backup), input_profile=profile)
+                user_directory=str(destination), backup=str(backup), input_profile=profile,
+                keyboard_icon=keyboard_icon)

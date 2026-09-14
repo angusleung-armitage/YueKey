@@ -2,7 +2,7 @@
 schema:
   schema_id: quick_hk
   name: 港式速成
-  version: '0.6.8'
+  version: '0.6.9'
   description: 香港用字、速成首尾碼、個人詞頻及關聯字
 
 switches:

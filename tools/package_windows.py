@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Build native Windows x86, x64 or ARM64 setup EXE and portable ZIP."""
 from importlib import metadata
+import hashlib
+import json
 import os
 from pathlib import Path
 import shutil
@@ -12,6 +14,7 @@ VERSION = (ROOT / 'VERSION').read_text().strip()
 sys.path.insert(0, str(ROOT / 'src'))
 from quick_hk.windows_arch import package_architecture
 from quick_hk.windows_weasel import INSTALLER_NAME, INSTALLER_SHA256, fetch_installer, installer_path
+from quick_hk.windows_keyboard import INSTALLER_NAME as KEYBOARD_INSTALLER_NAME
 
 
 def build():
@@ -24,6 +27,15 @@ def build():
         raise SystemExit('Install Inno Setup 6.7+ from https://jrsoftware.org/isdl.php and add ISCC.exe to PATH.')
     prerequisite = installer_path()
     fetch_installer(prerequisite)
+    resource = ROOT / 'build/windows-data/YueKeyKeyboard.dll'
+    resource_hash = hashlib.sha256(resource.read_bytes()).hexdigest()
+    subprocess.run([compiler, '/Qp', f'/DRepoRoot={ROOT}', f'/DResourceSHA256={resource_hash}',
+                    str(ROOT / 'desktop/windows/keyboard-icon.iss')], check=True)
+    keyboard_installer = prerequisite.parent / KEYBOARD_INSTALLER_NAME
+    keyboard_hash = hashlib.sha256(keyboard_installer.read_bytes()).hexdigest()
+    keyboard_metadata = prerequisite.parent / 'keyboard-icon.json'
+    keyboard_metadata.write_text(json.dumps(dict(installer_sha256=keyboard_hash,
+                                                resource_sha256=resource_hash)), encoding='utf-8')
     subprocess.run([
         sys.executable, '-m', 'PyInstaller', '--noconfirm', '--clean', '--windowed',
         '--name', 'YueKey', '--paths', str(ROOT / 'src'),
@@ -32,6 +44,8 @@ def build():
         '--specpath', str(ROOT / 'build'),
         '--add-data', f'{ROOT / "build/windows-data"}:windows-data',
         '--add-data', f'{prerequisite}:prerequisites',
+        '--add-data', f'{keyboard_installer}:prerequisites',
+        '--add-data', f'{keyboard_metadata}:prerequisites',
         '--add-data', f'{ROOT / "desktop/icons"}:app-icons',
         '--collect-all', 'sherpa_onnx', '--collect-all', 'opencc',
         '--collect-all', 'comtypes', '--collect-all', 'sounddevice',
@@ -69,6 +83,8 @@ def build():
     subprocess.run([
         compiler, '/Qp', f'/DAppVersion={VERSION}', f'/DRepoRoot={ROOT}', f'/DAppArch={architecture}',
         f'/DWeaselName={INSTALLER_NAME}', f'/DWeaselSHA256={INSTALLER_SHA256}',
+        f'/DKeyboardName={KEYBOARD_INSTALLER_NAME}', f'/DKeyboardSHA256={keyboard_hash}',
+        f'/DKeyboardResourceSHA256={resource_hash}',
         str(ROOT / 'desktop/windows/yuekey.iss'),
     ], check=True)
 

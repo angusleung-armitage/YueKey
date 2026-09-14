@@ -18,13 +18,14 @@ def main():
     args = parser.parse_args()
     # HK face in the Noto Sans CJK collection; only rendered glyphs are shipped.
     font = ImageFont.truetype(str(args.font), 206, index=4)
-    for mode, glyph in (('hk', '港'), ('en', 'A')):
+    for mode, glyph in (('hk', '港'), ('en', 'A'), ('keyboard', '中')):
         image = Image.new('RGBA', (256, 256))
         draw = ImageDraw.Draw(image)
-        draw.rounded_rectangle((0, 0, 255, 255), radius=36, fill='#173f3a')
+        if mode != 'keyboard':
+            draw.rounded_rectangle((0, 0, 255, 255), radius=36, fill='#173f3a')
         left, top, right, bottom = draw.textbbox((0, 0), glyph, font=font)
         draw.text(((256 - right - left) / 2, (256 - bottom - top) / 2),
-                  glyph, fill='white', font=font)
+                  glyph, fill='black' if mode == 'keyboard' else 'white', font=font)
         image.save(ROOT / 'desktop/icons' / f'yuekey-{mode}.ico',
                    sizes=[(size, size) for size in (16, 20, 24, 32, 40, 48, 64, 128, 256)])
 

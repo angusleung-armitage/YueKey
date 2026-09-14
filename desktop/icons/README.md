@@ -27,3 +27,11 @@ glyphs (SIL Open Font License); no font file is bundled. Regenerate with
 `python3 tools/build_status_icons.py` on a system with Noto CJK and Pillow.
 
 Windows 語言列及系統匣以「港」表示中文、以「A」表示英文；應用程式圖示仍為「粵」。
+
+The separate Windows keyboard identifier uses **中**, from `yuekey-keyboard.ico`.
+`tools/build_keyboard_resource.py` embeds this monochrome glyph in a data-only
+`YueKeyKeyboard.dll`; the shared icon installer updates the registered Weasel
+profile's icon resource. It does not change the 港/A mode icons or the 粵 app logo.
+
+Windows 鍵盤識別（英文鍵盤顯示 ENG 的位置）使用獨立的「中」圖示，
+取代小狼毫的 W。左邊「港／A」及粵鍵程式的「粵」圖示不變。

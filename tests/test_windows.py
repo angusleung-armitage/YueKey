@@ -269,6 +269,7 @@ class WindowsTests(unittest.TestCase):
             self.payload(source)
             engine = windows_weasel.Installation(Path(temporary) / 'engine', '0.17.4.0')
             with patch.object(windows_weasel, 'ensure_engine', return_value=engine), \
+                    patch('quick_hk.windows_keyboard.ensure', return_value={'ready': True, 'glyph': '中'}), \
                     patch('quick_hk.windows_setup.rime_directory', return_value=user), \
                     patch('quick_hk.windows_setup.resources', return_value=source), \
                     patch.object(windows_weasel, 'enable_current_user', return_value='registered-profile'), \
@@ -284,6 +285,33 @@ class WindowsTests(unittest.TestCase):
                 deploy.assert_called_with(engine, user.resolve())
                 self.assertEqual(uninstall(user), [])
                 self.assertFalse((user / 'default.custom.yaml').exists())
+
+    def test_keyboard_identifier_reuses_installation_and_verifies_before_elevation(self):
+        import hashlib
+        from quick_hk import windows_keyboard as keyboard
+        with tempfile.TemporaryDirectory() as temporary:
+            installer = Path(temporary) / keyboard.INSTALLER_NAME
+            installer.write_bytes(b'icon installer fixture')
+            metadata = {'installer_sha256': hashlib.sha256(installer.read_bytes()).hexdigest(),
+                        'resource_sha256': 'a' * 64}
+            with patch.object(keyboard, 'assets', return_value=(installer, metadata)), \
+                    patch.object(windows_weasel, '_run_installer') as run:
+                with patch.object(keyboard, 'ready', return_value=True):
+                    self.assertEqual(keyboard.ensure()['glyph'], '中')
+                    run.assert_not_called()
+                with patch.object(keyboard, 'ready', side_effect=[False, True]):
+                    keyboard.ensure()
+                    run.assert_called_once_with(installer,
+                        parameters='/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-',
+                        component='YueKey Keyboard Icon')
+                run.reset_mock()
+                with patch.object(keyboard, 'ready', return_value=False):
+                    with self.assertRaisesRegex(RuntimeError, 'needs setup'):
+                        keyboard.ensure(install_missing=False)
+                    installer.write_bytes(b'changed after packaging')
+                    with self.assertRaisesRegex(RuntimeError, 'checksum mismatch'):
+                        keyboard.ensure()
+                    run.assert_not_called()
 
     def test_deployment_must_rebuild_and_verify_compiled_typing_data(self):
         with tempfile.TemporaryDirectory() as temporary:
