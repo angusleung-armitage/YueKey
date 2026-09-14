@@ -42,7 +42,7 @@ After the build, `dist/` should contain these files for this version:
 
 | 套件 · Package | 用途 · Purpose |
 | --- | --- |
-| `yuekey_0.6.7-1_amd64.deb` **或 / or** `yuekey_0.6.7-1_arm64.deb` | 一個檔案包含全部 YueKey 元件及 CPU 語音模型／All YueKey components and CPU speech models |
+| `yuekey_0.6.8-1_amd64.deb` **或 / or** `yuekey_0.6.8-1_arm64.deb` | 一個檔案包含全部 YueKey 元件及 CPU 語音模型／All YueKey components and CPU speech models |
 | `SHA256SUMS` | 套件檢查碼／Package checksums |
 
 建置使用主機的 CPU 架構；各架構須分別建置。執行 `dpkg --print-architecture` 選擇對應檔案。此版本不提供 Linux i386／ARM32；亦不支援以強制架構選項安裝錯誤 DEB。詳見[架構指南](ARCHITECTURES.md)。
@@ -66,7 +66,7 @@ If you already have these packages, continue below. Docker is used for building;
 Run from the project root:
 
 ```bash
-sudo apt install ./dist/yuekey_0.6.7-1_$(dpkg --print-architecture).deb
+sudo apt install ./dist/yuekey_0.6.8-1_$(dpkg --print-architecture).deb
 quick-hk setup --frontend ibus
 ```
 
@@ -160,7 +160,7 @@ Version 0.6.6 places a green microphone capsule below the caret, near the text-s
 ## 5. Kubuntu KDE：安裝速成 · Install Quick input
 
 ```bash
-sudo apt install ./dist/yuekey_0.6.7-1_$(dpkg --print-architecture).deb
+sudo apt install ./dist/yuekey_0.6.8-1_$(dpkg --print-architecture).deb
 quick-hk setup --frontend fcitx5
 ```
 

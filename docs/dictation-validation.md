@@ -88,3 +88,28 @@ The Windows job runs the installed EXE with a public Cantonese WAV, validates
 Unicode insertion, UI Automation password/focus guards and the nonactivating
 indicator, and tests microphone disconnect/shutdown and stable device selection.
 See [platform-parity.md](platform-parity.md) for the feature matrix and limits.
+
+
+## Compact dictation capsule in 0.6.8
+
+Ubuntu GNOME and Windows use a 64 × 24 logical-pixel green capsule with an
+outlined microphone, divider and 粵. It is centred below the caret and moves
+above it when needed at the screen edge. Both dimensions and spacing scale
+with the display. The original microphone artwork is retained.
+
+A separate GNOME 50.1 Wayland session rendered the actual extension at exactly
+64 × 24. An empty GTK input field supplied its accessibility bounds as the
+anchor. Double Ctrl started and stopped the production controller; a public
+Cantonese fixture produced `兩隻小企鵝都有嘢食。` exactly once. Changing fields
+or pressing Escape hid the indicator and cancelled capture. A password field
+did not start recording, and normal typing worked after cancellation. The
+user's microphone and active desktop were not used by this check.
+
+Windows installer CI checks the physical dimensions against the target
+window's DPI, alongside five show/hide cycles without focus changes.
+
+On an upgraded GNOME desktop, compare `loaded_version` and `installed_version`
+in `quick-hk dictation status --json`. `update_pending: true` means the previous
+extension is still running and the new capsule needs the next login. A passing
+isolated desktop check does not mean a cached extension in the user's current
+session has been replaced.

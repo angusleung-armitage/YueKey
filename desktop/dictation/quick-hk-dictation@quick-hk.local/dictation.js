@@ -60,7 +60,12 @@ export class DictationUI {
         this._busy = new Gio.FileIcon({file: Gio.File.new_for_path(
             GLib.build_filenamev([extensionPath, 'busy-symbolic.svg']))});
         this._icon = new St.Icon({gicon: this._microphone, icon_size: 18});
-        this._actor.add_child(this._icon);
+        this._actor.add_child(new St.Bin({style_class: 'quick-hk-dictation-mic',
+            child: this._icon}));
+        this._actor.add_child(new St.Widget({style_class: 'quick-hk-dictation-divider'}));
+        this._actor.add_child(new St.Bin({style_class: 'quick-hk-dictation-language',
+            child: new St.Label({text: '粵', x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER})}));
         Main.layoutManager.addChrome(this._actor);
         this._object = Gio.DBusExportedObject.wrapJSObject(XML, this);
         this._object.export(Gio.DBus.session, PATH);

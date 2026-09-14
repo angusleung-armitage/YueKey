@@ -625,7 +625,9 @@ def self_test(report: Path, models: Path | None):
             x, y, w, h = target.anchor
             assert abs((rect.left + rect.right) / 2 - x) <= 2, 'Badge is not centred on the caret'
             assert 0 <= rect.top - (y + h) <= 24, 'Badge is not below the caret'
-            assert rect.right - rect.left <= 72, 'Dictation badge is unexpectedly wide'
+            scale = max(1.0, user.GetDpiForWindow(target.window) / 96)
+            assert rect.right - rect.left == round(64 * scale), 'Incorrect badge width'
+            assert rect.bottom - rect.top == round(24 * scale), 'Incorrect badge height'
             if cycle == 0:
                 from .windows_visual import capture_window
                 capture_window(app.badge.hwnd, report.parent / 'dictation-badge.png')

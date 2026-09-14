@@ -9,15 +9,15 @@ from quick_hk.windows_state import Target, Request
 class PositionTests(unittest.TestCase):
     def test_caret_edges_and_monitors(self):
         area = (0, 0, 1920, 1040)
-        self.assertEqual(indicator_position((400, 300, 1, 20), area, 36, 28), (382, 326))
-        self.assertEqual(indicator_position((1900, 1020, 1, 20), area, 36, 28), (1878, 986))
+        self.assertEqual(indicator_position((400, 300, 1, 20), area, 64, 24), (368, 326))
+        self.assertEqual(indicator_position((1900, 1020, 1, 20), area, 64, 24), (1850, 990))
         self.assertEqual(indicator_position((-1300, -100, 1, 20),
-                         (-1920, -200, 1920, 1080), 36, 28), (-1318, -74))
-        self.assertEqual(indicator_position((-4000, -4000, 1, 20), area, 36, 28), (6, 6))
-        self.assertEqual(indicator_position((400, 300, 600, 32), area, 36, 28), (388, 338))
+                         (-1920, -200, 1920, 1080), 64, 24), (-1332, -74))
+        self.assertEqual(indicator_position((-4000, -4000, 1, 20), area, 64, 24), (6, 6))
+        self.assertEqual(indicator_position((400, 300, 600, 32), area, 64, 24), (374, 338))
         # 200% scale: both indicator and gap remain beside the physical caret.
         self.assertEqual(indicator_position((800, 600, 2, 40),
-                         (0, 0, 3840, 2080), 72, 56, 12), (764, 652))
+                         (0, 0, 3840, 2080), 128, 48, 12), (736, 652))
 
     def test_unreported_and_invalid_geometry(self):
         self.assertTrue(valid_rect((0, 0, 0, 18)))

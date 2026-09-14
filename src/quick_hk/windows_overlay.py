@@ -4,6 +4,8 @@ from ctypes import wintypes as W
 
 from .dictation_position import indicator_position, valid_rect
 
+BADGE_WIDTH, BADGE_HEIGHT = 64, 24
+
 
 class MonitorInfo(C.Structure):
     _fields_ = [('cbSize', W.DWORD), ('rcMonitor', W.RECT), ('rcWork', W.RECT), ('dwFlags', W.DWORD)]
@@ -18,7 +20,7 @@ class DictationBadge:
         self.window.overrideredirect(True)
         self.window.attributes('-topmost', True)
         self.window.attributes('-transparentcolor', '#010203')
-        self.canvas = tk.Canvas(self.window, width=36, height=28, bg='#010203',
+        self.canvas = tk.Canvas(self.window, width=BADGE_WIDTH, height=BADGE_HEIGHT, bg='#010203',
                                 highlightthickness=0, takefocus=False)
         self.canvas.pack(fill='both', expand=True)
         self.window.update_idletasks()
@@ -48,7 +50,7 @@ class DictationBadge:
             self.hide()
             return
         scale = max(1.0, self.user.GetDpiForWindow(target.window) / 96)
-        width, height, gap = round(36 * scale), round(28 * scale), round(6 * scale)
+        width, height, gap = round(BADGE_WIDTH * scale), round(BADGE_HEIGHT * scale), round(6 * scale)
         area = (info.rcWork.left, info.rcWork.top, info.rcWork.right - info.rcWork.left,
                 info.rcWork.bottom - info.rcWork.top)
         px, py = indicator_position(target.anchor, area, width, height, gap)
@@ -59,25 +61,29 @@ class DictationBadge:
     def _draw(self, state, level, scale):
         self.canvas.delete('all')
         green = '#16a34a'
-        self.canvas.create_oval(0, 0, 28, 28, fill=green, outline='')
-        self.canvas.create_rectangle(14, 0, 22, 28, fill=green, outline='')
-        self.canvas.create_oval(8, 0, 36, 28, fill=green, outline='')
+        self.canvas.create_oval(0, 0, 24, 24, fill=green, outline='')
+        self.canvas.create_rectangle(12, 0, 52, 24, fill=green, outline='')
+        self.canvas.create_oval(40, 0, 64, 24, fill=green, outline='')
+        self.canvas.create_line(32, 0, 32, 24, fill='#57bd7d', width=1)
+        self.canvas.create_text(48, 12, text='粵', fill='white',
+                                font=('Microsoft YaHei UI', -round(12 * scale), 'bold'))
         if state == 'recording':
             # Original line microphone, matching the GNOME symbolic drawing.
             self.canvas.create_line(15.4, 9.5, 15.4, 6.9, 18, 6.9, 20.6, 6.9, 20.6, 9.5,
                                     20.6, 13.3, 20.6, 15.9, 18, 15.9, 15.4, 15.9, 15.4, 13.3,
-                                    15.4, 9.5, smooth=True, fill='white', width=1.35)
+                                    15.4, 9.5, smooth=True, fill='white', width=1.35, tags='microphone')
             self.canvas.create_line(13.1, 12.9, 13.1, 14, 13.1, 18.9, 18, 18.9,
                                     22.9, 18.9, 22.9, 14, 22.9, 12.9,
-                                    smooth=True, fill='white', width=1.35)
-            self.canvas.create_line(18, 18.9, 18, 21.1, fill='white', width=1.35)
-            self.canvas.create_line(15.4, 21.1, 20.6, 21.1, fill='white', width=1.35)
+                                    smooth=True, fill='white', width=1.35, tags='microphone')
+            self.canvas.create_line(18, 18.9, 18, 21.1, fill='white', width=1.35, tags='microphone')
+            self.canvas.create_line(15.4, 21.1, 20.6, 21.1, fill='white', width=1.35, tags='microphone')
             if level > 0:
                 high = max(0, min(1, level)) * 5
-                self.canvas.create_line(18, 14, 18, 14 - high, fill='#bbf7d0', width=2)
+                self.canvas.create_line(18, 14, 18, 14 - high, fill='#bbf7d0', width=2, tags='microphone')
+            self.canvas.move('microphone', -2, -2)
         else:
             for index in range(3):
-                self.canvas.create_oval(11 + index * 5.5, 12.5, 14 + index * 5.5, 15.5,
+                self.canvas.create_oval(9 + index * 5.5, 10.5, 12 + index * 5.5, 13.5,
                                         fill='white', outline='')
         self.canvas.scale('all', 0, 0, scale, scale)
         for item in self.canvas.find_all():
