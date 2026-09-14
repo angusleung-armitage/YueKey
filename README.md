@@ -57,19 +57,29 @@ Windows setup includes the Weasel engine and deploys Cantonese Quick automatical
 
 *實際 Windows x64 安裝後截圖；視窗邊框依系統主題而異。Actual installed Windows x64 app; window borders follow the system theme.*
 
+### Ubuntu／Kubuntu：相同版面 · A familiar layout
+
+Linux 與 Windows 共用總覽、輸入、語音及進階四頁、深綠導覽列和設定卡片。13 項偏好使用相同中英名稱；頁面之間切換不會丟失未儲存選項。執行 `quick-hk configure` 開啟，升級後重新開啟視窗即可使用新介面，毋須登出。
+
+Linux and Windows share four pages, the dark green sidebar and settings cards. All 13 preferences use the same bilingual names, and switching pages keeps unsaved changes. Open `quick-hk configure`; after upgrading, reopen the window to use the new interface without signing out.
+
+![Ubuntu 的粵鍵總覽：深綠導覽列、速成設定及試打欄。YueKey Overview on Ubuntu, with the shared sidebar, typing setup and practice field.](docs/images/ubuntu-overview-v0.6.7.png)
+
+*Ubuntu 26.04 GTK 介面的獨立測試截圖；非生成圖片。GTK app captured in an isolated Ubuntu 26.04 test display; not a generated mockup.*
+
 ## 支援平台 · Supported platforms
 
 每個平台／CPU 使用專用安裝檔。Linux 的 **all-in-one DEB** 包含速成、設定、GNOME／KDE 整合、CPU 語音執行環境及模型；安裝時由 APT 處理系統依賴。
 
 Choose the installer for your OS and CPU. Each Linux **all-in-one DEB** includes typing, settings, GNOME/KDE integration, the CPU speech runtime and models. APT installs the required system libraries.
 
-| 系統及 CPU · OS / CPU | 下載檔案 · Download (0.6.6) |
+| 系統及 CPU · OS / CPU | 下載檔案 · Download (0.6.7) |
 | --- | --- |
-| Ubuntu / Kubuntu 26.04 · Intel / AMD 64-bit | `yuekey_0.6.6-1_amd64.deb` |
-| Ubuntu 26.04 · ARM64 / AArch64 · GNOME 50 or KDE | `yuekey_0.6.6-1_arm64.deb` |
-| Windows · Intel / AMD 64-bit | `YueKey-0.6.6-windows-x64-setup.exe` |
-| Windows · Intel / AMD 32-bit (x86) | `YueKey-0.6.6-windows-x86-setup.exe` |
-| Windows 11 · ARM64 | `YueKey-0.6.6-windows-arm64-setup.exe` |
+| Ubuntu / Kubuntu 26.04 · Intel / AMD 64-bit | `yuekey_0.6.7-1_amd64.deb` |
+| Ubuntu 26.04 · ARM64 / AArch64 · GNOME 50 or KDE | `yuekey_0.6.7-1_arm64.deb` |
+| Windows · Intel / AMD 64-bit | `YueKey-0.6.7-windows-x64-setup.exe` |
+| Windows · Intel / AMD 32-bit (x86) | `YueKey-0.6.7-windows-x86-setup.exe` |
+| Windows 11 · ARM64 | `YueKey-0.6.7-windows-arm64-setup.exe` |
 
 **[下載安裝檔及 SHA256SUMS · Download installers and checksums](https://github.com/angusleung-armitage/YueKey/releases/latest)** · [詳細架構與驗證範圍 · Architecture and test coverage](docs/ARCHITECTURES.md)
 
@@ -89,7 +99,7 @@ Recognition can make mistakes. See the [compatibility record](docs/compatibility
 
 ```bash
 # Ubuntu / Kubuntu 26.04: chooses amd64 or arm64 automatically
-sudo apt install ./yuekey_0.6.6-1_$(dpkg --print-architecture).deb
+sudo apt install ./yuekey_0.6.7-1_$(dpkg --print-architecture).deb
 quick-hk setup
 quick-hk configure
 ```

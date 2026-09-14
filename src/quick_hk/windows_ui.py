@@ -13,9 +13,7 @@ from . import __version__
 from .settings import NUMBER_RANGES
 from .settings_choices import ACTIONS, CHOICES, HINTS, LABELS
 
-COLORS = dict(background='#F3F6F8', surface='#FFFFFF', ink='#142C37', muted='#526773',
-              sidebar='#102F37', sidebar_text='#C2D5DC', accent='#007D75',
-              accent_hover='#006960', pale='#E6F4F0', line='#DCE5E9')
+from .ui_common import COLORS, PAGES
 
 
 def build_window(app, root):
@@ -181,8 +179,7 @@ def build_window(app, root):
         app.setting_controls.append((combo, 'readonly'))
         return combo
 
-    home = page('overview', '總覽  Overview', '每一句，都順手。',
-                'Make every word feel natural.\n速成輸入與廣東話語音，在這裡準備就緒。')
+    home = page('overview', *PAGES['overview'])
     ready = card(home, '速成輸入 · Quick typing')
     app.typing_status = tk.StringVar(value='正在檢查 · Checking…')
     ttk.Label(ready, textvariable=app.typing_status, foreground=c['accent'],
@@ -211,8 +208,7 @@ def build_window(app, root):
                      'Double-tap Ctrl to start or stop. Recognition stays on your computer.')
     ttk.Button(voice_card, text='語音設定 · Voice settings', command=lambda: select_page('voice')).pack(anchor='w')
 
-    typing = page('typing', '輸入  Typing', '輸入設定 · Typing',
-                  '調整候選字與選字習慣。\nMake the candidate list work the way you do.')
+    typing = page('typing', *PAGES['typing'])
     appearance = card(typing, '候選字 · Candidates')
     check(appearance, 'horizontal', LABELS['horizontal'])
     choice(appearance, 'page_size', LABELS['page_size'])
@@ -229,8 +225,7 @@ def build_window(app, root):
     note(behavior, '儲存後會自動重新部署。設定只影響港式速成。\n'
                    'Saving automatically deploys your changes. These settings apply to Cantonese Quick.')
 
-    voice = page('voice', '語音  Voice', '講出你想打嘅字。',
-                 'Cantonese dictation, on your computer.\n純 CPU 運行，下載模型後可離線使用。')
+    voice = page('voice', *PAGES['voice'])
     speech = card(voice, '啟用廣東話語音 · Enable Cantonese voice')
     ttk.Label(speech, textvariable=app.speech_status, foreground=c['accent'],
               font=('Segoe UI Semibold', 14)).pack(anchor='w', pady=(0, 8))
@@ -255,8 +250,7 @@ def build_window(app, root):
                     '使用語音時請保持粵鍵開啟；可縮小視窗。\n'
                     'Keep YueKey running for dictation; minimizing is fine.')
 
-    advanced = page('advanced', '進階  Advanced', '資料與支援 · Data & support',
-                    '管理本機資料與安裝狀態。\nYour preferences, backups and support options.')
+    advanced = page('advanced', *PAGES['advanced'])
     storage = card(advanced, '輸入資料夾 · Typing folder')
     app.folder = tk.StringVar()
     ttk.Entry(storage, textvariable=app.folder, state='readonly').pack(fill='x', pady=(0, 8))

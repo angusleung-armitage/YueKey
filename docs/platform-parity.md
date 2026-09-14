@@ -6,6 +6,7 @@ All three platforms share the Quick mappings, Cantonese continuation data and sp
 
 | 功能 · Feature | GNOME / IBus | KDE / Fcitx5 | Windows / Weasel |
 |---|---|---|---|
+| 總覽／輸入／語音／進階四頁介面 · Four-page settings layout | GTK | GTK | Windows companion |
 | 港式速成、香港用字 · Quick and HK characters | ✓ | ✓ | ✓ |
 | 預設及唯一方案，毋須 F4 · Quick by default, no F4 selection | ✓ | ✓ | ✓ |
 | `zb1` → `，`, `zd1` → `。` | ✓ | ✓ | ✓ |
@@ -24,6 +25,10 @@ All three platforms share the Quick mappings, Cantonese continuation data and sp
 | 安裝檔 · Installer | All-in-one DEB | Same all-in-one DEB | Setup EXE / ZIP |
 | CPU 架構 · Architectures | amd64 / arm64 | amd64 / arm64 | x64 / x86 / arm64 |
 | 語音模型 · Speech models | Bundled | Bundled | Download on first setup |
+
+0.6.7 起，三個平台使用相同的深綠導覽列、四頁版面、卡片及儲存按鈕；共用配色和頁面標題定義。原生視窗邊框、控制項與平台啟用步驟按系統處理。
+
+Since 0.6.7, all platforms use the same sidebar, four-page layout, cards and Save changes action, sharing palette and page-title definitions. Native window borders, controls and activation steps follow the platform.
 
 設定介面：Linux 執行 `quick-hk configure`；Windows 開啟 YueKey 的 Typing／Voice 分頁。兩者共用全部 13 項偏好：橫排、每頁字數、字體大小、候選字顯示、主題、學習、關聯字、半形標點、中英切換鍵、語音啟用、語音快捷鍵、麥克風及自動標點。主題與按鍵選項使用相同中英名稱。
 

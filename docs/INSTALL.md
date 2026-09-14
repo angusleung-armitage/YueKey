@@ -42,7 +42,7 @@ After the build, `dist/` should contain these files for this version:
 
 | 套件 · Package | 用途 · Purpose |
 | --- | --- |
-| `yuekey_0.6.6-1_amd64.deb` **或 / or** `yuekey_0.6.6-1_arm64.deb` | 一個檔案包含全部 YueKey 元件及 CPU 語音模型／All YueKey components and CPU speech models |
+| `yuekey_0.6.7-1_amd64.deb` **或 / or** `yuekey_0.6.7-1_arm64.deb` | 一個檔案包含全部 YueKey 元件及 CPU 語音模型／All YueKey components and CPU speech models |
 | `SHA256SUMS` | 套件檢查碼／Package checksums |
 
 建置使用主機的 CPU 架構；各架構須分別建置。執行 `dpkg --print-architecture` 選擇對應檔案。此版本不提供 Linux i386／ARM32；亦不支援以強制架構選項安裝錯誤 DEB。詳見[架構指南](ARCHITECTURES.md)。
@@ -66,7 +66,7 @@ If you already have these packages, continue below. Docker is used for building;
 Run from the project root:
 
 ```bash
-sudo apt install ./dist/yuekey_0.6.6-1_$(dpkg --print-architecture).deb
+sudo apt install ./dist/yuekey_0.6.7-1_$(dpkg --print-architecture).deb
 quick-hk setup --frontend ibus
 ```
 
@@ -160,7 +160,7 @@ Version 0.6.6 places a green microphone capsule below the caret, near the text-s
 ## 5. Kubuntu KDE：安裝速成 · Install Quick input
 
 ```bash
-sudo apt install ./dist/yuekey_0.6.6-1_$(dpkg --print-architecture).deb
+sudo apt install ./dist/yuekey_0.6.7-1_$(dpkg --print-architecture).deb
 quick-hk setup --frontend fcitx5
 ```
 
@@ -208,6 +208,24 @@ quick-hk configure --frontend fcitx5
 
 
 ## 6. 常用操作與設定 · Everyday use and settings
+
+0.6.7 的設定視窗與 Windows 採用相同四頁版面。升級後重新開啟 **粵鍵 YueKey** 或執行 `quick-hk configure` 即可使用；更新設定視窗毋須登出。Kubuntu 使用 `quick-hk configure --frontend fcitx5`。
+
+The 0.6.7 Settings window follows the Windows four-page layout. After upgrading, reopen **YueKey** or run `quick-hk configure`; the Settings UI needs no sign-out. On Kubuntu, use `quick-hk configure --frontend fcitx5`.
+
+| 分頁 · Page | 用途 · Use |
+| --- | --- |
+| 總覽 · Overview | 設定速成、查看狀態、試打／Set up typing, check status and try the practice field |
+| 輸入 · Typing | 候選字、學習、關聯字、標點及中英切換／Candidates, learning, continuations, punctuation and language key |
+| 語音 · Voice | 啟用／停用、模型、麥克風、Ctrl 鍵及自動標點／Enable or disable, models, microphone, Ctrl key and punctuation |
+| 進階 · Advanced | 資料夾、備份重設、移除方案及指南／Folders, backed-up reset, profile removal and guide |
+
+調整輸入選項後按右下角 **儲存並套用**；切換頁面會保留未儲存選項。語音頁的啟用／停用按鈕會儲存並部署設定；如模型尚未準備，啟用時會先準備模型。重新載入輸入法後啟用最新設定。語音服務在背景執行，關閉設定視窗不會停止語音服務。
+
+After changing typing options, choose **Save changes** at the lower right. Switching pages preserves unsaved values. Enable/disable on the Voice page saves and deploys settings, preparing missing models before enabling. Reload the input method to activate updated settings. The speech service runs in the background after Settings closes.
+
+![Ubuntu 輸入設定 · Ubuntu Typing settings](images/ubuntu-typing-v0.6.7.png)
+
 
 中文模式的速成碼不分大小階：`hi`、`HI` 或混合大小階都可取碼。Caps Lock 或按住 Shift 輸入字母不會變成英文；單按設定的中英切換鍵（預設左 Shift）仍會切換中英。
 

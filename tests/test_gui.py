@@ -12,6 +12,7 @@ from __future__ import annotations
 import os
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -70,6 +71,10 @@ class GuiTests(unittest.TestCase):
             failures = []
             completed = False
             font_control = None
+            layouts = [(size, page) for size in ((960, 700), (860, 620))
+                       for page in ('overview', 'typing', 'voice', 'advanced')]
+            layout_index = 0
+            settle_at = 0
 
             def descendants(widget):
                 child = widget.get_first_child()
@@ -79,7 +84,7 @@ class GuiTests(unittest.TestCase):
                     child = child.get_next_sibling()
 
             def tick():
-                nonlocal state, completed, font_control
+                nonlocal state, completed, font_control, layout_index, settle_at
                 application = Gtk.Application.get_default()
                 if not application or not application.window:
                     return GLib.SOURCE_CONTINUE
@@ -99,13 +104,26 @@ class GuiTests(unittest.TestCase):
                         from dataclasses import asdict
                         from quick_hk.settings import NUMBER_RANGES
                         from quick_hk.settings_choices import CHOICES, LABELS
+                        from quick_hk.ui_common import PAGES
+                        self.assertEqual(list(application.pages), list(PAGES))
+                        self.assertEqual(application.active_page, 'overview')
+                        for page in PAGES:
+                            application.navigation[page].emit('clicked')
+                            self.assertEqual(application.form.get_visible_child_name(), page)
+                            self.assertTrue(application.navigation[page].get_active())
+                        application.select_page('typing')
                         initial = asdict(load_settings(config_path))
                         self.assertEqual(set(application.controls), set(initial))
                         self.assertEqual(set(LABELS), set(initial))
                         for name, control in application.controls.items():
-                            self.assertEqual(control.get_parent().get_first_child().get_label(), LABELS[name])
+                            if name == 'dictation_enabled':
+                                self.assertEqual(control.get_label(), LABELS[name])
+                            elif isinstance(control, Gtk.CheckButton):
+                                self.assertEqual(control.get_label(), LABELS[name])
+                            else:
+                                self.assertEqual(control.get_parent().get_first_child().get_label(), LABELS[name])
                             self.assertEqual(application.fields[name](), initial[name])
-                            if isinstance(control, Gtk.Switch):
+                            if isinstance(control, Gtk.CheckButton):
                                 control.set_active(not initial[name])
                                 self.assertEqual(application.fields[name](), not initial[name])
                                 control.set_active(initial[name])
@@ -139,6 +157,9 @@ class GuiTests(unittest.TestCase):
                             and child.get_value_as_int() == 24
                         )
                         font_control.set_value(27)
+                        application.select_page('voice')
+                        application.select_page('typing')
+                        self.assertEqual(font_control.get_value_as_int(), 27)
                         application.apply_button.emit("clicked")
                         self.assertIsNotNone(application.process)
                         self.assertFalse(application.apply_button.get_sensitive())
@@ -176,6 +197,64 @@ class GuiTests(unittest.TestCase):
                         self.assertFalse(application.status.has_css_class("error"))
                         self.assertTrue(application.form.get_sensitive())
                         self.assertEqual(load_settings(config_path).font_size, 30)
+                        application.select_page('overview')
+                        application.setup_button.emit('clicked')
+                        state = 4
+                    elif state == 4 and application.process is None:
+                        self.assertEqual(launches[3][0],
+                            [sys.executable, '-m', 'quick_hk', 'setup', '--frontend', 'fcitx5'])
+                        application.select_page('voice')
+                        with patch('quick_hk.dictation_setup.status', return_value={'ready': True}):
+                            application.enable_button.emit('clicked')
+                        state = 5
+                    elif state == 5 and application.process is None:
+                        self.assertTrue(load_settings(config_path).dictation_enabled)
+                        self.assertTrue(application.fields['dictation_enabled']())
+                        self.assertIn('停用', application.enable_button.get_label())
+                        application.enable_button.emit('clicked')
+                        state = 6
+                    elif state == 6 and application.process is None:
+                        self.assertFalse(load_settings(config_path).dictation_enabled)
+                        self.assertEqual(load_settings(config_path).font_size, 30)
+                        # A long device description must remain selectable without
+                        # expanding the window or hiding the persistent Save button.
+                        with patch('quick_hk.dictation_setup.microphones', return_value=[
+                            ('default', 'Microphone with a long device description ' * 10)]):
+                            application._refresh_microphones(None)
+                        application.practice_entry.set_text('你好')
+                        state = 7
+                    elif state == 7:
+                        size, page = layouts[layout_index]
+                        application.window.set_default_size(*size)
+                        application.select_page(page)
+                        settle_at = time.monotonic() + .1
+                        state = 8
+                    elif state == 8 and time.monotonic() >= settle_at:
+                        size, page = layouts[layout_index]
+                        self.assertLessEqual(application.window.get_width(), size[0])
+                        self.assertLessEqual(application.window.get_height(), size[1])
+                        self.assertEqual(application.practice_entry.get_text(), '你好')
+                        self.assertEqual(application.fields['font_size'](), 30)
+                        for widget in [application.apply_button, *application.navigation.values()]:
+                            ok, rect = widget.compute_bounds(application.window)
+                            self.assertTrue(ok)
+                            self.assertGreaterEqual(rect.get_x(), 0)
+                            self.assertGreaterEqual(rect.get_y(), 0)
+                            self.assertLessEqual(rect.get_x() + rect.get_width(), application.window.get_width())
+                            self.assertLessEqual(rect.get_y() + rect.get_height(), application.window.get_height())
+                        scroll = application.pages[page]
+                        for widget in application.controls.values():
+                            if widget.is_ancestor(scroll):
+                                ok, rect = widget.compute_bounds(application.window)
+                                self.assertTrue(ok)
+                                self.assertLessEqual(rect.get_x() + rect.get_width(), application.window.get_width())
+                        adjustment = scroll.get_vadjustment()
+                        adjustment.set_value(adjustment.get_upper() - adjustment.get_page_size())
+                        self.assertGreaterEqual(adjustment.get_value(), 0)
+                        layout_index += 1
+                        if layout_index < len(layouts):
+                            state = 7
+                            return GLib.SOURCE_CONTINUE
                         completed = True
                         application.quit()
                         return GLib.SOURCE_REMOVE

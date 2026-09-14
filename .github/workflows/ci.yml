@@ -66,6 +66,12 @@ jobs:
         run: |
           node desktop/gnome/test-extension.cjs
           node desktop/gnome/test-dictation.cjs
+      - name: Check GTK settings at 200 percent scale with dark system theme
+        run: >-
+          docker run --rm --init --user "$(id -u):$(id -g)" -v "$PWD:/work"
+          -e GDK_SCALE=2 -e GTK_THEME=Adwaita:dark quick-hk-dev:26.04
+          bash -c 'PYTHONPATH=src GDK_BACKEND=x11 GSK_RENDERER=cairo GTK_A11Y=none
+          xvfb-run -a -s "-screen 0 2400x1800x24" python3 -m pytest tests/test_gui.py -q'
       - name: Check dictation gesture and Rime bridge
         run: |
           docker run --rm --init --user "$(id -u):$(id -g)" -v "$PWD:/work" quick-hk-dev:26.04 ctest --test-dir build/native --output-on-failure

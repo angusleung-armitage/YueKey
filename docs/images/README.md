@@ -72,3 +72,12 @@ captures of the installed application on the disposable Windows Server 2025
 x64 runner, commit `6680c60`,
 [run 34755990578](https://github.com/angusleung-armitage/YueKey/actions/runs/34755990578).
 The Typing capture shows the shared labels and the horizontal-candidates option.
+
+
+## Ubuntu 0.6.7 interface captures
+
+`ubuntu-overview-v0.6.7.png` and `ubuntu-typing-v0.6.7.png` show the actual GTK4
+settings widgets on an isolated Xvfb display under Ubuntu 26.04. The test uses a
+disposable preference file and deterministic readiness values; no user document or
+microphone is accessed. They are screenshots, not generated mockups. The original
+YueKey UI and artwork are MIT-licensed. Native window borders are rendered by GTK.

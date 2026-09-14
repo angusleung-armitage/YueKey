@@ -6,8 +6,8 @@ import os
 import sys
 from pathlib import Path
 
-from .settings import NUMBER_RANGES, Settings, load_settings, save_settings
-from .settings_choices import ACTIONS, CHOICES, HINTS, LABELS, microphone_choices
+from .settings import Settings, load_settings, save_settings
+from .settings_choices import ACTIONS, LABELS, microphone_choices
 
 
 def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
@@ -46,186 +46,25 @@ def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
             self.window = Gtk.ApplicationWindow(
                 application=self,
                 title="粵鍵 YueKey",
-                default_width=590,
-                default_height=710,
             )
             self.window.connect("close-request", self._close_requested)
-            from .deployment import desktop_directory
-            icons = desktop_directory() / "icons"
-            Gtk.IconTheme.get_for_display(self.window.get_display()).add_search_path(str(icons))
-            self.window.set_icon_name("yuekey")
-            header = Gtk.HeaderBar()
-            header.set_title_widget(Gtk.Label(label="粵鍵設定 · Settings"))
-            self.window.set_titlebar(header)
-            outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-            self.window.set_child(outer)
-            scroller = Gtk.ScrolledWindow(
-                hscrollbar_policy=Gtk.PolicyType.NEVER, vexpand=True
-            )
-            outer.append(scroller)
-            content = Gtk.Box(
-                orientation=Gtk.Orientation.VERTICAL,
-                spacing=12,
-                margin_top=20,
-                margin_bottom=20,
-                margin_start=24,
-                margin_end=24,
-            )
-            scroller.set_child(content)
-            brand = Gtk.Box(spacing=14)
-            logo = Gtk.Image.new_from_file(str(icons / "yuekey-64.png"))
-            logo.set_pixel_size(64)
-            brand.append(logo)
-            title = Gtk.Label(label="粵鍵 YueKey", xalign=0)
-            title.add_css_class("title-1")
-            brand.append(title)
-            content.append(brand)
-            intro = Gtk.Label(
-                label="Type the first and last Cangjie radicals.\n"
-                "取首尾碼輸入；用數字鍵選字，空白鍵確認。",
-                xalign=0,
-                wrap=True,
-            )
-            intro.add_css_class("dim-label")
-            content.append(intro)
             try:
                 settings = load_settings(config_path)
                 load_error = None
             except (OSError, ValueError) as exc:
                 settings = Settings()
                 load_error = str(exc)
-
-            self.form = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-            content.append(self.form)
-            self._heading("候選字 · Candidates")
-            self._switch("horizontal", LABELS["horizontal"], settings.horizontal)
-            self._number("page_size", LABELS["page_size"], settings.page_size, *NUMBER_RANGES["page_size"])
-            self._number("font_size", LABELS["font_size"], settings.font_size, *NUMBER_RANGES["font_size"])
-            self._choice("theme", LABELS["theme"], settings.theme, CHOICES["theme"])
-            self._switch("show_candidates", LABELS["show_candidates"], settings.show_candidates)
-            hint = Gtk.Label(
-                label=HINTS["show_candidates"],
-                xalign=0,
-                wrap=True,
-            )
-            hint.add_css_class("dim-label")
-            self.form.append(hint)
-            self._heading("輸入習慣 · Typing")
-            self._switch("learning", LABELS["learning"], settings.learning)
-            self._switch("prediction", LABELS["prediction"], settings.prediction)
-            prediction_hint = Gtk.Label(label=HINTS["prediction"], xalign=0, wrap=True)
-            prediction_hint.add_css_class("dim-label")
-            self.form.append(prediction_hint)
-            self._switch("ascii_punctuation", LABELS["ascii_punctuation"], settings.ascii_punctuation)
-            self._choice("switch_key", LABELS["switch_key"], settings.switch_key, CHOICES["switch_key"])
-            self._heading("廣東話語音輸入 · Cantonese dictation")
-            from .dictation_setup import microphones, status as speech_status
-            speech = speech_status()
-            self.speech_hint = Gtk.Label(xalign=0, wrap=True, label=(
-                "SenseVoice Small Yue · CPU · 離線\n"
-                + ("已準備好 · Double-tap Ctrl to start / stop." if speech['ready']
-                   else "首次使用請準備語音模型 · Download models before enabling.")))
-            self.speech_hint.add_css_class("dim-label")
-            self.form.append(self.speech_hint)
-            self.extension_hint = Gtk.Label(xalign=0, wrap=True, label=
-                "語音提示已更新，GNOME 會在下次登入載入新介面。\n"
-                "Microphone UI updated; GNOME loads it at the next login.")
-            self.form.append(self.extension_hint)
-            self._refresh_extension_hint()
-            self._switch("dictation_enabled", LABELS["dictation_enabled"], settings.dictation_enabled)
-            self._choice("dictation_key", LABELS["dictation_key"], settings.dictation_key, CHOICES["dictation_key"])
-            devices = microphone_choices(microphones(), settings.dictation_microphone)
-            self._choice("dictation_microphone", LABELS["dictation_microphone"], settings.dictation_microphone, devices)
-            refresh = Gtk.Button(label=ACTIONS["refresh_microphones"])
-            refresh.connect("clicked", self._refresh_microphones)
-            self.form.append(refresh)
-            self._switch("dictation_punctuation", LABELS["dictation_punctuation"], settings.dictation_punctuation)
-            key_hint = Gtk.Label(xalign=0, wrap=True, label=HINTS["dictation_key"])
-            key_hint.add_css_class("dim-label")
-            self.form.append(key_hint)
-            setup_button = Gtk.Button(label=("驗證語音模型 · Verify speech models" if speech.get('bundled')
-                                              else "準備語音模型 · Set up speech models"))
-            setup_button.connect("clicked", lambda *_: self._start_command(
-                ["dictation", "setup"], "正在檢查語音模型… · Checking speech models…" if speech.get('bundled')
-                else "正在下載及準備語音模型… · Preparing speech models…"))
-            self.form.append(setup_button)
-            local = Gtk.Label(
-                label="所有學習資料保存在這部電腦。\nLearning stays on this computer.",
-                xalign=0,
-                wrap=True,
-            )
-            local.add_css_class("dim-label")
-            content.append(local)
-            outer.append(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
-            footer = Gtk.Box(
-                orientation=Gtk.Orientation.VERTICAL,
-                spacing=8,
-                margin_start=24,
-                margin_end=24,
-                margin_top=12,
-                margin_bottom=20,
-            )
-            outer.append(footer)
-            self.status = Gtk.Label(xalign=0, wrap=True, selectable=True)
-            self.status_scroller = Gtk.ScrolledWindow(
-                hscrollbar_policy=Gtk.PolicyType.NEVER,
-                max_content_height=120,
-                propagate_natural_height=True,
-                visible=False,
-            )
-            self.status_scroller.set_child(self.status)
-            footer.append(self.status_scroller)
-            actions = Gtk.Box(spacing=12)
-            self.reset_button = Gtk.Button(label=ACTIONS["reset_learning"])
-            self.reset_button.connect("clicked", self._reset)
-            actions.append(self.reset_button)
-            self.spinner = Gtk.Spinner(hexpand=True, halign=Gtk.Align.END)
-            actions.append(self.spinner)
-            self.apply_button = Gtk.Button(label=ACTIONS["apply"])
-            self.apply_button.add_css_class("suggested-action")
-            self.apply_button.connect("clicked", self._apply)
-            actions.append(self.apply_button)
-            footer.append(actions)
+            from .deployment import resolve_frontends
+            from .gtk_ui import build_window
+            self.frontend = frontend
+            self.frontends = resolve_frontends(frontend)
+            self.dictation_enabled = settings.dictation_enabled
+            self.pending_enable = False
+            build_window(self, settings)
+            self._refresh_readiness()
             if load_error:
-                self._status(f"Could not load settings: {load_error}\nDefaults are shown; Apply will save them.", error=True)
+                self._status(f"Could not load settings: {load_error}\nDefaults are shown; Save changes will save them.", error=True)
             self.window.present()
-
-        def _heading(self, text: str) -> None:
-            heading = Gtk.Label(label=text, xalign=0, margin_top=14, margin_bottom=3)
-            heading.add_css_class("heading")
-            self.form.append(heading)
-
-        def _row(self, text: str, widget) -> None:
-            row = Gtk.Box(spacing=12)
-            label = Gtk.Label(label=text, xalign=0, hexpand=True, wrap=True)
-            label.set_mnemonic_widget(widget)
-            widget.set_valign(Gtk.Align.CENTER)
-            row.append(label)
-            row.append(widget)
-            self.form.append(row)
-
-        def _switch(self, name: str, text: str, value: bool) -> None:
-            control = Gtk.Switch(active=value)
-            self.controls[name] = control
-            self.fields[name] = control.get_active
-            self._row(text, control)
-
-        def _number(self, name: str, text: str, value: int, low: int, high: int) -> None:
-            control = Gtk.SpinButton.new_with_range(low, high, 1)
-            control.set_value(value)
-            control.set_numeric(True)
-            self.controls[name] = control
-            self.fields[name] = control.get_value_as_int
-            self._row(text, control)
-
-        def _choice(self, name: str, text: str, value: str, choices: list[tuple[str, str]]) -> None:
-            control = Gtk.DropDown.new_from_strings([label for _, label in choices])
-            values = [key for key, _ in choices]
-            control.set_selected(values.index(value) if value in values else 0)
-            self.controls[name] = control
-            self.choice_values[name] = values
-            self.fields[name] = lambda: self.choice_values[name][control.get_selected()]
-            self._row(text, control)
 
         def _refresh_microphones(self, _button) -> None:
             from .dictation_setup import microphones
@@ -244,19 +83,38 @@ def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
             else:
                 self.status.remove_css_class("error")
 
-        def _apply(self, _button) -> None:
+        def _setup_typing(self, _button) -> None:
+            self._apply(_button, command="setup")
+
+        def _toggle_dictation(self, _button) -> None:
+            if self.process is not None:
+                return
+            from .dictation_setup import status as speech_status
+            if not self.dictation_enabled and not speech_status()['ready']:
+                self.pending_enable = self._start_command(
+                    ["dictation", "setup"], "正在準備語音模型… · Preparing speech models…")
+            else:
+                self._apply(_button, enabled=not self.dictation_enabled)
+
+        def _apply(self, _button, *, command="deploy", enabled=None) -> None:
+            if self.process is not None:
+                return
             try:
-                settings = Settings(**{name: get_value() for name, get_value in self.fields.items()})
+                values = {name: get_value() for name, get_value in self.fields.items()}
+                if enabled is not None:
+                    values['dictation_enabled'] = enabled
+                settings = Settings(**values)
                 if settings.dictation_enabled:
                     from .dictation_setup import status as speech_status
                     if not speech_status()["ready"]:
                         raise ValueError("Prepare speech models before enabling dictation.")
                 save_settings(settings, config_path)
+                self.dictation_enabled = settings.dictation_enabled
             except (OSError, ValueError) as exc:
                 self._status(f"Could not save settings: {exc}", error=True)
                 return
             self._start_command(
-                ["deploy", "--frontend", frontend],
+                [command, "--frontend", frontend],
                 "已儲存，正在套用… · Saved; applying…",
             )
 
@@ -266,12 +124,12 @@ def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
                 "正在備份及重設學習資料… · Backing up and resetting learning…",
             )
 
-        def _start_command(self, arguments: list[str], message: str) -> None:
+        def _start_command(self, arguments: list[str], message: str) -> bool:
             if self.process is not None:
-                return
+                return False
             if os.geteuid() == 0:
                 self._status("Open YueKey Settings as your desktop user, without sudo.", error=True)
-                return
+                return False
             launcher = Gio.SubprocessLauncher.new(
                 Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE
             )
@@ -281,16 +139,19 @@ def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
                 self.process = launcher.spawnv([sys.executable, "-m", "quick_hk", *arguments])
             except GLib.Error as exc:
                 self._status(f"Could not start YueKey: {exc.message}", error=True)
-                return
+                return False
             self._set_busy(True)
             self._status(message)
             self.process.communicate_utf8_async(None, None, self._finished)
+            return True
 
         def _finished(self, process, result) -> None:
+            succeeded = False
             try:
                 _ok, output, errors = process.communicate_utf8_finish(result)
                 detail = "\n".join(part.strip() for part in (output, errors) if part and part.strip())
-                if process.get_successful():
+                succeeded = process.get_successful()
+                if succeeded:
                     self._status(detail or "完成 · Done")
                 else:
                     self._status(
@@ -302,10 +163,49 @@ def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
             finally:
                 self.process = None
                 self._set_busy(False)
-                from .dictation_setup import status as speech_status
-                if speech_status()['ready']:
-                    self.speech_hint.set_label("SenseVoice Small Yue · CPU · 離線\n已準備好 · Double-tap Ctrl to start / stop.")
-                self._refresh_extension_hint()
+                self._refresh_readiness()
+                enable = self.pending_enable and succeeded
+                self.pending_enable = False
+                if enable:
+                    self._apply(None, enabled=True)
+
+        def _refresh_readiness(self) -> None:
+            from .deployment import frontend_directory, state_home
+            from .dictation_setup import status as speech_status
+            from .dictation_service import live_status
+            ready = all((state_home() / f"{name}.json").is_file() and
+                        (frontend_directory(name) / "build/quick_hk.schema.yaml").is_file()
+                        for name in self.frontends)
+            self.typing_status.set_label("已就緒 · Ready to type" if ready else "尚待設定 · Ready to set up")
+            speech = speech_status()
+            if not speech['ready']:
+                text = "模型尚未準備 · Models need setup"
+            elif not self.dictation_enabled:
+                text = "未啟用 · Not enabled"
+            else:
+                service = live_status()
+                ready = all(service.get(key) for key in ('ready', 'desktop_ready', 'rime_ready'))
+                text = "已啟用 · Ready for dictation" if ready else "已啟用 · Reload the input method"
+            for widget in self.readiness_labels:
+                widget.set_label(text)
+            self.enable_button.set_label(ACTIONS['disable_dictation'] if self.dictation_enabled
+                                         else LABELS['dictation_enabled'])
+            self._refresh_extension_hint()
+
+        def _open_folder(self, path) -> None:
+            if not path.is_dir():
+                self._status("請先在總覽設定速成。 · Choose Set up typing on Overview first.")
+                return
+            self._open_uri(path.as_uri())
+
+        def _open_guide(self, _button) -> None:
+            self._open_uri("https://github.com/angusleung200/YueKey/blob/main/docs/INSTALL.md")
+
+        def _open_uri(self, uri) -> None:
+            try:
+                Gio.AppInfo.launch_default_for_uri(uri, None)
+            except GLib.Error as exc:
+                self._status(f"未能開啟 · Could not open: {exc.message}", error=True)
 
         def _refresh_extension_hint(self) -> None:
             from .dictation_service import gnome_extension_status
@@ -315,6 +215,8 @@ def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
             self.form.set_sensitive(not busy)
             self.apply_button.set_sensitive(not busy)
             self.reset_button.set_sensitive(not busy)
+            self.setup_button.set_sensitive(not busy)
+            self.enable_button.set_sensitive(not busy)
             self.spinner.set_spinning(busy)
 
         def _close_requested(self, _window) -> bool:
@@ -323,6 +225,7 @@ def run_gui(config_path: Path | None = None, frontend: str = "auto") -> None:
             if self.process is not None:
                 self._status("正在完成套用，請稍候。 · Please wait for the current operation to finish.")
                 return True
+            Gtk.StyleContext.remove_provider_for_display(self.window.get_display(), self.css_provider)
             self.window = None
             return False
 
